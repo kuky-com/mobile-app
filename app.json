@@ -12,16 +12,32 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.kuky"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.kuky"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./src/assets/fonts/Comfortaa-Bold.ttf",
+            "./src/assets/fonts/Comfortaa-Light.ttf",
+            "./src/assets/fonts/Comfortaa-Medium.ttf",
+            "./src/assets/fonts/Comfortaa-Regular.ttf",
+            "./src/assets/fonts/Comfortaa-SemiBold.ttf"
+          ]
+        }
+      ]
+    ]
   }
 }
