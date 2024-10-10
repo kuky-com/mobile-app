@@ -1,4 +1,5 @@
 import { tokenAtom, userAtom } from '@/actions/global'
+import ButtonWithLoading from '@/components/ButtonWithLoading'
 import Text from '@/components/Text'
 import apiClient from '@/utils/apiClient'
 import images from '@/utils/images'
@@ -7,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Image } from 'expo-image'
 import { StatusBar } from 'expo-status-bar'
 import { useSetAtom } from 'jotai'
-import React from 'react'
+import React, { useState } from 'react'
 import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -33,6 +34,7 @@ const SettingScreen = ({ navigation }) => {
     const insets = useSafeAreaInsets()
     const setToken = useSetAtom(tokenAtom)
     const setUser = useSetAtom(userAtom)
+    const [loading, setLoading] = useState(false)
 
     const onSupport = () => {
         Linking.openURL('https://www.kuky.com/')
@@ -43,17 +45,27 @@ const SettingScreen = ({ navigation }) => {
     }
 
     const onLogout = async () => {
-        await AsyncStorage.removeItem('ACCESS_TOKEN')
-        setToken(null)
-        setUser(null)
+        setLoading(true)
         apiClient.get('auth/logout')
-            .then((res) => {
+            .then(async (res) => {
+                setLoading(false)
+
+                await AsyncStorage.removeItem('ACCESS_TOKEN')
+                setToken(null)
+                setUser(null)
+                NavigationService.reset('GetStartScreen')
                 console.log({ res })
             })
-            .catch((error) => {
+            .catch(async (error) => {
+                setLoading(false)
+
+                await AsyncStorage.removeItem('ACCESS_TOKEN')
+                setToken(null)
+                setUser(null)
+                NavigationService.reset('GetStartScreen')
                 console.log({ error })
             })
-        NavigationService.reset('GetStartScreen')
+
     }
 
     const openInterest = () => {
@@ -164,9 +176,11 @@ const SettingScreen = ({ navigation }) => {
                             <Image source={images.delete_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
                         </TouchableOpacity>
 
-                        <TouchableOpacity onPress={onLogout} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333' }}>
-                            <Text style={{ fontSize: 18, color: 'white', fontWeight: 'bold' }}>{'Logout'}</Text>
-                        </TouchableOpacity>
+                        <ButtonWithLoading 
+                            text='Logout'
+                            onPress={onLogout}
+                            loading={loading}
+                        />
                     </View>
                 </ScrollView>
             </View>

@@ -32,10 +32,12 @@ const SplashScreen = ({ navigation }) => {
     useEffect(() => {
         const getRoute = async () => {
             const token = await AsyncStorage.getItem('ACCESS_TOKEN')
+            const deviceId = await AsyncStorage.getItem('DEVICE_ID')
 
-            if (token) {
+            if (token && deviceId) {
                 apiClient('users/user-info')
                 .then((res) => {
+                    console.log({userInfo111: res.data.data})
                     if(res && res.data && res.data.success) {
                         console.log({userInfo: res.data.data})
                         setUser(res.data.data)

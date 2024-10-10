@@ -1,7 +1,7 @@
 import { Header } from '@/components/Header';
 import Text from '@/components/Text';
 import React, { useEffect, useState } from 'react';
-import { View, Image, FlatList, StyleSheet, Dimensions, DeviceEventEmitter } from 'react-native';
+import { View, Image, FlatList, StyleSheet, Dimensions, DeviceEventEmitter, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import DynamicLikeItem from '@/components/DynamicLikeItem';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,7 +12,7 @@ import constants from '@/utils/constants';
 import { useAtom } from 'jotai';
 import { notiCounterAtom } from '@/actions/global';
 
-const ITEM_WIDTH = Dimensions.get('window').width / 2 - 24;
+const ITEM_WIDTH = Platform.isPad ? Dimensions.get('screen').width / 4 - 20 : Dimensions.get('screen').width / 2 - 24;
 
 const ExploreScreen = ({ navigation }) => {
     const insets = useSafeAreaInsets()
@@ -153,7 +153,7 @@ const ExploreScreen = ({ navigation }) => {
                 data={isFetching ? [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }, { id: 6 }] : suggestions}
                 renderItem={renderItem}
                 keyExtractor={(item) => item.id}
-                numColumns={2}
+                numColumns={Platform.isPad ? 4 : 2}
                 style={{ flex: 1, paddingHorizontal: 8 }}
                 ListFooterComponent={renderFooter}
                 showsVerticalScrollIndicator={false}
@@ -162,7 +162,7 @@ const ExploreScreen = ({ navigation }) => {
                 refreshing={false}
                 ListEmptyComponent={() => {
                     return (
-                        <View style={{ width: '100%', minHeight: Dimensions.get('screen').height - 250, alignItems: 'center', justifyContent: 'center' }}>
+                        <View style={{ width: '100%', minHeight: 250, alignItems: 'center', justifyContent: 'center' }}>
                             <Text style={{ fontSize: 14, color: '#777777', fontWeight: '600', textAlign: 'center' }}>{'There is no suggestion now\n\nPlease try to change your interest to see more suggestions!'}</Text>
                         </View>
                     )

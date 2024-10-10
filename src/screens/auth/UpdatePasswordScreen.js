@@ -1,12 +1,15 @@
+import ButtonWithLoading from '@/components/ButtonWithLoading'
 import Text from '@/components/Text'
+import apiClient from '@/utils/apiClient'
 import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
-import React from 'react'
-import { Linking, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
+import React, { useState } from 'react'
+import { Keyboard, Linking, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import Toast from 'react-native-toast-message'
 
 const styles = StyleSheet.create({
     container: {
@@ -26,6 +29,43 @@ const styles = StyleSheet.create({
 
 const UpdatePasswordScreen = ({ navigation }) => {
     const insets = useSafeAreaInsets()
+    const [oldPassword, setOldPassword] = useState('')
+    const [newPassword, setNewPassword] = useState('')
+    const [loading, setLoading] = useState(false)
+
+    const updatePassword = async () => {
+        if (oldPassword.length < 6 || newPassword.length < 6) {
+            Toast.show({ text1: 'Password must have at least 6 characters', type: 'error' })
+            return
+        }
+        if (oldPassword === newPassword) {
+            Toast.show({ text1: 'New password cannot same old password', type: 'error' })
+            return
+        }
+        try {
+            Keyboard.dismiss()
+            setLoading(true)
+
+            apiClient.post('auth/update-password', { current_password: oldPassword, new_password: newPassword })
+                .then((res) => {
+                    console.log({ res })
+                    setLoading(false)
+                    if (res && res.data && res.data.success) {
+                        Toast.show({ text1: res.data.message, type: 'success' })
+                        navigation.goBack()
+                    } else {
+                        Toast.show({ text1: res.data.message, type: 'error' })
+                    }
+                })
+                .catch((error) => {
+                    console.log({ error })
+                    setLoading(false)
+                    Toast.show({ text1: error, type: 'error' })
+                })
+        } catch (error) {
+            setLoading(false)
+        }
+    }
 
     return (
         <View style={styles.container}>
@@ -46,6 +86,8 @@ const UpdatePasswordScreen = ({ navigation }) => {
                                 style={{ fontSize: 16, fontWeight: '500', color: 'black', fontWeight: 'bold', padding: 16, width: '100%', fontFamily: 'Comfortaa-Bold' }}
                                 underlineColorAndroid='#000000'
                                 placeholder='Your old password'
+                                value={oldPassword}
+                                onChangeText={setOldPassword}
                             />
                         </View>
 
@@ -55,15 +97,19 @@ const UpdatePasswordScreen = ({ navigation }) => {
                                 style={{ fontSize: 16, fontWeight: '500', color: 'black', fontWeight: 'bold', padding: 16, width: '100%', fontFamily: 'Comfortaa-Bold' }}
                                 underlineColorAndroid='#000000'
                                 placeholder='Your new password'
+                                value={newPassword}
+                                onChangeText={setNewPassword}
                             />
                         </View>
                     </View>
                 </KeyboardAwareScrollView>
 
                 <View style={{ width: '100%', paddingHorizontal: 16, marginBottom: insets.bottom + 20, }}>
-                    <TouchableOpacity style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333' }}>
-                        <Text style={{ fontSize: 18, color: 'white', fontWeight: 'bold' }}>{'Update Password'}</Text>
-                    </TouchableOpacity>
+                    <ButtonWithLoading
+                        onPress={updatePassword}
+                        text='Update Password'
+                        loading={loading}
+                    />
                 </View>
             </View>
         </View>

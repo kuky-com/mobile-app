@@ -3,7 +3,7 @@ import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import React, { useState } from 'react'
-import { Dimensions, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
+import { Dimensions, Keyboard, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ImagePicker from 'react-native-image-crop-picker'
@@ -14,6 +14,7 @@ import axios from 'axios'
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import apiClient from '@/utils/apiClient'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
+import ButtonWithLoading from '@/components/ButtonWithLoading'
 
 const styles = StyleSheet.create({
     container: {
@@ -56,23 +57,31 @@ const LocationUpdateScreen = ({ navigation, route }) => {
     // const { onboarding } = route.params
     const insets = useSafeAreaInsets()
     const [location, setLocation] = useState('');
+    const [loading, setLoading] = useState(false)
 
     const onContinue = () => {
-        if (location.length > 0) {
-            apiClient.post('users/update', { location })
-                .then((res) => {
-                    console.log({ res })
-                    if (res && res.data && res.data.success) {
-                        NavigationService.reset('AvatarUpdateScreen')
-                        // Toast.show({ text1: res.data.message, type: 'success' })
-                    } else {
-                        Toast.show({ text1: res.data.message, type: 'error' })
-                    }
-                })
-                .catch((error) => {
-                    console.log({ error })
-                    Toast.show({ text1: error, type: 'error' })
-                })
+        if (location.length > 0 && !loading) {
+            try {
+                Keyboard.dismiss()
+                setLoading(true)
+                apiClient.post('users/update', { location })
+                    .then((res) => {
+                        setLoading(false)
+                        if (res && res.data && res.data.success) {
+                            NavigationService.reset('AvatarUpdateScreen')
+                            // Toast.show({ text1: res.data.message, type: 'success' })
+                        } else {
+                            Toast.show({ text1: res.data.message, type: 'error' })
+                        }
+                    })
+                    .catch((error) => {
+                        setLoading(false)
+                        console.log({ error })
+                        Toast.show({ text1: error, type: 'error' })
+                    })
+            } catch (error) {
+                setLoading(false)
+            }
         }
     }
 
@@ -118,9 +127,12 @@ const LocationUpdateScreen = ({ navigation, route }) => {
                     </View>
                 </View>
             </KeyboardAwareScrollView>
-            <TouchableOpacity onPress={onContinue} disabled={(location.length === 0)} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: (location.length === 0) ? '#9A9A9A' : '#333333', }}>
-                <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Continue</Text>
-            </TouchableOpacity>
+
+            <ButtonWithLoading
+                onPress={onContinue} disabled={(location.length === 0)}
+                text='Continue'
+                loading={loading}
+            />
         </View>
     )
 }

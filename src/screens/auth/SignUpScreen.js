@@ -1,7 +1,7 @@
 import Text from '@/components/Text'
 import images from '@/utils/images'
 import { Image } from 'expo-image'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native'
 import Toast from 'react-native-toast-message'
 import { appleAuth } from '@invertase/react-native-apple-authentication'
@@ -13,6 +13,7 @@ import { useAtomValue, useSetAtom } from 'jotai'
 import { deviceIdAtom, pushTokenAtom, tokenAtom, userAtom } from '@/actions/global'
 import { getAuthenScreen } from '@/utils/utils'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import LoadingView from '@/components/LoadingView'
 
 const styles = StyleSheet.create({
     container: {
@@ -26,6 +27,7 @@ const SignUpScreen = ({ navigation }) => {
     const setUser = useSetAtom(userAtom)
     const setToken = useSetAtom(tokenAtom)
     const pushToken = useAtomValue(pushTokenAtom)
+    const [loading, setLoading] = useState(false)
 
     useEffect(() => {
         GoogleSignin.configure({
@@ -58,6 +60,8 @@ const SignUpScreen = ({ navigation }) => {
 
     const onGoogle = async () => {
         try {
+            setLoading(true)
+
             await GoogleSignin.hasPlayServices();
             const response = await GoogleSignin.signIn();
             console.log({ response })
@@ -65,7 +69,7 @@ const SignUpScreen = ({ navigation }) => {
                 apiClient.post('auth/google', { token: response.data.idToken, device_id: deviceId, platform: Platform.OS })
                     .then((res) => {
                         console.log({ res: res.data })
-
+                        setLoading(false)
                         if (res && res.data && res.data.success) {
                             setUser(res.data.data.user)
                             setToken(res.data.data.token)
@@ -80,50 +84,60 @@ const SignUpScreen = ({ navigation }) => {
                     })
                     .catch((error) => {
                         console.log({ error })
+                        setLoading(false)
                         Toast.show({ text1: error, type: 'error' })
                     })
             } else {
                 // sign in was cancelled by user
+                setLoading(false)
             }
         } catch (error) {
             console.log(error)
+            setLoading(false)
         }
     }
 
     const onApple = async () => {
 
-        const appleAuthRequestResponse = await appleAuth.performRequest({
-            requestedOperation: appleAuth.Operation.LOGIN,
-            requestedScopes: [appleAuth.Scope.FULL_NAME, appleAuth.Scope.EMAIL],
-        });
+        try {
+            const appleAuthRequestResponse = await appleAuth.performRequest({
+                requestedOperation: appleAuth.Operation.LOGIN,
+                requestedScopes: [appleAuth.Scope.FULL_NAME, appleAuth.Scope.EMAIL],
+            });
 
-        if (!appleAuthRequestResponse.identityToken) {
-            Toast.show({ text1: i18n.t('error'), text2: i18n.t('cannot_login'), type: 'error' })
-            return
+            if (!appleAuthRequestResponse.identityToken) {
+                Toast.show({ text1: i18n.t('error'), text2: i18n.t('cannot_login'), type: 'error' })
+                return
+            }
+
+            setLoading(true)
+
+            console.log({ appleAuthRequestResponse })
+
+            apiClient.post('auth/apple', { token: appleAuthRequestResponse.identityToken, device_id: deviceId, platform: Platform.OS })
+                .then((res) => {
+                    console.log({ res: res.data })
+                    setLoading(false)
+                    if (res && res.data && res.data.success) {
+                        setUser(res.data.data.user)
+                        setToken(res.data.data.token)
+                        AsyncStorage.setItem('ACCESS_TOKEN', res.data.data.token)
+                        setTimeout(() => {
+                            checkPushToken()
+                        }, 200);
+                        NavigationService.reset(getAuthenScreen(res.data.data.user))
+                    } else {
+                        Toast.show({ text1: res?.data?.message, type: 'error' })
+                    }
+                })
+                .catch((error) => {
+                    setLoading(false)
+                    console.log({ error })
+                    Toast.show({ text1: error, type: 'error' })
+                })
+        } catch (error) {
+            setLoading(false)
         }
-
-        console.log({ appleAuthRequestResponse })
-
-        apiClient.post('auth/apple', { token: appleAuthRequestResponse.identityToken, device_id: deviceId, platform: Platform.OS })
-            .then((res) => {
-                console.log({ res: res.data })
-
-                if (res && res.data && res.data.success) {
-                    setUser(res.data.data.user)
-                    setToken(res.data.data.token)
-                    AsyncStorage.setItem('ACCESS_TOKEN', res.data.data.token)
-                    setTimeout(() => {
-                        checkPushToken()
-                    }, 200);
-                    NavigationService.reset(getAuthenScreen(res.data.data.user))
-                } else {
-                    Toast.show({ text1: res?.data?.message, type: 'error' })
-                }
-            })
-            .catch((error) => {
-                console.log({ error })
-                Toast.show({ text1: error, type: 'error' })
-            })
     }
 
     const onSignUp = () => {
@@ -164,6 +178,8 @@ const SignUpScreen = ({ navigation }) => {
                     {`.`}
                 </Text>
             </View>
+
+            {loading && <LoadingView />}
         </View>
     )
 }

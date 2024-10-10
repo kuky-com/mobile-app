@@ -8,7 +8,7 @@ import { Image } from 'expo-image'
 import { StatusBar } from 'expo-status-bar'
 import { useAtom } from 'jotai'
 import React, { useRef, useState } from 'react'
-import { DeviceEventEmitter, Keyboard, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, DeviceEventEmitter, Keyboard, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Toast from 'react-native-toast-message'
@@ -31,6 +31,7 @@ const InterestUpdateScreen = ({ navigation, route }) => {
     const [tags, setTags] = useState(likes.map((item) => ({name: item.name})))
     const inputRef = useRef()
     const [currentUser, setCurrentUser] = useAtom(userAtom)
+    const [loading, setLoading] = useState(false)
 
     const onAddNewTag = () => {
         Keyboard.dismiss()
@@ -58,6 +59,8 @@ const InterestUpdateScreen = ({ navigation, route }) => {
 
     const onSave = async () => {
         try {
+            Keyboard.dismiss()
+            setLoading(true)
             const likeNames = tags.map((item) => item.name)
 
             const res = await apiClient.post('interests/update-likes', { likes: likeNames })
@@ -68,6 +71,7 @@ const InterestUpdateScreen = ({ navigation, route }) => {
                 apiClient.get('interests/profile-tag')
                     .then((res) => {
                         console.log({ res })
+                        setLoading(false)
                         if (res && res.data && res.data.success) {
                             setCurrentUser(res.data.data)
                             DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS)
@@ -82,10 +86,12 @@ const InterestUpdateScreen = ({ navigation, route }) => {
                         console.log({ error })
                     })
             } else {
+                setLoading(false)
                 Toast.show({ text1: 'Your request failed. Please try again!', type: 'error' })
             }
         } catch (error) {
             console.log({ error })
+            setLoading(false)
             Toast.show({ text1: 'Your request failed. Please try again!', type: 'error' })
         }
     }
@@ -145,8 +151,9 @@ const InterestUpdateScreen = ({ navigation, route }) => {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={{ flex: 1, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FF8B8B' }}>
                     <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Discard</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={onSave} disabled={tags.length === 0} style={{ flex: 1, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: tags.length === 0 ? '#9A9A9A' : '#333333', }}>
+                <TouchableOpacity onPress={onSave} disabled={tags.length === 0} style={{ flex: 1, gap: 5, flexDirection: 'row', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: tags.length === 0 ? '#9A9A9A' : '#333333', }}>
                     <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Save</Text>
+                    {loading && <ActivityIndicator size='small' color='white' />}
                 </TouchableOpacity>
             </View>
         </View>

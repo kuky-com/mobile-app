@@ -10,7 +10,7 @@ import axios from 'axios'
 import { Image } from 'expo-image'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import React, { useEffect, useState } from 'react'
-import { Keyboard, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Keyboard, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import Toast from 'react-native-toast-message'
 
@@ -28,25 +28,27 @@ const EmailVerificationScreen = ({ navigation, route }) => {
     const setUser = useSetAtom(userAtom)
     const setToken = useSetAtom(tokenAtom)
     const pushToken = useAtomValue(pushTokenAtom)
+    const [loading, setLoading] = useState(false)
 
     const checkPushToken = () => {
-        if(pushToken) {
-            apiClient.post('users/update-token', {session_token: pushToken})
-            .then((res) => {
-                console.log({res})
-            })
-            .catch((error) => {
-                console.log({error})
-            })
+        if (pushToken) {
+            apiClient.post('users/update-token', { session_token: pushToken })
+                .then((res) => {
+                    console.log({ res })
+                })
+                .catch((error) => {
+                    console.log({ error })
+                })
         }
     }
 
     const onContinue = () => {
         Keyboard.dismiss()
-        console.log({email, code: pin, device_id: deviceId, platform: Platform.OS})
+
+        setLoading(true)
         apiClient.post('auth/verify', { email, code: pin, device_id: deviceId, platform: Platform.OS })
             .then((res) => {
-                console.log({ res })
+                setLoading(false)
                 if (res && res.data && res.data.success) {
                     const currentUser = res.data.data.user
                     setUser(currentUser)
@@ -63,6 +65,7 @@ const EmailVerificationScreen = ({ navigation, route }) => {
             .catch((error) => {
                 console.log({ error })
                 Toast.show({ text1: error, type: 'error' })
+                setLoading(false)
             })
     }
 
@@ -75,23 +78,23 @@ const EmailVerificationScreen = ({ navigation, route }) => {
     }
 
     useEffect(() => {
-        if(pin.length === 4) {
+        if (pin.length === 4) {
             onContinue()
         }
     }, [pin])
 
     const onResend = () => {
         Keyboard.dismiss()
-        apiClient.post('auth/resend-verification', {email: email})
+        apiClient.post('auth/resend-verification', { email: email })
             .then((res) => {
-                if(res && res.data && res.data.success) {
-                    Toast.show({text1: res.data.message, type: 'success'})
+                if (res && res.data && res.data.success) {
+                    Toast.show({ text1: res.data.message, type: 'success' })
                 }
             })
             .catch((error) => {
-                console.log({error})
+                console.log({ error })
             })
-        
+
     }
 
     return (
@@ -125,7 +128,8 @@ const EmailVerificationScreen = ({ navigation, route }) => {
                             </View>
 
                             <TouchableOpacity disabled={!(pin.length === 4)} onPress={onContinue} style={{ height: 50, width: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', backgroundColor: pin.length === 4 ? '#333333' : '#726E70', }}>
-                                <Image source={images.next_icon} style={{ width: 20, height: 20, tintColor: 'white' }} contentFit='contain' />
+                                {!loading && <Image source={images.next_icon} style={{ width: 20, height: 20, tintColor: 'white' }} contentFit='contain' />}
+                                {loading && <ActivityIndicator size='small' color='white' />}
                             </TouchableOpacity>
                         </View>
 

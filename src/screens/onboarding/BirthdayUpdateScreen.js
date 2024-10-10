@@ -15,6 +15,7 @@ import { useAtomValue } from 'jotai'
 import { tokenAtom } from '@/actions/global'
 import apiClient from '@/utils/apiClient'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
+import ButtonWithLoading from '@/components/ButtonWithLoading'
 
 const styles = StyleSheet.create({
     container: {
@@ -54,6 +55,8 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
     const [month, setMonth] = useState('');
     const [day, setDay] = useState('');
     const [year, setYear] = useState('');
+
+    const [loading, setLoading] = useState('')
 
     const dayInputRef = useRef(null);
     const yearInputRef = useRef(null);
@@ -102,24 +105,33 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
     }, [month, day, year])
 
     const onContinue = () => {
-        const date = dayjs(`${month}-${day}-${year}`, 'MM-DD-YYYY')
-        if (date.isValid()) {
-            apiClient.post('users/update', { birthday: `${month}-${day}-${year}` })
-                .then((res) => {
-                    console.log({ res })
-                    if (res && res.data && res.data.success) {
-                        NavigationService.reset('GenderUpdateScreen')
-                        // Toast.show({ text1: res.data.message, type: 'success' })
-                    } else {
-                        Toast.show({ text1: res.data.message, type: 'error' })
-                    }
-                })
-                .catch((error) => {
-                    console.log({ error })
-                    Toast.show({ text1: error, type: 'error' })
-                })
-        } else {
-            Toast.show({ text1: 'This is not a valid birthday', type: 'error' })
+        try {
+            Keyboard.dismiss()
+
+            const date = dayjs(`${month}-${day}-${year}`, 'MM-DD-YYYY')
+            if (date.isValid()) {
+                setLoading(true)
+
+                apiClient.post('users/update', { birthday: `${month}-${day}-${year}` })
+                    .then((res) => {
+                        setLoading(false)
+                        if (res && res.data && res.data.success) {
+                            NavigationService.reset('GenderUpdateScreen')
+                            // Toast.show({ text1: res.data.message, type: 'success' })
+                        } else {
+                            Toast.show({ text1: res.data.message, type: 'error' })
+                        }
+                    })
+                    .catch((error) => {
+                        console.log({ error })
+                        Toast.show({ text1: error, type: 'error' })
+                        setLoading(false)
+                    })
+            } else {
+                Toast.show({ text1: 'This is not a valid birthday', type: 'error' })
+            }
+        } catch (error) {
+
         }
     }
 
@@ -171,9 +183,13 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
                     </View>
                 </View>
             </KeyboardAwareScrollView>
-            <TouchableOpacity onPress={onContinue} disabled={(month === '' || day === '' || year === '')} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: (month === '' || day === '' || year === '') ? '#9A9A9A' : '#333333', }}>
-                <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Continue</Text>
-            </TouchableOpacity>
+
+            <ButtonWithLoading 
+                text='Continue'
+                disabled={(month === '' || day === '' || year === '')}
+                onPress={onContinue}
+                loading={loading}
+            />
         </View>
     )
 }

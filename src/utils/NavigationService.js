@@ -37,10 +37,21 @@ function reset(name, params) {
   );
 }
 
+function resetRaw(routes) {
+  navigationRef.current?.dispatch(
+    CommonActions.reset({
+      index: 0,
+      key: null,
+      routes: routes,
+    }),
+  );
+}
+
 export default {
   navigate,
   reset,
   push,
   goBack,
-  replace
+  replace,
+  resetRaw
 };

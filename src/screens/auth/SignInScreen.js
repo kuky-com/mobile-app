@@ -16,6 +16,7 @@ import Toast from 'react-native-toast-message'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import apiClient from '@/utils/apiClient'
 import { getAuthenScreen } from '@/utils/utils'
+import ButtonWithLoading from '@/components/ButtonWithLoading'
 
 const styles = StyleSheet.create({
     container: {
@@ -31,6 +32,7 @@ const SignInScreen = ({ navigation }) => {
     const setUser = useSetAtom(userAtom)
     const deviceId = useAtomValue(deviceIdAtom)
     const pushToken = useAtomValue(pushTokenAtom)
+    const [loading, setLoading] = useState(false)
 
     useEffect(() => {
         GoogleSignin.configure({
@@ -63,14 +65,13 @@ const SignInScreen = ({ navigation }) => {
 
     const onGoogle = async () => {
         try {
+            setLoading(true)
             await GoogleSignin.hasPlayServices();
             const response = await GoogleSignin.signIn();
-            console.log({ response })
             if (response && response.data && response.data.idToken) {
                 apiClient.post('auth/google', { token: response.data.idToken, device_id: deviceId, platform: Platform.OS })
                     .then((res) => {
-                        console.log({ res: res.data })
-
+                        setLoading(false)
                         if (res && res.data && res.data.success) {
                             setUser(res.data.data.user)
                             setToken(res.data.data.token)
@@ -85,55 +86,69 @@ const SignInScreen = ({ navigation }) => {
                     })
                     .catch((error) => {
                         console.log({ error })
+                        setLoading(false)
                         Toast.show({ text1: error, type: 'error' })
                     })
             } else {
                 // sign in was cancelled by user
+                setLoading(false)
             }
         } catch (error) {
             console.log(error)
+            setLoading(false)
         }
     }
 
     const onApple = async () => {
 
-        const appleAuthRequestResponse = await appleAuth.performRequest({
-            requestedOperation: appleAuth.Operation.LOGIN,
-            requestedScopes: [appleAuth.Scope.FULL_NAME, appleAuth.Scope.EMAIL],
-        });
+        try {
+            const appleAuthRequestResponse = await appleAuth.performRequest({
+                requestedOperation: appleAuth.Operation.LOGIN,
+                requestedScopes: [appleAuth.Scope.FULL_NAME, appleAuth.Scope.EMAIL],
+            });
 
-        if (!appleAuthRequestResponse.identityToken) {
-            Toast.show({ text1: i18n.t('error'), text2: i18n.t('cannot_login'), type: 'error' })
-            return
+            if (!appleAuthRequestResponse.identityToken) {
+                Toast.show({ text1: i18n.t('error'), text2: i18n.t('cannot_login'), type: 'error' })
+                return
+            }
+
+            setLoading(true)
+
+            apiClient.post('auth/apple', { token: appleAuthRequestResponse.identityToken, device_id: deviceId, platform: Platform.OS })
+                .then((res) => {
+                    setLoading(false)
+                    if (res && res.data && res.data.success) {
+                        setUser(res.data.data.user)
+                        setToken(res.data.data.token)
+                        AsyncStorage.setItem('ACCESS_TOKEN', res.data.data.token)
+                        setTimeout(() => {
+                            checkPushToken()
+                        }, 200);
+                        NavigationService.reset(getAuthenScreen(res.data.data.user))
+                    } else {
+                        Toast.show({ text1: res?.data?.message, type: 'error' })
+                    }
+                })
+                .catch((error) => {
+                    console.log({ error })
+                    setLoading(false)
+                    Toast.show({ text1: error, type: 'error' })
+                })
+        } catch (error) {
+            setLoading(false)
         }
-
-        apiClient.post('auth/apple', { token: appleAuthRequestResponse.identityToken, device_id: deviceId, platform: Platform.OS })
-            .then((res) => {
-                console.log({ res: res.data })
-
-                if (res && res.data && res.data.success) {
-                    setUser(res.data.data.user)
-                    setToken(res.data.data.token)
-                    AsyncStorage.setItem('ACCESS_TOKEN', res.data.data.token)
-                    setTimeout(() => {
-                        checkPushToken()
-                    }, 200);
-                    NavigationService.reset(getAuthenScreen(res.data.data.user))
-                } else {
-                    Toast.show({ text1: res?.data?.message, type: 'error' })
-                }
-            })
-            .catch((error) => {
-                console.log({ error })
-                Toast.show({ text1: error, type: 'error' })
-            })
     }
 
     const onSignIn = () => {
-        // NavigationService.reset('Dashboard')
+        if (email.length === 0 || password.length === 0) {
+            Toast.show({ text1: "Please enter your email and password", type: 'error' })
+            return
+        }
+        setLoading(true)
         apiClient.post('auth/login', { email, password, device_id: deviceId, platform: Platform.OS })
             .then((res) => {
                 console.log({ res })
+                setLoading(false)
                 if (res && res.data && res.data.success) {
                     const currentUser = res.data.data.user
                     setUser(currentUser)
@@ -146,11 +161,23 @@ const SignInScreen = ({ navigation }) => {
                     NavigationService.reset(getAuthenScreen(currentUser))
                 } else {
                     Toast.show({ text1: res.data.message, type: 'error' })
+                    if(res.data.message === 'Email not verified') {
+                        apiClient.post('auth/resend-verification', { email: email })
+                        .then((res) => {
+                        })
+                        .catch((error) => {
+                            console.log({ error })
+                        })
+                        NavigationService.reset('EmailVerificationScreen', {email})
+                    }
                 }
             })
             .catch((error) => {
                 console.log({ error })
                 Toast.show({ text1: error, type: 'error' })
+
+                
+                setLoading(false)
             })
     }
 
@@ -209,9 +236,11 @@ const SignInScreen = ({ navigation }) => {
                             </TouchableOpacity>
                         </View>
 
-                        <TouchableOpacity onPress={onSignIn} style={{ marginTop: 60, width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333', }}>
-                            <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Sign in</Text>
-                        </TouchableOpacity>
+                        <ButtonWithLoading
+                            text={'Sign in'}
+                            onPress={onSignIn}
+                            loading={loading}
+                        />
                         <TouchableOpacity onPress={onSignUp} style={{ padding: 8 }}>
                             <Text style={{ fontSize: 14, fontWeight: '700', color: '#333333' }}>{`Are you new ? `}
                                 <Text style={{ color: '#5E30C1' }}>Sign up here</Text>

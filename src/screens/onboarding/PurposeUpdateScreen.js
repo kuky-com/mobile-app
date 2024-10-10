@@ -16,6 +16,7 @@ import DoubleSwitch from '@/components/DoubleSwitch'
 import SwitchWithText from '@/components/SwitchWithText'
 import apiClient from '@/utils/apiClient'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
+import ButtonWithLoading from '@/components/ButtonWithLoading'
 
 const styles = StyleSheet.create({
     container: {
@@ -52,12 +53,12 @@ const PurposeUpdateScreen = ({ navigation, route }) => {
     const insets = useSafeAreaInsets()
     const [tagName, setTagName] = useState('')
     const [purposes, setPurposes] = useState([]);
+    const [loading, setLoading] = useState(false)
     const inputRef = useRef()
 
     useEffect(() => {
         apiClient.get('interests/purposes')
             .then((res) => {
-                console.log({ res })
                 if (res && res.data && res.data.success) {
                     setPurposes(res.data.data)
                 }
@@ -69,10 +70,11 @@ const PurposeUpdateScreen = ({ navigation, route }) => {
     }, [])
 
     const onContinue = () => {
+        setLoading(true)
         const purposeNames = purposes.map((item) => item.name)
         apiClient.post('interests/update-purposes', { purposes: purposeNames })
             .then((res) => {
-                console.log({ res })
+                setLoading(false)
                 if (res && res.data && res.data.success) {
                     NavigationService.reset('ReviewProfileScreen')
                     // Toast.show({ text1: res.data.message, type: 'success' })
@@ -83,6 +85,7 @@ const PurposeUpdateScreen = ({ navigation, route }) => {
             .catch((error) => {
                 console.log({ error })
                 Toast.show({ text1: error, type: 'error' })
+                setLoading(false)
             })
     }
 
@@ -147,9 +150,12 @@ const PurposeUpdateScreen = ({ navigation, route }) => {
                     </View>
                 </KeyboardAwareScrollView>
             </View>
-            <TouchableOpacity onPress={onContinue} disabled={purposes.length === 0} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: (purposes.length === 0) ? '#9A9A9A' : '#333333', }}>
-                <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Continue</Text>
-            </TouchableOpacity>
+            <ButtonWithLoading 
+                text={'Continue'}
+                onPress={onContinue}
+                disabled={purposes.length === 0}
+                loading={loading}
+            />
         </View>
     )
 }

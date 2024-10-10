@@ -46,7 +46,6 @@ const MatchesScreen = ({ navigation }) => {
 
     useEffect(() => {
         try {
-            console.log({unreadMessage})
             let counter = 0
             for(const match of matches) {
                 try {
@@ -66,7 +65,6 @@ const MatchesScreen = ({ navigation }) => {
         apiClient.get('matches/matches')
             .then((res) => {
                 setFetching(false)
-                console.log({matches: res.data.data})
                 if (res && res.data && res.data.success) {
                     setMatches(res.data.data)
                 } else {

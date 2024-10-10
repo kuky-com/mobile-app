@@ -2,7 +2,7 @@ import Text from '@/components/Text'
 import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Dimensions, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -53,12 +53,18 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
     const [loading, setLoading] = useState(false)
     const setUser = useSetAtom(userAtom)
 
+    useEffect(() => {
+        if (imageUrl !== null) {
+            onContinue()
+        }
+    }, [imageUrl])
+
     const onUpload = async () => {
         try {
             if (image && image.uri) {
                 setLoading(true)
                 const uploadedFile = await reference.putFile(image.uri);
-    
+
                 const url = await storage().ref(imageImage).getDownloadURL()
                 console.log({ url })
                 setLoading(false)
@@ -70,21 +76,27 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
     };
 
     const onContinue = () => {
-        apiClient.post('users/update', { avatar: imageUrl })
-            .then((res) => {
-                console.log({ res })
-                if (res && res.data && res.data.success) {
-                    setUser(res.data.data)
-                    NavigationService.reset('PurposeUpdateScreen', { onboarding: true })
-                    // Toast.show({ text1: res.data.message, type: 'success' })
-                } else {
-                    Toast.show({ text1: res.data.message, type: 'error' })
-                }
-            })
-            .catch((error) => {
-                console.log({ error })
-                Toast.show({ text1: error, type: 'error' })
-            })
+        try {
+            setLoading(true)
+            apiClient.post('users/update', { avatar: imageUrl })
+                .then((res) => {
+                    setLoading(false)
+                    if (res && res.data && res.data.success) {
+                        setUser(res.data.data)
+                        NavigationService.reset('PurposeUpdateScreen', { onboarding: true })
+                        // Toast.show({ text1: res.data.message, type: 'success' })
+                    } else {
+                        Toast.show({ text1: res.data.message, type: 'error' })
+                    }
+                })
+                .catch((error) => {
+                    console.log({ error })
+                    setLoading(false)
+                    Toast.show({ text1: error, type: 'error' })
+                })
+        } catch (error) {
+            setLoading(false)
+        }
     }
 
     const openPicker = async () => {

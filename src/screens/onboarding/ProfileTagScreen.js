@@ -3,7 +3,7 @@ import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import React, { useEffect, useState } from 'react'
-import { DeviceEventEmitter, Dimensions, ScrollView, StyleSheet, Switch, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, DeviceEventEmitter, Dimensions, ScrollView, StyleSheet, Switch, TextInput, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ImagePicker from 'react-native-image-crop-picker'
@@ -19,6 +19,7 @@ import { userAtom } from '@/actions/global'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useAtom, useAtomValue } from 'jotai'
 import constants from '@/utils/constants'
+import ButtonWithLoading from '@/components/ButtonWithLoading'
 
 const styles = StyleSheet.create({
     container: {
@@ -71,14 +72,17 @@ const styles = StyleSheet.create({
 })
 
 const ProfileTagScreen = ({ navigation, route }) => {
-    // const { onboarding } = route.params
     const insets = useSafeAreaInsets()
     const [currentUser, setCurrentUser] = useAtom(userAtom)
+    const [loading, setLoading] = useState(false)
 
-    useEffect(() => {
+
+    const getNewTag = () => {
+        setLoading(true)
         apiClient.get('interests/profile-tag')
             .then((res) => {
                 console.log({ res })
+                setLoading(false)
                 if (res && res.data && res.data.success) {
                     setCurrentUser(res.data.data)
                     DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS)
@@ -86,14 +90,21 @@ const ProfileTagScreen = ({ navigation, route }) => {
             })
             .catch((error) => {
                 console.log({ error })
+                setLoading(false)
             })
+    }
+
+    useEffect(() => {
+        getNewTag()
     }, [])
 
     const onContinue = () => {
-        NavigationService.reset('OnboardingCompleteScreen')
+        if (currentUser.tag) {
+            NavigationService.reset('OnboardingCompleteScreen')
+        } else {
+            getNewTag()
+        }
     }
-
-    console.log({ tag: currentUser?.tag })
 
     return (
         <View style={[styles.container, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 16 }]}>
@@ -107,7 +118,8 @@ const ProfileTagScreen = ({ navigation, route }) => {
                         <Image source={{ uri: currentUser?.avatar }} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} contentFit='cover' />
                         <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'flex-end', padding: 8 }}>
                             <View style={{ backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
-                                <Text style={{ color: '#E8FF58', fontSize: 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>
+                                {!loading && <Text style={{ color: '#E8FF58', fontSize: 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>}
+                                {loading && <ActivityIndicator color='white' size='small' />}
                             </View>
                         </View>
                         <LinearGradient
@@ -120,14 +132,18 @@ const ProfileTagScreen = ({ navigation, route }) => {
                 </View>
                 <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'center' }}>
                     <View style={{ backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
-                        <Text style={{ color: '#E8FF58', fontSize: 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>
+                        {!loading && <Text style={{ color: '#E8FF58', fontSize: 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>}
+                        {loading && <ActivityIndicator color='white' size='small' />}
                     </View>
                 </View>
                 <Text style={{ fontSize: 14, color: 'black', textAlign: 'center' }}>{'This tag will represent your main interests and preferences. It helps others understand who you are and what you’re looking for.'}</Text>
             </View>
-            <TouchableOpacity onPress={onContinue} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333', }}>
-                <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Continue</Text>
-            </TouchableOpacity>
+
+            <ButtonWithLoading
+                onPress={onContinue}
+                text={currentUser.tag ? 'Continue' : 'Refresh'}
+                loading={loading}
+            />
         </View>
     )
 }

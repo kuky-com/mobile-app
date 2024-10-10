@@ -15,6 +15,7 @@ import { capitalize } from '@/utils/utils'
 import DoubleSwitch from '@/components/DoubleSwitch'
 import SwitchWithText from '@/components/SwitchWithText'
 import apiClient from '@/utils/apiClient'
+import ButtonWithLoading from '@/components/ButtonWithLoading'
 
 const styles = StyleSheet.create({
     container: {
@@ -50,22 +51,29 @@ const GenderUpdateScreen = ({ navigation, route }) => {
     const insets = useSafeAreaInsets()
     const [gender, setGender] = useState(null);
     const [isPublic, setPublic] = useState(true);
+    const [loading, setLoading] = useState(false)
 
     const onContinue = () => {
-        apiClient.post('users/update', { publicGender: isPublic, gender })
-            .then((res) => {
-                console.log({ res })
-                if (res && res.data && res.data.success) {
-                    NavigationService.reset('PronounsUpdateScreen')
-                    // Toast.show({ text1: res.data.message, type: 'success' })
-                } else {
-                    Toast.show({ text1: res.data.message, type: 'error' })
-                }
-            })
-            .catch((error) => {
-                console.log({ error })
-                Toast.show({ text1: error, type: 'error' })
-            })
+        try {
+            setLoading(true)
+            apiClient.post('users/update', { publicGender: isPublic, gender })
+                .then((res) => {
+                    setLoading(false)
+                    if (res && res.data && res.data.success) {
+                        NavigationService.reset('PronounsUpdateScreen')
+                        // Toast.show({ text1: res.data.message, type: 'success' })
+                    } else {
+                        Toast.show({ text1: res.data.message, type: 'error' })
+                    }
+                })
+                .catch((error) => {
+                    setLoading(false)
+                    console.log({ error })
+                    Toast.show({ text1: error, type: 'error' })
+                })
+        } catch (error) {
+            setLoading(false)
+        }
     }
 
     return (
@@ -84,12 +92,16 @@ const GenderUpdateScreen = ({ navigation, route }) => {
                             </TouchableOpacity>
                         ))
                     }
-                        <SwitchWithText enable={isPublic} setEnable={setPublic} />
+                    <SwitchWithText enable={isPublic} setEnable={setPublic} />
                 </View>
             </View>
-            <TouchableOpacity onPress={onContinue} disabled={gender === null} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: (gender === null) ? '#9A9A9A' : '#333333', }}>
-                <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Continue</Text>
-            </TouchableOpacity>
+
+            <ButtonWithLoading
+                text='Continue'
+                onPress={onContinue}
+                disabled={gender === null}
+                loading={loading}
+            />
         </View>
     )
 }

@@ -1,4 +1,5 @@
 import { userAtom } from '@/actions/global'
+import ButtonWithLoading from '@/components/ButtonWithLoading'
 import Text from '@/components/Text'
 import apiClient from '@/utils/apiClient'
 import images from '@/utils/images'
@@ -6,7 +7,7 @@ import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import { useAtom } from 'jotai'
 import React, { useState } from 'react'
-import { Linking, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
+import { Keyboard, Linking, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -32,39 +33,49 @@ const UpdateProfileScreen = ({ navigation }) => {
     const insets = useSafeAreaInsets()
     const [currentUser, setUser] = useAtom(userAtom)
     const [fullName, setFullName] = useState(currentUser?.full_name)
+    const [loading, setLoading] = useState(false)
 
     const moreAction = async () => {
-        const options = [
-            {text: 'Update Password'}
-        ]
-      
-          await SheetManager.show('action-sheets', {
+        const options = currentUser.login_type === 'email' ? [
+            { text: 'Update Password' }
+        ] : []
+
+        await SheetManager.show('action-sheets', {
             payload: {
-              actions: options,
-              onPress(index) {
-                if(index === 0) {
-                    navigation.push('UpdatePasswordScreen')
-                }
-              },
+                actions: options,
+                onPress(index) {
+                    if (index === 0) {
+                        navigation.push('UpdatePasswordScreen')
+                    }
+                },
             },
-          });
+        });
     }
 
-    const updateProfile = async() => {
-        apiClient.post('users/update', { full_name: fullName })
-            .then((res) => {
-                console.log({ res })
-                if (res && res.data && res.data.success) {
-                    setUser(res.data.data)
-                    Toast.show({ text1: res.data.message, type: 'success' })
-                } else {
-                    Toast.show({ text1: res.data.message, type: 'error' })
-                }
-            })
-            .catch((error) => {
-                console.log({ error })
-                Toast.show({ text1: error, type: 'error' })
-            })
+    const updateProfile = async () => {
+        try {
+            Keyboard.dismiss()
+            setLoading(true)
+
+            apiClient.post('users/update', { full_name: fullName })
+                .then((res) => {
+                    console.log({ res })
+                    setLoading(false)
+                    if (res && res.data && res.data.success) {
+                        setUser(res.data.data)
+                        Toast.show({ text1: res.data.message, type: 'success' })
+                    } else {
+                        Toast.show({ text1: res.data.message, type: 'error' })
+                    }
+                })
+                .catch((error) => {
+                    console.log({ error })
+                    setLoading(false)
+                    Toast.show({ text1: error, type: 'error' })
+                })
+        } catch (error) {
+            setLoading(false)
+        }
     }
 
     return (
@@ -97,9 +108,11 @@ const UpdateProfileScreen = ({ navigation }) => {
                 </KeyboardAwareScrollView>
 
                 <View style={{ width: '100%', paddingHorizontal: 16, marginBottom: insets.bottom + 20, }}>
-                    <TouchableOpacity onPress={updateProfile} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333' }}>
-                        <Text style={{ fontSize: 18, color: 'white', fontWeight: 'bold' }}>{'Save'}</Text>
-                    </TouchableOpacity>
+                    <ButtonWithLoading
+                        text='Save'
+                        onPress={updateProfile}
+                        loading={loading}
+                    />
                 </View>
             </View>
         </View>

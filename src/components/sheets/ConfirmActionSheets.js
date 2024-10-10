@@ -104,12 +104,14 @@ function ConfirmActionSheets(props) {
           {!!props.payload?.title && <Text style={styles.messageText}>{props.payload?.title}</Text>}
           {!!props.payload?.message && <Text style={styles.contentText}>{props.payload?.message}</Text>}
 
-          <TouchableOpacity onPress={onCancel} style={styles.cancelButton}>
+          {props.payload?.cancelText && <TouchableOpacity onPress={onCancel} style={styles.cancelButton}>
             <Text style={styles.cancelText}>{props.payload?.cancelText}</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={onConfirm} style={styles.confirmButton}>
+          }
+          {props.payload?.confirmText && <TouchableOpacity onPress={onConfirm} style={styles.confirmButton}>
             <Text style={styles.confirmText}>{props.payload?.confirmText}</Text>
           </TouchableOpacity>
+          }
         </View>
       </ScrollView>
     </ActionSheet>

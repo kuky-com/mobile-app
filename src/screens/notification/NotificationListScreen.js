@@ -92,6 +92,7 @@ const NotificationListScreen = ({ navigation }) => {
             payload: {
                 actions: options,
                 onPress(index) {
+                    console.log({index})
                     if (index === 0) {
                         apiClient.get('notifications/seen-all')
                             .then((res) => {

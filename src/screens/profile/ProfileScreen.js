@@ -50,7 +50,6 @@ const ProfileScreen = ({ navigation }) => {
         apiClient.get('interests/likes')
             .then((res) => {
                 if (res && res.data && res.data.success) {
-                    console.log({ likes: res.data.data })
                     setLikes(res.data.data)
                 }
             })
@@ -100,8 +99,6 @@ const ProfileScreen = ({ navigation }) => {
     const onEditPurposes = () => {
         navigation.push('PurposeProfileScreen', { purposes: purposes, onUpdated: (newList) => setPurposes(newList) })
     }
-
-    console.log({purposes})
 
     return (
         <View style={styles.container}>
@@ -156,11 +153,11 @@ const ProfileScreen = ({ navigation }) => {
                                 <Text style={{ fontSize: 14, color: 'black' }}>{`${dayjs().diff(dayjs(currentUser?.birthday, 'MM-DD-YYYY'), 'years')} yrs`}</Text>
                             </View>
 
-                            <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center' }}>
+                            <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'center' }}>
                                 <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
                                     <Image source={images.gender_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
                                 </View>
-                                <Text style={{ fontSize: 14, color: 'black' }}>{`${currentUser?.pronouns}`}</Text>
+                                <Text style={{ fontSize: 14, color: 'black' }}>{`${currentUser?.pronouns.split('/ ')[0]}`}</Text>
                             </View>
 
                             <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'flex-end' }}>

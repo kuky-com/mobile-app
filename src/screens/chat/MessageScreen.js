@@ -108,6 +108,20 @@ const MessageScreen = ({ navigation, route }) => {
     const [currentConversation, setCurrentConversation] = useState(conversation)
 
     useEffect(() => {
+        if(!currentConversation.profile) {
+            apiClient.post('matches/conversation', {conversation_id: currentConversation.conversation_id})
+            .then((res) => {
+                if(res && res.data && res.data.success) {
+                    setCurrentConversation(res.data.data)
+                }
+            })
+            .catch((error) => {
+                console.log({error})
+            })
+        }
+    }, [currentConversation])
+
+    useEffect(() => {
         const unsubscribe = firestore()
             .collection('conversations')
             .doc(currentConversation.conversation_id)
@@ -275,17 +289,43 @@ const MessageScreen = ({ navigation, route }) => {
             })
     }, [currentConversation.conversation_id]);
 
-    const moreAction = async () => {
-        const options = [
-            { text: 'Block Users', image: images.delete_icon, }
-        ]
-
-        await SheetManager.show('action-sheets', {
+    const onDisconnect = async () => {
+        await SheetManager.show('confirm-action-sheets', {
             payload: {
-                actions: options,
-                onPress(index) {
-                    if (index === 0) {
-                        apiClient.post('users/block-user', { friend_id: conversation.profile.id })
+                onCancel: () => {
+                    apiClient.post('matches/disconnect',
+                        { friend_id: conversation.profile.id, id: conversation.id })
+                        .then(async (res) => {
+                            console.log({ res })
+                            if (res && res.data && res.data.success) {
+                                Toast.show({ text1: res.data.message, type: 'success' })
+                                DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS)
+                                setTimeout(() => {
+                                    navigation.goBack()
+                                }, 200);
+                            } else if (res && res.data && res.data.message) {
+                                Toast.show({ text1: res.data.message, type: 'error' })
+                            }
+                        })
+                        .catch((error) => {
+                            console.log({ error })
+                            Toast.show({ text1: error, type: 'error' })
+                        })
+                },
+                onConfirm: () => { },
+                cancelText: "End Connection",
+                confirmText: "Cancel",
+                header: 'Do you want to end the connection with this user?',
+                title: `Ending the connection will delete all previous messages, and both users will no longer be shown to each other.`,
+            },
+        });
+    }
+
+    const onBlock = async () => {
+        await SheetManager.show('confirm-action-sheets', {
+            payload: {
+                onCancel: () => {
+                    apiClient.post('users/block-user', { friend_id: conversation.profile.id })
                             .then((res) => {
                                 if (res && res.data && res.data.success) {
                                     DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS)
@@ -300,6 +340,73 @@ const MessageScreen = ({ navigation, route }) => {
                             .catch((error) => {
                                 Toast.show({ text1: error, type: 'error' })
                             })
+                },
+                onConfirm: () => { },
+                cancelText: "Block",
+                confirmText: "Cancel",
+                header: 'Do you want to block this user?',
+                title: `Block user will delete all previous messages, and both users will no longer be shown to each other.`,
+            },
+        });
+    }
+
+    const onReport = async () => {
+        const options = [
+            { text: 'Inappropriate' },
+            { text: 'Nudity or sexual activity' },
+            { text: 'Violence or threat of violence' },
+            { text: 'Hate speech or symbols' },
+            { text: 'Bullying or harassment' },
+            { text: 'Spam' }
+        ]
+
+        await SheetManager.show('action-sheets', {
+            payload: {
+                actions: options,
+                title: 'Why do you want to report this match?',
+                onPress(index) {
+                    if (index < options.length) {
+                        apiClient.post('users/report-user', { reported_id: conversation.profile.id, reason: options[index].text })
+                            .then(async (res) => {
+                                if (res && res.data && res.data.success) {
+                                    await SheetManager.show('confirm-action-sheets', {
+                                        payload: {
+                                            header: 'Thanks for reporting',
+                                            message: 'Your report is private.\nYour report is being investigated and we will take action ASAP',
+                                            cancelText: 'Okay'
+                                        }
+                                    })
+                                } else {
+                                    Toast.show({ text1: res?.data?.message ?? 'Report action failed!', type: 'error' })
+                                }
+                            })
+                            .catch((error) => {
+                                Toast.show({ text1: error, type: 'error' })
+                            })
+                    }
+                },
+            },
+        });
+    }
+
+    const moreAction = async () => {
+        const options = [
+            { text: 'End Connection', color: '#FF2323' },
+            { text: 'Report', color: '#FF2323' },
+            { text: 'Block', color: '#FF2323' },
+            { text: 'Cancel', style: 'cancel' }
+        ]
+
+        await SheetManager.show('cmd-action-sheets', {
+            payload: {
+                actions: options,
+                onPress(index) {
+                    if (index === 0) {
+                        onDisconnect()
+                    } else if (index === 1) {
+                        onReport()
+                    } else if (index === 2) {
+                        onBlock()
                     }
                 },
             },
@@ -378,7 +485,7 @@ const MessageScreen = ({ navigation, route }) => {
     }
 
     const openProfile = () => {
-        navigation.push('ConnectProfileScreen', {profile: conversation.profile, showAcceptReject: false})
+        navigation.push('ConnectProfileScreen', { profile: conversation.profile, showAcceptReject: false })
     }
 
     return (

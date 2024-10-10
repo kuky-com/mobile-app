@@ -35,13 +35,16 @@ const ConversationListItem = ({ onPress, conversation, marginBottom, onDisconnec
             .collection('messages')
             .orderBy('createdAt', 'desc')
             .onSnapshot(querySnapshot => {
-                
-                const messagesFirestore = querySnapshot.docs.length > 0 ? querySnapshot.docs[0].data() : null
+                if(querySnapshot.empty) {
+                    setTotalUnread((prev) => ({...(prev ?? {}), [conversation.conversation_id]: 1}))
+                } else {
+                    const messagesFirestore = querySnapshot.docs.length > 0 ? querySnapshot.docs[0].data() : null
 
-                const counter = querySnapshot.docs.length - querySnapshot.docs.filter((item) => item.data().readBy.includes(currentUser.id)).length
-                setUnreadCount(counter)
-                setTotalUnread((prev) => ({...(prev ?? {}), [conversation.conversation_id]: counter}))
-                setLastMessage(messagesFirestore ? messagesFirestore.text : null);
+                    const counter = querySnapshot.docs.length - querySnapshot.docs.filter((item) => item.data().readBy.includes(currentUser.id)).length
+                    setUnreadCount(counter)
+                    setTotalUnread((prev) => ({...(prev ?? {}), [conversation.conversation_id]: counter}))
+                    setLastMessage(messagesFirestore ? messagesFirestore.text : null);
+                }
             });
 
         return () => unsubscribe();
@@ -92,8 +95,8 @@ const ConversationListItem = ({ onPress, conversation, marginBottom, onDisconnec
             <Pressable onPress={openDetail} style={{ backgroundColor: '#F1F1F3', marginBottom: marginBottom, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: '#78787977', paddingVertical: 16 }}>
                 <Image source={{ uri: conversation?.profile?.avatar }} style={{ width: 70, height: 70, borderRadius: 35, borderWidth: 1, borderColor: colors.mainColor }} />
                 <View style={{ flex: 1, gap: 8, marginHorizontal: 12 }}>
-                    <Text style={{ fontSize: 15, fontWeight: 'bold', color: 'black' }}>{conversation?.profile?.full_name}</Text>
-                    <Text style={{ fontSize: 14, color: '#6C6C6C', fontWeight: unreadCount > 0 ? '500' : '300' }}>{lastMessage}</Text>
+                    <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>{conversation?.profile?.full_name}</Text>
+                    <Text style={{ fontSize: 12, color: !lastMessageCloud ? colors.mainColor : '#6C6C6C', fontWeight: unreadCount > 0 || !lastMessageCloud ? 'bold' : '300' }}>{lastMessage}</Text>
                 </View>
                 <View style={{ alignItems: 'flex-end', gap: 5 }}>
                     <Text style={{ fontSize: 10, color: '#726E70' }}>{lastDate}</Text>
@@ -102,6 +105,9 @@ const ConversationListItem = ({ onPress, conversation, marginBottom, onDisconnec
                             <View style={{ backgroundColor: colors.mainColor, paddingHorizontal: 12, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' }}>
                                 <Text style={{ fontSize: 10, color: 'white', fontWeight: '700', fontStyle: 'italic' }}>{`${unreadCount} unread`}</Text>
                             </View>
+                        }
+                        {
+                            !lastMessageCloud && <View style={{ backgroundColor: '#FF8B8B', height: 10, width: 10, borderRadius: 5, alignItems: 'center', justifyContent: 'center' }} />
                         }
                     </View>
                 </View>

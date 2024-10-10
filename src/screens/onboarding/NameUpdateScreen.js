@@ -3,7 +3,7 @@ import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import React, { useState } from 'react'
-import { Dimensions, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
+import { Dimensions, Keyboard, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ImagePicker from 'react-native-image-crop-picker'
@@ -13,6 +13,7 @@ import Toast from 'react-native-toast-message'
 import axios from 'axios'
 import apiClient from '@/utils/apiClient'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
+import ButtonWithLoading from '@/components/ButtonWithLoading'
 
 const styles = StyleSheet.create({
     container: {
@@ -54,22 +55,31 @@ const styles = StyleSheet.create({
 const NameUpdateScreen = ({ navigation, route }) => {
     const insets = useSafeAreaInsets()
     const [name, setName] = useState('');
+    const [loading, setLoading] = useState(false)
 
     const onContinue = () => {
         if (name.length > 0) {
-            apiClient.post('users/update', { full_name: name })
-                .then((res) => {
-                    console.log({ res })
-                    if (res && res.data && res.data.success) {
-                        NavigationService.reset('BirthdayUpdateScreen')
-                    } else {
-                        Toast.show({ text1: res.data.message, type: 'error' })
-                    }
-                })
-                .catch((error) => {
-                    console.log({ error })
-                    Toast.show({ text1: error, type: 'error' })
-                })
+            Keyboard.dismiss()
+            try {
+                setLoading(true)
+                apiClient.post('users/update', { full_name: name })
+                    .then((res) => {
+                        setLoading(false)
+                        console.log({ res })
+                        if (res && res.data && res.data.success) {
+                            NavigationService.reset('BirthdayUpdateScreen')
+                        } else {
+                            Toast.show({ text1: res.data.message, type: 'error' })
+                        }
+                    })
+                    .catch((error) => {
+                        setLoading(false)
+                        console.log({ error })
+                        Toast.show({ text1: error, type: 'error' })
+                    })
+            } catch (error) {
+                setLoading(false)
+            }
         }
     }
 
@@ -95,9 +105,13 @@ const NameUpdateScreen = ({ navigation, route }) => {
                     </View>
                 </View>
             </KeyboardAwareScrollView>
-            <TouchableOpacity onPress={onContinue} disabled={(name.length === 0)} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: (name.length === 0) ? '#9A9A9A' : '#333333', }}>
-                <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Continue</Text>
-            </TouchableOpacity>
+
+            <ButtonWithLoading
+                text='Continue'
+                onPress={onContinue}
+                disabled={(name.length === 0)}
+                loading={loading}
+            />
         </View>
     )
 }

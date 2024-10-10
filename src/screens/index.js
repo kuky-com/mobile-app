@@ -54,7 +54,7 @@ const TabNavigator = () => {
     return (
         <Tab.Navigator
             sceneContainerStyle={{ backgroundColor: '#00000000' }}
-            screenOptions={{ tabBarShowLabel: false, headerShown: false }}
+            screenOptions={{ tabBarShowLabel: false, headerShown: false, lazy: false }}
             tabBar={props => <Tabbar {...props} />} initialRouteName="ExploreScreen">
             <Tab.Screen name="ExploreScreen" component={ExploreScreen} />
             <Tab.Screen name="MatchesScreen" component={MatchesScreen} />
@@ -88,14 +88,12 @@ const AppStack = ({ navgation }) => {
 
         if (enabled) {
             try {
-                console.log('Authorization status:', authStatus);
 
                 await messaging().registerDeviceForRemoteMessages();
                 const token = await messaging().getToken();
                 console.log({ pushToken: token })
                 setPushToken(token)
                 AsyncStorage.getItem('ACCESS_TOKEN', (error, result) => {
-                    console.log({ result })
                     if (result) {
                         apiClient.post('users/update-token', { session_token: token })
                             .then((res) => {
@@ -113,9 +111,134 @@ const AppStack = ({ navgation }) => {
     }
 
     useEffect(() => {
+        const unsubscribe = messaging().onMessage(async remoteMessage => {
+          Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
+        });
+    
+        return unsubscribe;
+      }, []);
+
+      useEffect(() => {
+        const unsubscribe = messaging().onNotificationOpenedApp(remoteMessage => {
+            if (remoteMessage) {
+                if(remoteMessage.data && remoteMessage.data.data) {
+                    try {
+                        const notiData = JSON.parse(remoteMessage.data.data)
+                        if(navigationRef.current.getCurrentRoute().name === 'SplashScreen') {
+                            setTimeout(() => {
+                                if(notiData.type === 'message') {
+                                    if(notiData.match && notiData.match.conversation_id) {
+                                        NavigationService.resetRaw([
+                                            {name: 'Dashboard'},
+                                            {name: 'MessageScreen', params: {conversation: notiData.match}}
+                                        ])
+                                    } else {
+                                        NavigationService.resetRaw([
+                                            {name: 'Dashboard'},
+                                            {name: 'MatchesScreen'}
+                                        ])
+                                    }
+                                } else {
+                                    NavigationService.resetRaw([
+                                        {name: 'Dashboard'},
+                                        {name: 'NotificationScreen'}
+                                    ])
+                                }
+                            }, 1200);
+                        } else {
+                            if(notiData.type === 'message') {
+                                if(notiData.match && notiData.match.conversation_id) {
+                                    NavigationService.resetRaw([
+                                        {name: 'Dashboard'},
+                                        {name: 'MessageScreen', params: {conversation: notiData.match}}
+                                    ])
+                                } else {
+                                    NavigationService.resetRaw([
+                                        {name: 'Dashboard'},
+                                        {name: 'MatchesScreen'}
+                                    ])
+                                }
+                            } else {
+                                NavigationService.resetRaw([
+                                    {name: 'Dashboard'},
+                                    {name: 'NotificationScreen'}
+                                ])
+                            }
+                        }
+                        
+                    } catch (error) {
+                        console.log({error})
+                    }
+                }
+            }
+        });
+
+        messaging()
+            .getInitialNotification()
+            .then(remoteMessage => {
+                if (remoteMessage) {
+                    if(remoteMessage.data && remoteMessage.data.data) {
+                        try {
+                            const notiData = JSON.parse(remoteMessage.data.data)
+                            if(navigationRef.current.getCurrentRoute().name === 'SplashScreen') {
+                                setTimeout(() => {
+                                    if(notiData.type === 'message') {
+                                        if(notiData.match && notiData.match.conversation_id) {
+                                            NavigationService.resetRaw([
+                                                {name: 'Dashboard'},
+                                                {name: 'MessageScreen', params: {conversation: notiData.match}}
+                                            ])
+                                        } else {
+                                            NavigationService.resetRaw([
+                                                {name: 'Dashboard'},
+                                                {name: 'NotificationScreen'}
+                                            ])
+                                        }
+                                    } else {
+                                        NavigationService.resetRaw([
+                                            {name: 'Dashboard'},
+                                            {name: 'NotificationScreen'}
+                                        ])
+                                    }
+                                }, 1200);
+                            } else {
+                                if(notiData.type === 'message') {
+                                    if(notiData.match && notiData.match.conversation_id) {
+                                        NavigationService.resetRaw([
+                                            {name: 'Dashboard'},
+                                            {name: 'MessageScreen', params: {conversation: notiData.match}}
+                                        ])
+                                    } else {
+                                        NavigationService.resetRaw([
+                                            {name: 'Dashboard'},
+                                            {name: 'NotificationScreen'}
+                                        ])
+                                    }
+                                } else {
+                                    NavigationService.resetRaw([
+                                        {name: 'Dashboard'},
+                                        {name: 'NotificationScreen'}
+                                    ])
+                                }
+                            }
+                            
+                        } catch (error) {
+                            console.log({error})
+                        }
+                    }
+                }
+            });
+
+        return unsubscribe;
+    }, []);
+
+    useEffect(() => {
         const getDeviceId = async () => {
             const deviceId = await DeviceInfo.getUniqueId()
             setDeviceId(deviceId)
+            AsyncStorage.setItem('DEVICE_ID', deviceId)
+            .then(() => {})
+            .catch(() => {})
         }
 
         getDeviceId()

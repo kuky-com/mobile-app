@@ -1,4 +1,5 @@
 import { userAtom } from '@/actions/global'
+import ButtonWithLoading from '@/components/ButtonWithLoading'
 import Text from '@/components/Text'
 import apiClient from '@/utils/apiClient'
 import colors from '@/utils/colors'
@@ -26,6 +27,7 @@ const ReviewProfileScreen = ({ navigation }) => {
     const currentUser = useAtomValue(userAtom)
     const [likes, setLikes] = useState([])
     const [dislikes, setDislikes] = useState([])
+    const [loading, setLoading] = useState(false)
 
     useEffect(() => {
         apiClient.get('interests/likes')
@@ -59,12 +61,14 @@ const ReviewProfileScreen = ({ navigation }) => {
 
     const onContinue = async () => {
         try {
+            setLoading(true)
             const likeNames = likes.map((item) => item.name)
             const dislikeNames = dislikes.map((item) => item.name)
 
             const updateLikesRequest = await apiClient.post('interests/update-likes', { likes: likeNames })
             const updateDislikesRequest = await apiClient.post('interests/update-dislikes', { dislikes: dislikeNames })
 
+            setLoading(false)
             if(updateLikesRequest && updateLikesRequest.data && updateLikesRequest.data.success &&
                 updateDislikesRequest && updateDislikesRequest.data && updateDislikesRequest.data.success
             ) {
@@ -74,7 +78,7 @@ const ReviewProfileScreen = ({ navigation }) => {
                 Toast.show({text1: 'Your request failed. Please try again!', type: 'error'})
             }
         } catch (error) {
-            
+            setLoading(false)
         }
     }
 
@@ -139,9 +143,13 @@ const ReviewProfileScreen = ({ navigation }) => {
                             </TouchableOpacity>
                         </View>
                     </View>
-                    <TouchableOpacity onPress={onContinue} disabled={likes.length + dislikes.length === 0} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: (likes.length + dislikes.length === 0) ? '#9A9A9A' : '#333333', }}>
-                        <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Confirm & Continue</Text>
-                    </TouchableOpacity>
+
+                    <ButtonWithLoading 
+                        text='Confirm & Continue'
+                        onPress={onContinue} 
+                        disabled={likes.length + dislikes.length === 0} 
+                        loading={loading}
+                    />
                 </View>
             </ScrollView>
         </View>
