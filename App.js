@@ -35,6 +35,7 @@ dayjs.extend(customParseFormat)
 const toastConfig = {
   sent: ({ text1, props, text2 }) => (
     <View style={{ flex: 1, padding: 16, margin: 0, gap: 32, backgroundColor: '#725ED4', width: Dimensions.get('window').width, height: Dimensions.get('window').height, alignItems: 'center', justifyContent: 'center' }}>
+      <StatusBar backgroundColor='#725ED4'/>
       <Image source={images.sent_icon} style={{ width: 120, height: 120 }} contentFit='contain' />
       <Text style={{ fontSize: 20, color: 'white', fontWeight: 'bold', textAlign: 'center' }}>{text1}</Text>
       <Text style={{ fontSize: 18, color: 'white', fontWeight: 'bold', textAlign: 'center' }}>{text2}</Text>

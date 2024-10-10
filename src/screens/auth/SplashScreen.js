@@ -1,4 +1,4 @@
-import { tokenAtom, userAtom } from '@/actions/global'
+import { pushTokenAtom, tokenAtom, userAtom } from '@/actions/global'
 import Text from '@/components/Text'
 import apiClient from '@/utils/apiClient'
 import colors from '@/utils/colors'
@@ -7,7 +7,7 @@ import NavigationService from '@/utils/NavigationService'
 import { getAuthenScreen } from '@/utils/utils'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Image } from 'expo-image'
-import { useSetAtom } from 'jotai'
+import { useAtomValue, useSetAtom } from 'jotai'
 import React, { useEffect, useState } from 'react'
 import { ActivityIndicator, StyleSheet, View } from 'react-native'
 
@@ -23,6 +23,7 @@ const styles = StyleSheet.create({
 const SplashScreen = ({ navigation }) => {
     const setUser = useSetAtom(userAtom)
     const setToken = useSetAtom(tokenAtom)
+    const pushToken = useAtomValue(pushTokenAtom)
 
     const openGetStart = () => {
         NavigationService.reset('GetStartScreen')
@@ -36,9 +37,21 @@ const SplashScreen = ({ navigation }) => {
                 apiClient('users/user-info')
                 .then((res) => {
                     if(res && res.data && res.data.success) {
+                        console.log({userInfo: res.data.data})
                         setUser(res.data.data)
                         setToken(token)
                         NavigationService.reset(getAuthenScreen(res.data.data))
+
+                        console.log({pushToken})
+                        if(pushToken) {
+                            apiClient.post('users/update-token', {session_token: pushToken})
+                            .then((res) => {
+                                console.log({res})
+                            })
+                            .catch((error) => {
+                                console.log({error})
+                            })
+                        }
                     } else {
                         openGetStart()
                     }

@@ -1,14 +1,16 @@
-import { deviceIdAtom } from '@/actions/global'
+import { deviceIdAtom, pushTokenAtom, tokenAtom, userAtom } from '@/actions/global'
 import PinInput from '@/components/PinInput'
 import Text from '@/components/Text'
+import apiClient from '@/utils/apiClient'
 import colors from '@/utils/colors'
 import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import axios from 'axios'
 import { Image } from 'expo-image'
-import { useAtom, useAtomValue } from 'jotai'
-import React, { useState } from 'react'
-import { Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
+import { useAtom, useAtomValue, useSetAtom } from 'jotai'
+import React, { useEffect, useState } from 'react'
+import { Keyboard, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import Toast from 'react-native-toast-message'
 
@@ -23,26 +25,73 @@ const EmailVerificationScreen = ({ navigation, route }) => {
     const { email } = route.params
     const [pin, setPin] = useState('')
     const deviceId = useAtomValue(deviceIdAtom)
+    const setUser = useSetAtom(userAtom)
+    const setToken = useSetAtom(tokenAtom)
+    const pushToken = useAtomValue(pushTokenAtom)
+
+    const checkPushToken = () => {
+        if(pushToken) {
+            apiClient.post('users/update-token', {session_token: pushToken})
+            .then((res) => {
+                console.log({res})
+            })
+            .catch((error) => {
+                console.log({error})
+            })
+        }
+    }
 
     const onContinue = () => {
-        axios.post('auth/verify', {email, code: pin, device_id: deviceId, platform: Platform.OS})
-        .then((res) => {
-            console.log({res})
-            if(res && res.data && res.data.success) {
-                navigation.navigate('VerificationSuccessScreen', { onboarding: true })
-                Toast.show({text1: res.data.message, type: 'success'})
-            } else {
-                Toast.show({text1: res.data.message, type: 'error'})
-            }
-        })
-        .catch((error) => {
-            console.log({error})
-            Toast.show({text1: error, type: 'error'})
-        })
+        Keyboard.dismiss()
+        console.log({email, code: pin, device_id: deviceId, platform: Platform.OS})
+        apiClient.post('auth/verify', { email, code: pin, device_id: deviceId, platform: Platform.OS })
+            .then((res) => {
+                console.log({ res })
+                if (res && res.data && res.data.success) {
+                    const currentUser = res.data.data.user
+                    setUser(currentUser)
+                    setToken(res.data.data.token)
+                    AsyncStorage.setItem('ACCESS_TOKEN', res.data.data.token)
+                    setTimeout(() => {
+                        checkPushToken()
+                    }, 200);
+                    NavigationService.reset('VerificationSuccessScreen', { onboarding: true })
+                } else {
+                    Toast.show({ text1: res.data.message, type: 'error' })
+                }
+            })
+            .catch((error) => {
+                console.log({ error })
+                Toast.show({ text1: error, type: 'error' })
+            })
     }
 
     const openSignIn = () => {
         NavigationService.reset('SignInScreen')
+    }
+
+    const onPinUpdate = (newPin) => {
+        setPin(newPin)
+    }
+
+    useEffect(() => {
+        if(pin.length === 4) {
+            onContinue()
+        }
+    }, [pin])
+
+    const onResend = () => {
+        Keyboard.dismiss()
+        apiClient.post('auth/resend-verification', {email: email})
+            .then((res) => {
+                if(res && res.data && res.data.success) {
+                    Toast.show({text1: res.data.message, type: 'success'})
+                }
+            })
+            .catch((error) => {
+                console.log({error})
+            })
+        
     }
 
     return (
@@ -59,7 +108,7 @@ const EmailVerificationScreen = ({ navigation, route }) => {
                         </Text>
                         <PinInput
                             text={pin}
-                            handleTextChange={setPin}
+                            handleTextChange={onPinUpdate}
                         />
                         <View style={{ height: 30, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
 
@@ -67,9 +116,9 @@ const EmailVerificationScreen = ({ navigation, route }) => {
 
                         <View style={{ flexDirection: 'row' }}>
                             <View style={{ flex: 1, gap: 16 }}>
-                                {/* <Text style={{ color: '#726E70', fontSize: 15, width: '100%', flex: 1 }}>{`Did't get a code? `}
-                                    <Text style={{ color: '#5E30C1' }}>Resend</Text>
-                                </Text> */}
+                                <Text style={{ color: '#726E70', fontSize: 15, width: '100%', flex: 1 }}>{`Did't get a code? `}
+                                    <Text onPress={onResend} style={{ color: '#5E30C1' }}>Resend</Text>
+                                </Text>
                                 <TouchableOpacity onPress={openSignIn}>
                                     <Text style={{ fontSize: 14, fontWeight: '700', color: '#333333' }}>Sign in</Text>
                                 </TouchableOpacity>

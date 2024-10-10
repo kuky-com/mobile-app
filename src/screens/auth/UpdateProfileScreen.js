@@ -1,12 +1,16 @@
+import { userAtom } from '@/actions/global'
 import Text from '@/components/Text'
+import apiClient from '@/utils/apiClient'
 import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
-import React from 'react'
+import { useAtom } from 'jotai'
+import React, { useState } from 'react'
 import { Linking, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import Toast from 'react-native-toast-message'
 
 const styles = StyleSheet.create({
     container: {
@@ -26,6 +30,8 @@ const styles = StyleSheet.create({
 
 const UpdateProfileScreen = ({ navigation }) => {
     const insets = useSafeAreaInsets()
+    const [currentUser, setUser] = useAtom(userAtom)
+    const [fullName, setFullName] = useState(currentUser?.full_name)
 
     const moreAction = async () => {
         const options = [
@@ -42,6 +48,23 @@ const UpdateProfileScreen = ({ navigation }) => {
               },
             },
           });
+    }
+
+    const updateProfile = async() => {
+        apiClient.post('users/update', { full_name: fullName })
+            .then((res) => {
+                console.log({ res })
+                if (res && res.data && res.data.success) {
+                    setUser(res.data.data)
+                    Toast.show({ text1: res.data.message, type: 'success' })
+                } else {
+                    Toast.show({ text1: res.data.message, type: 'error' })
+                }
+            })
+            .catch((error) => {
+                console.log({ error })
+                Toast.show({ text1: error, type: 'error' })
+            })
     }
 
     return (
@@ -66,13 +89,15 @@ const UpdateProfileScreen = ({ navigation }) => {
                                 style={{ fontSize: 16, fontWeight: '500', color: 'black', fontWeight: 'bold', padding: 16, width: '100%', fontFamily: 'Comfortaa-Bold' }}
                                 underlineColorAndroid='#000000'
                                 placeholder='Your first & last name'
+                                value={fullName}
+                                onChangeText={setFullName}
                             />
                         </View>
                     </View>
                 </KeyboardAwareScrollView>
 
                 <View style={{ width: '100%', paddingHorizontal: 16, marginBottom: insets.bottom + 20, }}>
-                    <TouchableOpacity style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333' }}>
+                    <TouchableOpacity onPress={updateProfile} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333' }}>
                         <Text style={{ fontSize: 18, color: 'white', fontWeight: 'bold' }}>{'Save'}</Text>
                     </TouchableOpacity>
                 </View>

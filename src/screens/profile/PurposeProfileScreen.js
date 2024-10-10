@@ -3,7 +3,7 @@ import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import React, { useEffect, useRef, useState } from 'react'
-import { Dimensions, ScrollView, StyleSheet, Switch, TextInput, TouchableOpacity, View } from 'react-native'
+import { DeviceEventEmitter, Dimensions, ScrollView, StyleSheet, Switch, TextInput, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ImagePicker from 'react-native-image-crop-picker'
@@ -16,6 +16,9 @@ import DoubleSwitch from '@/components/DoubleSwitch'
 import SwitchWithText from '@/components/SwitchWithText'
 import apiClient from '@/utils/apiClient'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
+import { useSetAtom } from 'jotai'
+import { userAtom } from '@/actions/global'
+import constants from '@/utils/constants'
 
 const styles = StyleSheet.create({
     container: {
@@ -47,35 +50,52 @@ const styles = StyleSheet.create({
     }
 })
 
-const PurposeUpdateScreen = ({ navigation, route }) => {
-    // const { onboarding } = route.params
+const PurposeProfileScreen = ({ navigation, route }) => {
+    const { purposes, onUpdated } = route.params
     const insets = useSafeAreaInsets()
     const [tagName, setTagName] = useState('')
-    const [purposes, setPurposes] = useState([]);
+    const [tags, setTags] = useState(purposes);
     const inputRef = useRef()
+    const setCurrentUser = useSetAtom(userAtom)
 
     useEffect(() => {
         apiClient.get('interests/purposes')
             .then((res) => {
                 console.log({ res })
                 if (res && res.data && res.data.success) {
-                    setPurposes(res.data.data)
+                    setTags(res.data.data)
                 }
             })
             .catch((error) => {
                 console.log({ error })
-                setPurposes([])
+                setTags([])
             })
     }, [])
 
-    const onContinue = () => {
-        const purposeNames = purposes.map((item) => item.name)
+    const onSave = () => {
+        const purposeNames = tags.map((item) => item.name)
         apiClient.post('interests/update-purposes', { purposes: purposeNames })
             .then((res) => {
                 console.log({ res })
                 if (res && res.data && res.data.success) {
-                    NavigationService.reset('ReviewProfileScreen')
-                    // Toast.show({ text1: res.data.message, type: 'success' })
+                    Toast.show({ text1: 'Your purposes has been updated!', type: 'success' })
+
+                    apiClient.get('interests/profile-tag')
+                        .then((res) => {
+                            console.log({ res })
+                            if (res && res.data && res.data.success) {
+                                setCurrentUser(res.data.data)
+                                DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS)
+                            }
+
+                            if (onUpdated) {
+                                onUpdated(tags)
+                            }
+                            navigation.goBack()
+                        })
+                        .catch((error) => {
+                            console.log({ error })
+                        })
                 } else {
                     Toast.show({ text1: res.data.message, type: 'error' })
                 }
@@ -87,17 +107,17 @@ const PurposeUpdateScreen = ({ navigation, route }) => {
     }
 
     const removePurpose = (index) => {
-        const newPurposes = [...purposes]
+        const newPurposes = [...tags]
         newPurposes.splice(index, 1)
-        setPurposes(newPurposes)
+        setTags(newPurposes)
     }
 
     const onAddTag = () => {
         if (tagName.length > 3) {
-            setPurposes((old) => ([{name: tagName}, ...old]))
+            setTags((old) => ([{ name: tagName }, ...old]))
             setTagName('')
             setTimeout(() => {
-                if(inputRef.current) {
+                if (inputRef.current) {
                     inputRef.current.focus()
                 }
             }, 200);
@@ -113,7 +133,7 @@ const PurposeUpdateScreen = ({ navigation, route }) => {
                 <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black', lineHeight: 20 }}>This will be your <Text style={{ color: '#5E30C1' }}>{` main profile tag `}</Text> and will help us connect you with others who share similar experiences.</Text>
                 <KeyboardAwareScrollView style={{ flex: 1, width: '100%' }} showsVerticalScrollIndicator={false}>
                     <View style={{ flex: 1, width: '100%', paddingHorizontal: 8, paddingVertical: 24, gap: 16, alignItems: 'flex-start', justifyContent: 'flex-start' }}>
-                        <Text style={{fontSize: 16, color: 'black'}}>Your purpose</Text>
+                        <Text style={{ fontSize: 16, color: 'black' }}>Your purpose</Text>
                         <View style={{ width: '100%', paddingHorizontal: 16, borderWidth: 2, borderColor: '#726E70', borderRadius: 15, height: 54, alignItems: 'center' }}>
                             <TextInput
                                 ref={inputRef}
@@ -134,7 +154,7 @@ const PurposeUpdateScreen = ({ navigation, route }) => {
                         </View>
                         <View style={{ width: '100%', gap: 5 }}>
                             {
-                                purposes.map((item, index) => (
+                                tags.map((item, index) => (
                                     <View key={item.name} style={{ paddingVertical: 16, width: '100%', borderRadius: 20, backgroundColor: '#CDB8E2', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, gap: 8 }}>
                                         <Text style={{ flex: 1, fontSize: 14, fontWeight: '500', color: 'black' }}>{item.name}</Text>
                                         <TouchableOpacity onPress={() => removePurpose(index)} style={{ width: 30, height: 30, alignItems: 'center', justifyContent: 'center' }}>
@@ -147,11 +167,16 @@ const PurposeUpdateScreen = ({ navigation, route }) => {
                     </View>
                 </KeyboardAwareScrollView>
             </View>
-            <TouchableOpacity onPress={onContinue} disabled={purposes.length === 0} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: (purposes.length === 0) ? '#9A9A9A' : '#333333', }}>
-                <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Continue</Text>
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', width: '100%', gap: 16, alignItems: 'center' }}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={{ flex: 1, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FF8B8B' }}>
+                    <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Discard</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={onSave} disabled={tags.length === 0} style={{ flex: 1, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: tags.length === 0 ? '#9A9A9A' : '#333333', }}>
+                    <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Save</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     )
 }
 
-export default PurposeUpdateScreen
+export default PurposeProfileScreen

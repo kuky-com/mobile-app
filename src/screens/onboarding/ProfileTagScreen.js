@@ -1,47 +1,133 @@
 import Text from '@/components/Text'
 import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
-import { Image, ImageBackground } from 'expo-image'
-import React, { useEffect } from 'react'
-import { StyleSheet, TouchableOpacity, View } from 'react-native'
+import { Image } from 'expo-image'
+import React, { useEffect, useState } from 'react'
+import { DeviceEventEmitter, Dimensions, ScrollView, StyleSheet, Switch, TextInput, TouchableOpacity, View } from 'react-native'
+import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import ImagePicker from 'react-native-image-crop-picker'
+import { StatusBar } from 'expo-status-bar'
+import dayjs from 'dayjs'
+import Toast from 'react-native-toast-message'
+import axios from 'axios'
+import { capitalize } from '@/utils/utils'
+import DoubleSwitch from '@/components/DoubleSwitch'
+import SwitchWithText from '@/components/SwitchWithText'
+import apiClient from '@/utils/apiClient'
+import { userAtom } from '@/actions/global'
+import { LinearGradient } from 'expo-linear-gradient'
+import { useAtom, useAtomValue } from 'jotai'
+import constants from '@/utils/constants'
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: 'white',
+        paddingHorizontal: 16,
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+        gap: 24
+    },
+    itemContainer: {
+        backgroundColor: '#ECECEC',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 16
+        height: 55, borderRadius: 20,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.25,
+        elevation: 1,
+        shadowColor: '#000000',
+        flexDirection: 'row',
+        paddingHorizontal: 22,
+        width: '100%'
+    },
+    closeButton: {
+        width: 30, height: 30, backgroundColor: '#333333',
+        alignItems: 'center', justifyContent: 'center',
+        borderRadius: 15,
+        position: 'absolute', top: 8, right: 8
+    },
+    name: {
+        fontWeight: 'bold',
+        fontSize: 20,
+        textAlign: 'left',
+        color: 'white',
+        padding: 16
+    },
+    nameContainer: {
+        position: 'absolute',
+        bottom: 0, left: 0,
+        height: '50%',
+        justifyContent: 'flex-end',
+        alignItems: 'flex-start',
+        paddingBottom: 16, paddingLeft: 10,
+        width: '100%'
+    },
+    nameBackground: {
+        position: 'absolute',
+        top: 0, left: 0, right: 0, bottom: 0
     }
 })
 
-const ProfileTagScreen = ({ navigation }) => {
+const ProfileTagScreen = ({ navigation, route }) => {
+    // const { onboarding } = route.params
     const insets = useSafeAreaInsets()
+    const [currentUser, setCurrentUser] = useAtom(userAtom)
 
     useEffect(() => {
-        NavigationService.reset('GenderUpdateScreen')
+        apiClient.get('interests/profile-tag')
+            .then((res) => {
+                console.log({ res })
+                if (res && res.data && res.data.success) {
+                    setCurrentUser(res.data.data)
+                    DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS)
+                }
+            })
+            .catch((error) => {
+                console.log({ error })
+            })
     }, [])
 
+    const onContinue = () => {
+        NavigationService.reset('OnboardingCompleteScreen')
+    }
+
+    console.log({ tag: currentUser?.tag })
+
     return (
-        <View style={styles.container}>
-            <ImageBackground
-                source={images.verification_success_bg}
-                style={{
-                    width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center',
-                    paddingTop: insets.top + 40,
-                    paddingBottom: insets.bottom + 32,
-                    paddingHorizontal: 24
-                }}
-            >
-                <Image source={images.logo_with_text} style={{ width: 80, height: 25 }} contentFit='contain' />
-                <View style={{ flex: 1, alignItem: 'center', justifyContent: 'center', gap: 26 }}>
-                    <Image source={{width: 66, height: 66, }} contentFit='contain' />
-                    <Text stle={{fontSize: 32, color: 'white', fontWeight: 'bold'}}>{'Your phone number has been successfully verified.'}</Text>
+        <View style={[styles.container, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 16 }]}>
+            <StatusBar translucent style='dark' />
+            <View style={{ flex: 1, gap: 16, width: '100%', alignItems: 'center' }}>
+                <Image source={images.logo_with_text} style={{ width: 120, height: 40, marginBottom: 32 }} contentFit='contain' />
+                <Text style={{ fontSize: 13, fontWeight: '600', color: 'black' }}>{`Your Profile Tag`}</Text>
+                <Text style={{ fontSize: 18, fontWeight: '600', color: 'black', lineHeight: 21, textAlign: 'center' }}>Based on your preferences, we’ve created a profile tag for you:</Text>
+                <View style={{ flex: 1, }}>
+                    <View style={{ justifyContent: 'space-between', width: Dimensions.get('screen').width - 64, height: Dimensions.get('screen').width - 64, borderRadius: 20, overflow: 'hidden' }}>
+                        <Image source={{ uri: currentUser?.avatar }} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} contentFit='cover' />
+                        <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'flex-end', padding: 8 }}>
+                            <View style={{ backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
+                                <Text style={{ color: '#E8FF58', fontSize: 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>
+                            </View>
+                        </View>
+                        <LinearGradient
+                            colors={['transparent', 'rgba(0,0,0,0.79)']}
+                            style={styles.nameBackground}
+                        />
+                        <Text style={styles.name}>{`${currentUser?.full_name}, ${dayjs().diff(dayjs(currentUser?.birthday, 'MM-DD-YYYY'), 'years')}`}</Text>
+
+                    </View>
                 </View>
-                <TouchableOpacity style={{width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center'}}>
-                    <Text style={{fontSize: 18, fontWeight: 'bold', color: '#333333'}}>Continue</Text>
-                </TouchableOpacity>
-            </ImageBackground>
+                <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'center' }}>
+                    <View style={{ backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
+                        <Text style={{ color: '#E8FF58', fontSize: 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>
+                    </View>
+                </View>
+                <Text style={{ fontSize: 14, color: 'black', textAlign: 'center' }}>{'This tag will represent your main interests and preferences. It helps others understand who you are and what you’re looking for.'}</Text>
+            </View>
+            <TouchableOpacity onPress={onContinue} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333', }}>
+                <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Continue</Text>
+            </TouchableOpacity>
         </View>
     )
 }

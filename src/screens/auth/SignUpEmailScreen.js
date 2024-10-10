@@ -11,6 +11,11 @@ import { appleAuth } from '@invertase/react-native-apple-authentication'
 import { GoogleSignin } from '@react-native-google-signin/google-signin'
 import { StatusBar } from 'expo-status-bar'
 import axios from 'axios'
+import apiClient from '@/utils/apiClient'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { deviceIdAtom, pushTokenAtom, tokenAtom, userAtom } from '@/actions/global'
+import { getAuthenScreen } from '@/utils/utils'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const styles = StyleSheet.create({
     container: {
@@ -20,6 +25,11 @@ const styles = StyleSheet.create({
 })
 
 const SignUpEmailScreen = ({ navigation }) => {
+    const deviceId = useAtomValue(deviceIdAtom)
+    const setUser = useSetAtom(userAtom)
+    const setToken = useSetAtom(tokenAtom)
+    const pushToken = useAtomValue(pushTokenAtom)
+
     const [email, setEmail] = useState('')
     const [fullName, setFullName] = useState('')
     const [password, setPassword] = useState('')
@@ -34,26 +44,55 @@ const SignUpEmailScreen = ({ navigation }) => {
     }, [])
 
     useEffect(() => {
-        if(Platform.OS === 'ios') {
+        if (Platform.OS === 'ios') {
             return appleAuth.onCredentialRevoked(async () => {
                 console.warn('If this function executes, User Credentials have been Revoked');
             })
         }
     }, [])
 
-    const onSocialLogin = (id, name, avatar, email, provider) => {
-        console.log({ id, name, avatar, email, provider })
+    const checkPushToken = () => {
+        if (pushToken) {
+            apiClient.post('users/update-token', { session_token: pushToken })
+                .then((res) => {
+                    console.log({ res })
+                })
+                .catch((error) => {
+                    console.log({ error })
+                })
+        }
     }
 
     const onGoogle = async () => {
         try {
             await GoogleSignin.hasPlayServices();
             const response = await GoogleSignin.signIn();
-            if (isSuccessResponse(response)) {
+            console.log({ response })
+            if (response && response.data && response.data.idToken) {
+                apiClient.post('auth/google', { token: response.data.idToken, device_id: deviceId, platform: Platform.OS })
+                    .then((res) => {
+                        console.log({ res: res.data })
+
+                        if (res && res.data && res.data.success) {
+                            setUser(res.data.data.user)
+                            setToken(res.data.data.token)
+                            AsyncStorage.setItem('ACCESS_TOKEN', res.data.data.token)
+                            setTimeout(() => {
+                                checkPushToken()
+                            }, 200);
+                            NavigationService.reset(getAuthenScreen(res.data.data.user))
+                        } else {
+                            Toast.show({ text1: res?.data?.message, type: 'error' })
+                        }
+                    })
+                    .catch((error) => {
+                        console.log({ error })
+                        Toast.show({ text1: error, type: 'error' })
+                    })
             } else {
-              // sign in was cancelled by user
+                // sign in was cancelled by user
             }
-          } catch (error) {
+        } catch (error) {
             console.log(error)
         }
     }
@@ -70,41 +109,47 @@ const SignUpEmailScreen = ({ navigation }) => {
             return
         }
 
-        const credentialState = await appleAuth.getCredentialStateForUser(appleAuthRequestResponse.user);
+        apiClient.post('auth/apple', { token: appleAuthRequestResponse.identityToken, device_id: deviceId, platform: Platform.OS })
+            .then((res) => {
+                console.log({ res: res.data })
 
-        if (credentialState === appleAuth.State.AUTHORIZED) {
-            console.log({ appleAuthRequestResponse })
-
-            const { identityToken, nonce, email, fullName, user } = appleAuthRequestResponse;
-            if (email === null) {
-                Alert.alert(i18n.t('error'), i18n.t('apple_need_reset_login'))
-                return
-            }
-            onSocialLogin(user, fullName.givenName + ' ' + fullName.familyName, null, email, 'apple')
-        } else {
-            Toast.show({ text1: i18n.t('error'), text2: i18n.t('cannot_login'), type: 'error' })
-        }
+                if (res && res.data && res.data.success) {
+                    setUser(res.data.data.user)
+                    setToken(res.data.data.token)
+                    AsyncStorage.setItem('ACCESS_TOKEN', res.data.data.token)
+                    setTimeout(() => {
+                        checkPushToken()
+                    }, 200);
+                    NavigationService.reset(getAuthenScreen(res.data.data.user))
+                } else {
+                    Toast.show({ text1: res?.data?.message, type: 'error' })
+                }
+            })
+            .catch((error) => {
+                console.log({ error })
+                Toast.show({ text1: error, type: 'error' })
+            })
     }
 
     const onSignUp = () => {
-        if(email.length === 0 || fullName.length === 0 || password.length === 0) {
-            Toast.show({text1: 'Please enter your information!', type: 'error'})
+        if (email.length === 0 || fullName.length === 0 || password.length === 0) {
+            Toast.show({ text1: 'Please enter your information!', type: 'error' })
             return
         }
-        axios.post('auth/register', {full_name: fullName, email, password})
-        .then((res) => {
-            console.log({res})
-            if(res && res.data && res.data.success) {
-                navigation.navigate('EmailVerificationScreen', {email: email})
-                Toast.show({text1: res.data.message, type: 'success'})
-            } else {
-                Toast.show({text1: res.data.message, type: 'error'})
-            }
-        })
-        .catch((error) => {
-            console.log({error})
-            Toast.show({text1: error, type: 'error'})
-        })
+        apiClient.post('auth/register', { full_name: fullName, email, password })
+            .then((res) => {
+                console.log({ res })
+                if (res && res.data && res.data.success) {
+                    navigation.navigate('EmailVerificationScreen', { email: email })
+                    Toast.show({ text1: res.data.message, type: 'success' })
+                } else {
+                    Toast.show({ text1: res.data.message, type: 'error' })
+                }
+            })
+            .catch((error) => {
+                console.log({ error })
+                Toast.show({ text1: error, type: 'error' })
+            })
     }
 
     const openSignIn = () => {
@@ -161,9 +206,11 @@ const SignUpEmailScreen = ({ navigation }) => {
                             <View style={{ flex: 1, height: 1, backgroundColor: '#726E70' }} />
                         </View>
                         <View style={{ alignItems: 'center', justifyContent: 'center', gap: 10, flexDirection: 'row' }}>
-                            <TouchableOpacity onPress={onApple} style={{ height: 54, borderRadius: 25, alignItems: 'center', justifyContent: 'center', width: 80, backgroundColor: '#EEEEEE' }}>
-                                <Image source={images.apple_icon} style={{ width: 20, height: 20 }} contentFit='contain' />
-                            </TouchableOpacity>
+                            {Platform.OS === 'ios' &&
+                                <TouchableOpacity onPress={onApple} style={{ height: 54, borderRadius: 25, alignItems: 'center', justifyContent: 'center', width: 80, backgroundColor: '#EEEEEE' }}>
+                                    <Image source={images.apple_icon} style={{ width: 20, height: 20 }} contentFit='contain' />
+                                </TouchableOpacity>
+                            }
                             <TouchableOpacity onPress={onGoogle} style={{ height: 54, borderRadius: 25, alignItems: 'center', justifyContent: 'center', width: 80, backgroundColor: '#EEEEEE' }}>
                                 <Image source={images.google_icon} style={{ width: 20, height: 20 }} contentFit='contain' />
                             </TouchableOpacity>

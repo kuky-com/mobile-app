@@ -3,10 +3,17 @@ import Text from '@/components/Text'
 import apiClient from '@/utils/apiClient'
 import colors from '@/utils/colors'
 import images from '@/utils/images'
+import dayjs from 'dayjs'
 import { Image } from 'expo-image'
 import React, { useEffect, useState } from 'react'
-import { Dimensions, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { DeviceEventEmitter, Dimensions, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import ConversationListItem from './components/ConversationListItem'
+import { SheetManager } from 'react-native-actions-sheet'
+import Toast from 'react-native-toast-message'
+import constants from '@/utils/constants'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { totalMessageCounterAtom, totalMessageUnreadAtom, userAtom } from '@/actions/global'
 
 const styles = StyleSheet.create({
     container: {
@@ -16,21 +23,52 @@ const styles = StyleSheet.create({
 })
 
 const MatchesScreen = ({ navigation }) => {
+    const currentUser = useAtomValue(userAtom)
     const insets = useSafeAreaInsets()
     const [matches, setMatches] = useState([])
     const [isFetching, setFetching] = useState(false)
+    const unreadMessage = useAtomValue(totalMessageCounterAtom)
+    const setUnreadCounter = useSetAtom(totalMessageUnreadAtom)
 
     useEffect(() => {
         onRefresh()
     }, [])
 
+    useEffect(() => {
+        let eventListener = DeviceEventEmitter.addListener(constants.REFRESH_SUGGESTIONS, event => {
+            onRefresh()
+        });
+
+        return () => {
+            eventListener.remove();
+        };
+    }, [])
+
+    useEffect(() => {
+        try {
+            console.log({unreadMessage})
+            let counter = 0
+            for(const match of matches) {
+                try {
+                    counter += (unreadMessage[match.conversation_id] ?? 0)
+                } catch (error) {
+                    console.log({error})
+                }
+            }
+            setUnreadCounter(counter)
+        } catch (error) {
+            console.log({error})
+        }
+    }, [matches, unreadMessage])
+
     const onRefresh = () => {
         setFetching(true)
-        apiClient.post('matches/list', {})
+        apiClient.get('matches/matches')
             .then((res) => {
                 setFetching(false)
+                console.log({matches: res.data.data})
                 if (res && res.data && res.data.success) {
-                    setMatches(res.data.matches)
+                    setMatches(res.data.data)
                 } else {
                     setMatches([])
                 }
@@ -59,32 +97,51 @@ const MatchesScreen = ({ navigation }) => {
             <View style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center', paddingTop: Dimensions.get('screen').height * 0.15 }}>
                 <Text style={{ color: '#725ED4', fontSize: 28, fontWeight: 'bold', lineHeight: 35, textAlign: 'center' }}>{`No Connections Yet?\nNo Worries!`}</Text>
                 <Text style={{ color: '#333333', fontSize: 16, fontWeight: '300', textAlign: 'center', lineHeight: 20, marginBottom: Dimensions.get('screen').height * 0.1, marginTop: 16 }}>{`Explore people near you while you wait for your perfect connection`}</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('LikeScreen')} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333', }}>
+                <TouchableOpacity onPress={() => navigation.navigate('ExploreScreen')} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333', }}>
                     <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Explore Nearby</Text>
                 </TouchableOpacity>
             </View>
         )
     }
 
-    const renderItem = ({ item }) => {
+    const onDisconnect = async (item) => {
+        await SheetManager.show('confirm-action-sheets', {
+            payload: {
+                onCancel: () => { 
+                    apiClient.post('matches/disconnect', 
+                        { friend_id: item.profile.id, id: item.id })
+                        .then(async (res) => {
+                            console.log({res})
+                            if (res && res.data && res.data.success) {
+                                Toast.show({ text1: res.data.message, type: 'success' })
+                                onRefresh()
+                            } else if(res && res.data && res.data.message) {
+                                Toast.show({ text1: res.data.message, type: 'error' })
+                            }
+                        })
+                        .catch((error) => {
+                            console.log({error})
+                            Toast.show({ text1: error, type: 'error' })
+                        })
+                },
+                onConfirm: () => {},
+                cancelText: "End Connection",
+                confirmText: "Cancel",
+                header: 'Do you want to end the connection with this user?',
+                title: `Ending the connection will delete all previous messages, and both users will no longer be shown to each other.`,
+            },
+        });
+    }
+
+    const renderItem = ({ item, index }) => {
         return (
-            <TouchableOpacity onPress={() => openChat(item)} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: '#78787977', paddingVertical: 16 }}>
-                <Image source={{ uri: item.image }} style={{ width: 70, height: 70, borderRadius: 35, borderWidth: 1, borderColor: colors.mainColor }} />
-                <View style={{ flex: 1, gap: 8, marginHorizontal: 12 }}>
-                    <Text style={{ fontSize: 15, fontWeight: 'bold', color: 'black' }}>{item.name}</Text>
-                    <Text style={{ fontSize: 14, color: '#6C6C6C', fontWeight: '300' }}>{item.lastMessage}</Text>
-                </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={{ fontSize: 10, color: '#726E70' }}>{item.time}</Text>
-                    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                        {item.unread &&
-                            <View style={{ backgroundColor: colors.mainColor, paddingHorizontal: 12, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' }}>
-                                <Text style={{ fontSize: 10, color: 'white', fontWeight: '700', fontStyle: 'italic' }}>{`unread`}</Text>
-                            </View>
-                        }
-                    </View>
-                </View>
-            </TouchableOpacity>
+            <ConversationListItem 
+                onPress={() => openChat(item)} 
+                key={`conversation-${item.id}`} 
+                conversation={item}
+                marginBottom={index === (matches.length - 1) ? insets.bottom + 70 : 0}
+                onDisconnect={() => onDisconnect(item)}
+            />
         )
     }
 

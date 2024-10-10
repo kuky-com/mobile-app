@@ -1,7 +1,7 @@
+import { Image } from 'expo-image';
 import React, {useRef, useState} from 'react';
 import {
   Dimensions,
-  Image,
   StyleSheet,
   ScrollView,
   Text,
@@ -72,12 +72,17 @@ function ActionSheets(props) {
       <ScrollView
         {...scrollHandlers}
         style={{
-          height: (props.payload?.actions ?? []).length * 60,
+          height: (props.payload?.actions ?? []).length * 60 + ((props.payload?.title ?? '').length > 0 ? 50 : 0),
           minHeight: 120,
           maxHeight: Dimensions.get('screen').height * 0.8,
         }}
         keyboardShouldPersistTaps={'handled'}>
         <View style={[styles.container, {paddingBottom: insets.bottom}]}>
+        {(props.payload?.title ?? '').length > 0 && (
+            <View style={{padding: 16, width: '100%', borderBottomWidth: 0.5,  borderBottomColor: '#eeeeee'}}>
+              <Text style={{fontSize: 16, color: 'black', fontWeight: 'bold'}}>{(props.payload?.title ?? '')}</Text>
+              </View>
+          )}
           {(props.payload?.actions ?? []).length > 10 && (
             <View style={styles.keywordContainer}>
               <TextInput
@@ -121,7 +126,7 @@ function ActionSheets(props) {
                   <Image
                     source={image}
                     style={styles.icon}
-                    resizeMode="contain"
+                    contentFit="contain"
                   />
                 )}
                 <Text style={[styles.text, color ? {color} : {}]}>{text}</Text>

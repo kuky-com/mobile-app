@@ -2,8 +2,8 @@ import Text from '@/components/Text'
 import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
-import React, { useRef, useState } from 'react'
-import { Dimensions, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
+import React, { useEffect, useRef, useState } from 'react'
+import { Dimensions, Keyboard, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ImagePicker from 'react-native-image-crop-picker'
@@ -14,6 +14,7 @@ import axios from 'axios'
 import { useAtomValue } from 'jotai'
 import { tokenAtom } from '@/actions/global'
 import apiClient from '@/utils/apiClient'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 
 const styles = StyleSheet.create({
     container: {
@@ -91,15 +92,24 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
         }
     }
 
+    useEffect(() => {
+        if (month.length == 2 && day.length === 2 && year.length === 4) {
+            setTimeout(() => {
+                Keyboard.dismiss()
+                onContinue()
+            }, 300);
+        }
+    }, [month, day, year])
+
     const onContinue = () => {
         const date = dayjs(`${month}-${day}-${year}`, 'MM-DD-YYYY')
-        if (date.isValid) {
-            apiClient.post('users/update', { birthday: `${month}-${day}-${year}`})
+        if (date.isValid()) {
+            apiClient.post('users/update', { birthday: `${month}-${day}-${year}` })
                 .then((res) => {
                     console.log({ res })
                     if (res && res.data && res.data.success) {
                         NavigationService.reset('GenderUpdateScreen')
-                        Toast.show({ text1: res.data.message, type: 'success' })
+                        // Toast.show({ text1: res.data.message, type: 'success' })
                     } else {
                         Toast.show({ text1: res.data.message, type: 'error' })
                     }
@@ -116,49 +126,51 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
     return (
         <View style={[styles.container, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 16 }]}>
             <StatusBar translucent style='dark' />
-            <View style={{ flex: 1, gap: 16 }}>
-                <Image source={images.logo_with_text} style={{ width: 120, height: 40, marginBottom: 32 }} contentFit='contain' />
-                <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'black' }}>{`What’s your \nbirthday?`}</Text>
-                <Text style={{ fontSize: 16, fontWeight: '500', color: 'black' }}>{`Your age will be shown to other users.`}</Text>
-                <View style={{ flex: 1, paddingVertical: 50, width: '100%', flexDirection: 'row', gap: 10, alignItems: 'flex-start', justifyContent: 'center' }}>
-                    <View style={styles.inputContainer}>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="MM"
-                            value={month}
-                            onChangeText={handleMonthChange}
-                            keyboardType="numeric"
-                            maxLength={2}
-                            autoFocus={true}
-                            underlineColorAndroid='#00000000'
-                        />
-                    </View>
-                    <View style={styles.inputContainer}>
-                        <TextInput
-                            ref={dayInputRef}
-                            style={styles.input}
-                            placeholder="DD"
-                            value={day}
-                            onChangeText={handleDayChange}
-                            keyboardType="numeric"
-                            maxLength={2}
-                            underlineColorAndroid='#00000000'
-                        />
-                    </View>
-                    <View style={styles.inputContainer}>
-                        <TextInput
-                            ref={yearInputRef}
-                            style={styles.input}
-                            placeholder="YYYY"
-                            value={year}
-                            onChangeText={handleYearChange}
-                            keyboardType="numeric"
-                            maxLength={4}
-                            underlineColorAndroid='#00000000'
-                        />
+            <KeyboardAwareScrollView style={{ flex: 1, width: '100%' }}>
+                <View style={{ flex: 1, gap: 16 }}>
+                    <Image source={images.logo_with_text} style={{ width: 120, height: 40, marginBottom: 32 }} contentFit='contain' />
+                    <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'black' }}>{`What’s your \nbirthday?`}</Text>
+                    <Text style={{ fontSize: 16, fontWeight: '500', color: 'black' }}>{`Your age will be shown to other users.`}</Text>
+                    <View style={{ flex: 1, paddingVertical: 50, width: '100%', flexDirection: 'row', gap: 10, alignItems: 'flex-start', justifyContent: 'center' }}>
+                        <View style={styles.inputContainer}>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="MM"
+                                value={month}
+                                onChangeText={handleMonthChange}
+                                keyboardType="numeric"
+                                maxLength={2}
+                                autoFocus={true}
+                                underlineColorAndroid='#00000000'
+                            />
+                        </View>
+                        <View style={styles.inputContainer}>
+                            <TextInput
+                                ref={dayInputRef}
+                                style={styles.input}
+                                placeholder="DD"
+                                value={day}
+                                onChangeText={handleDayChange}
+                                keyboardType="numeric"
+                                maxLength={2}
+                                underlineColorAndroid='#00000000'
+                            />
+                        </View>
+                        <View style={styles.inputContainer}>
+                            <TextInput
+                                ref={yearInputRef}
+                                style={styles.input}
+                                placeholder="YYYY"
+                                value={year}
+                                onChangeText={handleYearChange}
+                                keyboardType="numeric"
+                                maxLength={4}
+                                underlineColorAndroid='#00000000'
+                            />
+                        </View>
                     </View>
                 </View>
-            </View>
+            </KeyboardAwareScrollView>
             <TouchableOpacity onPress={onContinue} disabled={(month === '' || day === '' || year === '')} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: (month === '' || day === '' || year === '') ? '#9A9A9A' : '#333333', }}>
                 <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Continue</Text>
             </TouchableOpacity>

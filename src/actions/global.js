@@ -6,6 +6,14 @@ export const storeAtom = createStore();
 
 export const deviceIdAtom = atom(null)
 
+export const pushTokenAtom = atom(null)
+
+export const notiCounterAtom = atom(0)
+
+export const totalMessageCounterAtom = atom({})
+
+export const totalMessageUnreadAtom = atom(0)
+
 export const storage = createJSONStorage(() => AsyncStorage);
 
 export const tokenAtom = atomWithStorage(

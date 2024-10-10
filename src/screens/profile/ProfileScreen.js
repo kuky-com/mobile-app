@@ -1,15 +1,17 @@
 import { userAtom } from '@/actions/global'
 import Text from '@/components/Text'
+import apiClient from '@/utils/apiClient'
 import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import dayjs from 'dayjs'
 import { Image } from 'expo-image'
 import { StatusBar } from 'expo-status-bar'
-import { useAtomValue } from 'jotai'
-import React, { useState } from 'react'
-import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { useAtom, useAtomValue, useSetAtom } from 'jotai'
+import React, { useEffect, useState } from 'react'
+import { Dimensions, Linking, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import Toast from 'react-native-toast-message'
 
 const styles = StyleSheet.create({
     container: {
@@ -30,19 +32,94 @@ const styles = StyleSheet.create({
 const ProfileScreen = ({ navigation }) => {
     const insets = useSafeAreaInsets()
     const [mode, setMode] = useState('view') //view, edit
-    const currentUser = useAtomValue(userAtom)
+    const [likes, setLikes] = useState([])
+    const [dislikes, setDislikes] = useState([])
+    const [purposes, setPurposes] = useState([])
+
+    const [currentUser, setCurrentUser] = useAtom(userAtom)
+
+    useEffect(() => {
+        onRefresh()
+    }, [])
+
+    const openSetting = () => {
+        navigation.push('SettingScreen')
+    }
+
+    const onRefresh = () => {
+        apiClient.get('interests/likes')
+            .then((res) => {
+                if (res && res.data && res.data.success) {
+                    console.log({ likes: res.data.data })
+                    setLikes(res.data.data)
+                }
+            })
+            .catch((error) => {
+                console.log({ error })
+            })
+
+        apiClient.get('interests/dislikes')
+            .then((res) => {
+                if (res && res.data && res.data.success) {
+                    setDislikes(res.data.data)
+                }
+            })
+            .catch((error) => {
+                console.log({ error })
+            })
+
+        apiClient.get('interests/purposes')
+            .then((res) => {
+                if (res && res.data && res.data.success) {
+                    setPurposes(res.data.data)
+                }
+            })
+            .catch((error) => {
+                console.log({ error })
+            })
+
+        apiClient.get('users/user-info')
+            .then((res) => {
+                if (res && res.data && res.data.success) {
+                    setCurrentUser(res.data.data)
+                }
+            })
+            .catch((error) => {
+                console.log({ error })
+            })
+    }
+
+    const onAddDislikes = () => {
+        navigation.push('DislikeUpdateScreen', { dislikes: dislikes, onUpdated: (newList) => setDislikes(newList) })
+    }
+
+    const onAddLikes = () => {
+        navigation.push('InterestUpdateScreen', { likes: likes, onUpdated: (newList) => setLikes(newList) })
+    }
+
+    const onEditPurposes = () => {
+        navigation.push('PurposeProfileScreen', { purposes: purposes, onUpdated: (newList) => setPurposes(newList) })
+    }
+
+    console.log({purposes})
 
     return (
         <View style={styles.container}>
             <StatusBar translucent style='dark' />
-            <View style={{ gap: 8, borderBottomLeftRadius: 45, borderBottomRightRadius: 45, backgroundColor: '#725ED4', paddingHorizontal: 16, paddingBottom: 24, paddingTop: insets.top, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
-                <View style={{ height: 30, alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
-
+            <View style={{ gap: 8, borderBottomLeftRadius: 45, borderBottomRightRadius: 45, backgroundColor: '#725ED4', paddingHorizontal: 16, paddingBottom: 12, paddingTop: insets.top, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                {/* <View style={{ width: '100%', height: 30, alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
+                    <TouchableOpacity onPress={openSetting} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
+                        <Image source={images.setting_icon} style={{ width: 22, height: 22 }} contentFit='contain' />
+                    </TouchableOpacity>
+                </View> */}
+                <View style={{ paddingVertical: 12, gap: 8, width: '100%', alignItems: 'center', justifyContent: 'center', flexDirection: 'row' }}>
+                    <View style={{ width: 40, height: 40 }} />
+                    <Text style={{ flex: 1, textAlign: 'center', fontSize: 18, color: 'white', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text>
+                    <TouchableOpacity onPress={openSetting} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
+                        <Image source={images.setting_icon} style={{ width: 22, height: 22 }} contentFit='contain' />
+                    </TouchableOpacity>
                 </View>
-                <View style={{ paddingVertical: 12, width: '100%', alignItems: 'center', justifyContent: 'center'}}>
-                    <Text style={{ fontSize: 18, color: 'white', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text>
-                </View>
-                <View style={{ height: 30, alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
+                {/* <View style={{ height: 30, alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
                     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                         <TouchableOpacity onPress={() => setMode('edit')} style={{ borderBottomWidth: 1, borderBottomColor: mode === 'edit' ? '#E8FF58' : 'transparent', height: 30, alignItems: 'center', width: 50, justifyContent: 'center' }}>
                             <Text style={{ fontSize: 16, color: mode === 'edit' ? '#E8FF58' : 'rgba(232, 255, 88, 0.5)' }}>Edit</Text>
@@ -53,12 +130,121 @@ const ProfileScreen = ({ navigation }) => {
                             <Text style={{ fontSize: 16, color: mode === 'view' ? '#E8FF58' : 'rgba(232, 255, 88, 0.5)' }}>View</Text>
                         </TouchableOpacity>
                     </View>
-                </View>
+                </View> */}
             </View>
             <View style={{ flex: 1 }}>
-                <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 16, paddingTop: 24 }}>
+                <ScrollView
+                    refreshControl={<RefreshControl
+                        refreshing={false}
+                        onRefresh={onRefresh} />}
+                    showsVerticalScrollIndicator={false} style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 16, paddingTop: 24 }}>
                     <View style={{ flex: 1, gap: 16, marginBottom: insets.bottom + 120 }}>
-                        
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                            <Text style={{ fontSize: 24, color: 'black', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text>
+                            <View style={{ backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
+                                <Text style={{ color: '#E8FF58', fontSize: 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>
+                            </View>
+                        </View>
+                        <View style={{ justifyContent: 'space-between', width: Dimensions.get('screen').width - 32, height: Dimensions.get('screen').width - 32, borderRadius: 20, overflow: 'hidden' }}>
+                            <Image source={{ uri: currentUser?.avatar }} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} contentFit='cover' />
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
+                            <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'flex-start' }}>
+                                <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
+                                    <Image source={images.birthday_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
+                                </View>
+                                <Text style={{ fontSize: 14, color: 'black' }}>{`${dayjs().diff(dayjs(currentUser?.birthday, 'MM-DD-YYYY'), 'years')} yrs`}</Text>
+                            </View>
+
+                            <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center' }}>
+                                <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
+                                    <Image source={images.gender_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
+                                </View>
+                                <Text style={{ fontSize: 14, color: 'black' }}>{`${currentUser?.pronouns}`}</Text>
+                            </View>
+
+                            <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'flex-end' }}>
+                                <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
+                                    <Image source={images.location_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
+                                </View>
+                                <Text style={{ fontSize: 14, color: 'black' }}>{`${currentUser?.location}`}</Text>
+                            </View>
+                        </View>
+
+                        <View style={{ backgroundColor: '#725ED4', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
+                            <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
+                                <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>Your purposes</Text>
+                            </View>
+                            <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} />
+                            <View style={{ paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16 }}>
+                                {
+                                    purposes.map((item) => {
+                                        return (
+                                            <TouchableOpacity key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F2F0FF' }}>
+                                                <Text style={{ fontSize: 14, color: 'black', fontWeight: '700' }}>{item.name}</Text>
+                                            </TouchableOpacity>
+                                        )
+                                    })
+                                }
+                                <TouchableOpacity onPress={onEditPurposes} style={{ width: 68, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E8FF58' }}>
+                                    <Image style={{ width: 20, height: 20 }} source={images.edit_icon} contentFit='contain' />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                        <View style={{ backgroundColor: '#725ED4', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
+                            <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
+                                <Image source={images.interest_icon} style={{ width: 18, height: 18, tintColor: 'white' }} contentFit='contain' />
+                                <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>Interests and hobbies</Text>
+                            </View>
+                            <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} />
+                            <View style={{ paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16 }}>
+                                {
+                                    likes.map((item) => {
+                                        return (
+                                            <TouchableOpacity key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F2F0FF' }}>
+                                                <Image style={{ width: 22, height: 22 }} contentFit='contain' source={images.seen_icon} />
+                                                <Text style={{ fontSize: 14, color: 'black', fontWeight: '700' }}>{item.name}</Text>
+                                                {/* <TouchableOpacity style={{ backgroundColor: '#E8FF58', borderWidth: 1, borderColor: '#333333', width: 16, height: 16, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <Image source={images.close_icon} style={{ width: 10, height: 10, tintColor: '#333333' }} contentFit='contain' />
+                                                </TouchableOpacity> */}
+                                            </TouchableOpacity>
+                                        )
+                                    })
+                                }
+                                <TouchableOpacity onPress={onAddLikes} style={{ width: 68, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E8FF58' }}>
+                                    <Image style={{ width: 20, height: 20 }} source={images.edit_icon} contentFit='contain' />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                        <View style={{ backgroundColor: '#725ED4', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
+                            <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
+                                <Image source={images.dislike_icon} style={{ width: 18, height: 18, tintColor: 'white' }} contentFit='contain' />
+                                <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>Dislike</Text>
+                            </View>
+                            <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} />
+                            <View style={{ paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16 }}>
+                                {
+                                    dislikes.map((item) => {
+                                        return (
+                                            <TouchableOpacity key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FF8B8B' }}>
+                                                <Image style={{ width: 22, height: 22 }} contentFit='contain' source={images.seen_icon} />
+                                                <Text style={{ fontSize: 14, color: 'black', fontWeight: '700' }}>{item.name}</Text>
+                                                {/* <TouchableOpacity style={{ backgroundColor: '#E8FF58', borderWidth: 1, borderColor: '#333333', width: 16, height: 16, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <Image source={images.close_icon} style={{ width: 10, height: 10, tintColor: '#333333' }} contentFit='contain' />
+                                                </TouchableOpacity> */}
+                                            </TouchableOpacity>
+                                        )
+                                    })
+                                }
+                                <TouchableOpacity onPress={onAddDislikes} style={{ width: 68, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E8FF58' }}>
+                                    <Image style={{ width: 20, height: 20 }} source={images.edit_icon} contentFit='contain' />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        {/* <TouchableOpacity onPress={onSave} disabled={(newLikes !== likes || newDislikes !== dislikes) && newLikes.length + newDislikes.length === 0} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: ((newLikes !== likes || newDislikes !== dislikes) && newLikes.length + newDislikes.length === 0) ? '#9A9A9A' : '#333333', }}>
+                            <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Save</Text>
+                        </TouchableOpacity> */}
                     </View>
                 </ScrollView>
             </View>

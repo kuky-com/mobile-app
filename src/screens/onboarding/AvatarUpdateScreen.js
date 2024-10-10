@@ -13,6 +13,8 @@ import storage from '@react-native-firebase/storage'
 import LoadingView from '@/components/LoadingView'
 import apiClient from '@/utils/apiClient'
 import Toast from 'react-native-toast-message'
+import { useSetAtom } from 'jotai'
+import { userAtom } from '@/actions/global'
 
 const imageImage = `avatar${dayjs().unix()}.png`
 
@@ -49,6 +51,7 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
     const reference = storage().ref(imageImage)
     const [imageUrl, setImageUrl] = useState(null)
     const [loading, setLoading] = useState(false)
+    const setUser = useSetAtom(userAtom)
 
     const onUpload = async () => {
         try {
@@ -71,8 +74,9 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
             .then((res) => {
                 console.log({ res })
                 if (res && res.data && res.data.success) {
+                    setUser(res.data.data)
                     NavigationService.reset('PurposeUpdateScreen', { onboarding: true })
-                    Toast.show({ text1: res.data.message, type: 'success' })
+                    // Toast.show({ text1: res.data.message, type: 'success' })
                 } else {
                     Toast.show({ text1: res.data.message, type: 'error' })
                 }

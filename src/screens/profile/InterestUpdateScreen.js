@@ -1,10 +1,14 @@
+import { userAtom } from '@/actions/global'
 import Text from '@/components/Text'
+import apiClient from '@/utils/apiClient'
+import constants from '@/utils/constants'
 import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import { StatusBar } from 'expo-status-bar'
+import { useAtom } from 'jotai'
 import React, { useRef, useState } from 'react'
-import { Keyboard, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
+import { DeviceEventEmitter, Keyboard, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Toast from 'react-native-toast-message'
@@ -20,12 +24,13 @@ const styles = StyleSheet.create({
     }
 })
 
-const InterestSelectScreen = ({ navigation, route }) => {
-    const { onboarding, likes, onUpdated } = route.params
+const InterestUpdateScreen = ({ navigation, route }) => {
+    const { likes, onUpdated } = route.params
     const insets = useSafeAreaInsets()
     const [keyword, setKeyword] = useState('')
-    const [tags, setTags] = useState(likes)
+    const [tags, setTags] = useState(likes.map((item) => ({name: item.name})))
     const inputRef = useRef()
+    const [currentUser, setCurrentUser] = useAtom(userAtom)
 
     const onAddNewTag = () => {
         Keyboard.dismiss()
@@ -51,11 +56,38 @@ const InterestSelectScreen = ({ navigation, route }) => {
         setTags(newTags)
     }
 
-    const onSave = () => {
-        if (onUpdated) {
-            onUpdated(tags)
+    const onSave = async () => {
+        try {
+            const likeNames = tags.map((item) => item.name)
+
+            const res = await apiClient.post('interests/update-likes', { likes: likeNames })
+
+            if (res && res.data && res.data.success) {
+                Toast.show({ text1: 'Your interest information has been updated!', type: 'success' })
+
+                apiClient.get('interests/profile-tag')
+                    .then((res) => {
+                        console.log({ res })
+                        if (res && res.data && res.data.success) {
+                            setCurrentUser(res.data.data)
+                            DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS)
+                        }
+
+                        if (onUpdated) {
+                            onUpdated(tags)
+                        }
+                        navigation.goBack()
+                    })
+                    .catch((error) => {
+                        console.log({ error })
+                    })
+            } else {
+                Toast.show({ text1: 'Your request failed. Please try again!', type: 'error' })
+            }
+        } catch (error) {
+            console.log({ error })
+            Toast.show({ text1: 'Your request failed. Please try again!', type: 'error' })
         }
-        navigation.goBack()
     }
 
     return (
@@ -121,4 +153,4 @@ const InterestSelectScreen = ({ navigation, route }) => {
     )
 }
 
-export default InterestSelectScreen
+export default InterestUpdateScreen

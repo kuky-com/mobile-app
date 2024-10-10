@@ -12,7 +12,7 @@ import { Image } from 'expo-image';
 import images from '@/utils/images';
 import { StatusBar } from 'expo-status-bar';
 
-export const Header = ({ leftIcon, leftAction, rightIcon, rightAction, rightIconColor, leftIconColor, showLogo = true}) => {
+export const Header = ({ leftIcon, leftAction, rightIcon, rightAction, rightIconColor, leftIconColor, rightCounter = 0, showLogo = true}) => {
   const insets = useSafeAreaInsets()
   return (
     <View style={[styles.container, {paddingTop: insets.top + 8}]}>
@@ -29,6 +29,12 @@ export const Header = ({ leftIcon, leftAction, rightIcon, rightAction, rightIcon
         {rightIcon &&
           <TouchableOpacity style={styles.rightButton} onPress={() => rightAction && rightAction()}>
             <Image source={rightIcon} style={[styles.buttonIcon, rightIconColor ? {tintColor: rightIconColor} : {}]} contentFit="contain" />
+            {
+              rightCounter > 0 &&
+              <View style={{position: 'absolute', top: 0, right: 0, width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FF8B8B'}}>
+                <Text style={{fontSize: 8, fontWeight: 'bold', color: 'white'}}>{rightCounter > 99 ? '...' : rightCounter}</Text>
+              </View>
+            }
           </TouchableOpacity>
         }
       </View>
@@ -58,7 +64,7 @@ const styles = StyleSheet.create({
   },
   leftButton: {
     position: 'absolute',
-    left: 16, 
+    left: 0, 
     width: 40,
     height: 40,
     alignItems: 'center', justifyContent: 'center',
@@ -66,7 +72,7 @@ const styles = StyleSheet.create({
   },
   rightButton: {
     position: 'absolute',
-    right: 16,
+    right: 0,
     width: 40,
     height: 40,
     alignItems: 'center', justifyContent: 'center',

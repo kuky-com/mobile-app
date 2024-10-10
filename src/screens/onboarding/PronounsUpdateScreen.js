@@ -58,7 +58,7 @@ const PronounsUpdateScreen = ({ navigation, route }) => {
                 console.log({ res })
                 if (res && res.data && res.data.success) {
                     NavigationService.reset('LocationUpdateScreen')
-                    Toast.show({ text1: res.data.message, type: 'success' })
+                    // Toast.show({ text1: res.data.message, type: 'success' })
                 } else {
                     Toast.show({ text1: res.data.message, type: 'error' })
                 }

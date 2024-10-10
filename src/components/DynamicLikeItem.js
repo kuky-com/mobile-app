@@ -1,32 +1,37 @@
 import { Header } from '@/components/Header';
 import Text from '@/components/Text';
 import React, { useState } from 'react';
-import { View, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import dayjs from 'dayjs';
+import { Image } from 'expo-image';
+
+const itemWidth = Dimensions.get('screen').width * 0.5 - 24
 
 const DynamicLikeItem = ({ itemWidth, item, onPress }) => {
-    const [itemHeight, setItemHeight] = useState(150);
+    const [itemHeight, setItemHeight] = useState(Math.round(itemWidth * 1024 / 800));
 
-    const onImageLoad = (id, width, height) => {
-        const aspectRatio = width / height;
-        const newHeight = itemWidth / aspectRatio;
+    // const onImageLoad = (id, width, height) => {
+    //     const aspectRatio = width / height;
+    //     const newHeight = itemWidth / aspectRatio;
 
-        setItemHeight(newHeight)
-    };
+    //     setItemHeight(newHeight)
+    // };
 
 
     return (
         <TouchableOpacity onPress={() => onPress && onPress()} style={[styles.cardContainer, {width: itemWidth, height: itemHeight}]}>
             <Image
-                source={{ uri: item.image }}
+                source={{ uri: item?.avatar }}
                 style={[styles.image, { height: itemHeight }]}
-                onLoad={(event) => {
-                    const { width, height } = event.nativeEvent.source;
-                    onImageLoad(item.id, width, height);
-                }}
+                // onLoad={(event) => {
+                //     const { width, height } = event.nativeEvent.source;
+                //     onImageLoad(item.id, width, height);
+                // }}
+                contentFit='cover'
             />
             <View style={styles.tagContainer}>
-                <Text style={styles.tagText}>{item.category}</Text>
+                <Text style={styles.tagText}>{item?.tag?.name}</Text>
             </View>
 
             <View style={styles.nameContainer}>
@@ -34,7 +39,7 @@ const DynamicLikeItem = ({ itemWidth, item, onPress }) => {
                     colors={['transparent', 'rgba(0,0,0,0.79)']}
                     style={styles.nameBackground}
                 />
-                <Text style={styles.name}>{item.name}</Text>
+                <Text style={styles.name}>{`${item.full_name}, ${dayjs().diff(dayjs(item.birthday, 'MM-DD-YYYY'), 'years')}`}</Text>
             </View>
         </TouchableOpacity>
     );
@@ -58,17 +63,17 @@ const styles = StyleSheet.create({
         height: 22, borderRadius: 11,
         justifyContent: 'center',
         paddingHorizontal: 10,
-        top: 10,
-        right: 10
+        top: 8,
+        right: 3
     },
     tagText: {
         color: '#E8FF58',
-        fontSize: 10,
+        fontSize: 8,
         fontWeight: 'bold',
     },
     name: {
         fontWeight: 'bold',
-        fontSize: 16,
+        fontSize: 14,
         textAlign: 'center',
         color: 'white'
     },

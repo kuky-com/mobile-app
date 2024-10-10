@@ -36,6 +36,11 @@ const wave_bg = require('../assets/images/wave_bg.png')
 const sent_icon = require('../assets/images/sent_icon.png')
 const interest_icon = require('../assets/images/interest_icon.png')
 const search_icon = require('../assets/images/search_icon.png')
+const info_icon = require('../assets/images/info_icon.png')
+const add_tag = require('../assets/images/add_tag.png')
+const dislike_icon = require('../assets/images/dislike_icon.png')
+const seen_icon = require('../assets/images/seen_icon.png')
+const notification_icon = require('../assets/images/notification_icon.png')
 
 export default {
     logo_text,
@@ -77,5 +82,10 @@ export default {
     splash_image,
     interest_icon,
     search_icon,
-    verification_success_bg
+    verification_success_bg,
+    add_tag,
+    info_icon,
+    dislike_icon,
+    seen_icon,
+    notification_icon
 }

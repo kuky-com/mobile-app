@@ -41,7 +41,7 @@ const VerificationSuccessScreen = ({ navigation }) => {
                 <Image source={images.logo_with_text} style={{ width: 100, height: 35, tintColor: 'white' }} contentFit='contain' />
                 <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 26 }}>
                     <Image source={images.success_icon} style={{ width: 66, height: 66, tintColor: 'white' }} contentFit='contain' />
-                    <Text style={{ fontSize: 32, color: 'white', fontWeight: 'bold', textAlign: 'center', lineHeight: 50 }}>{'Your phone number has been successfully verified.'}</Text>
+                    <Text style={{ fontSize: 32, color: 'white', fontWeight: 'bold', textAlign: 'center', lineHeight: 50 }}>{'Your email has been successfully verified.'}</Text>
                 </View>
                 <TouchableOpacity onPress={onContinue} style={{ width: '100%', backgroundColor: 'white', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center' }}>
                     <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#333333' }}>Continue</Text>

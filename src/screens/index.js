@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Tabbar from '@/components/Tabbar';
 import { createStackNavigator, TransitionPresets } from '@react-navigation/stack';
-import LikeScreen from './interest/LikeScreen';
+import ExploreScreen from './interest/ExploreScreen';
 import MatchesScreen from './match/MatchesScreen';
 import ProfileScreen from './profile/ProfileScreen';
 import SplashScreen from './auth/SplashScreen';
@@ -31,11 +31,21 @@ import ProfileTagScreen from './onboarding/ProfileTagScreen';
 import PronounsUpdateScreen from './onboarding/PronounsUpdateScreen';
 import ReviewProfileScreen from './onboarding/ReviewProfileScreen';
 import SettingScreen from './profile/SettingScreen';
-import { deviceIdAtom, userAtom } from '@/actions/global';
+import { deviceIdAtom, pushTokenAtom, userAtom } from '@/actions/global';
 import DeviceInfo from 'react-native-device-info'
 import NavigationService, { navigationRef } from '@/utils/NavigationService';
 import { useRoute } from '@react-navigation/native'
 import PurposeUpdateScreen from './onboarding/PurposeUpdateScreen';
+import messaging from '@react-native-firebase/messaging';
+import PushNotificationIOS from '@react-native-community/push-notification-ios'
+import apiClient from '@/utils/apiClient';
+import NameUpdateScreen from './onboarding/NameUpdateScreen';
+import NotificationListScreen from './notification/NotificationListScreen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import DislikeUpdateScreen from './profile/DislikeUpdateScreen';
+import InterestUpdateScreen from './profile/InterestUpdateScreen';
+import PurposeProfileScreen from './profile/PurposeProfileScreen';
+import { Platform } from 'react-native';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -45,16 +55,62 @@ const TabNavigator = () => {
         <Tab.Navigator
             sceneContainerStyle={{ backgroundColor: '#00000000' }}
             screenOptions={{ tabBarShowLabel: false, headerShown: false }}
-            tabBar={props => <Tabbar {...props} />} initialRouteName="LikeScreen">
-            <Tab.Screen name="LikeScreen" component={LikeScreen} />
+            tabBar={props => <Tabbar {...props} />} initialRouteName="ExploreScreen">
+            <Tab.Screen name="ExploreScreen" component={ExploreScreen} />
             <Tab.Screen name="MatchesScreen" component={MatchesScreen} />
             <Tab.Screen name="ProfileScreen" component={ProfileScreen} />
         </Tab.Navigator>
     );
 };
 
-const AppStack = ({navgation}) => {
+const AppStack = ({ navgation }) => {
     const setDeviceId = useSetAtom(deviceIdAtom)
+    const setPushToken = useSetAtom(pushTokenAtom)
+    const currentUser = useAtomValue(userAtom)
+
+    useEffect(() => {
+        if (Platform.OS === 'ios') {
+            PushNotificationIOS.requestPermissions()
+                .then((data) => {
+                    console.log({ data })
+                })
+                .catch(error => {
+                    console.log({ error })
+                })
+        }
+    }, [])
+
+    async function requestUserPermission() {
+        const authStatus = await messaging().requestPermission();
+        const enabled =
+            authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+            authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+        if (enabled) {
+            try {
+                console.log('Authorization status:', authStatus);
+
+                await messaging().registerDeviceForRemoteMessages();
+                const token = await messaging().getToken();
+                console.log({ pushToken: token })
+                setPushToken(token)
+                AsyncStorage.getItem('ACCESS_TOKEN', (error, result) => {
+                    console.log({ result })
+                    if (result) {
+                        apiClient.post('users/update-token', { session_token: token })
+                            .then((res) => {
+                                console.log({ res })
+                            })
+                            .catch((error) => {
+                                console.log({ error })
+                            })
+                    }
+                })
+            } catch (error) {
+
+            }
+        }
+    }
 
     useEffect(() => {
         const getDeviceId = async () => {
@@ -64,12 +120,14 @@ const AppStack = ({navgation}) => {
 
         getDeviceId()
 
+        requestUserPermission()
+
     }, [])
 
     return (
         <Stack.Navigator
-            screenOptions={{ headerShown: false, gestureEnabled: false }}
-            initialRouteName="PurposeUpdateScreen">
+            screenOptions={{ headerShown: false }}
+            initialRouteName="SplashScreen">
             <Stack.Screen name="SplashScreen" component={SplashScreen} />
             <Stack.Screen name="GetStartScreen" component={GetStartScreen} />
             <Stack.Screen name="SignUpEmailScreen" component={SignUpEmailScreen} />
@@ -97,6 +155,11 @@ const AppStack = ({navgation}) => {
             <Stack.Screen name="ReviewProfileScreen" component={ReviewProfileScreen} />
             <Stack.Screen name="SettingScreen" component={SettingScreen} />
             <Stack.Screen name="PurposeUpdateScreen" component={PurposeUpdateScreen} />
+            <Stack.Screen name="NameUpdateScreen" component={NameUpdateScreen} />
+            <Stack.Screen name="NotificationListScreen" component={NotificationListScreen} />
+            <Stack.Screen name="DislikeUpdateScreen" component={DislikeUpdateScreen} />
+            <Stack.Screen name="InterestUpdateScreen" component={InterestUpdateScreen} />
+            <Stack.Screen name="PurposeProfileScreen" component={PurposeProfileScreen} />
         </Stack.Navigator>
     );
 };

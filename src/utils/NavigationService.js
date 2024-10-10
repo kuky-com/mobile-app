@@ -19,6 +19,10 @@ function push(...args) {
   navigationRef.current?.dispatch(StackActions.push(...args));
 }
 
+function replace(...args) {
+  navigationRef.current?.dispatch(StackActions.replace(...args));
+}
+
 function goBack() {
   navigationRef.current?.dispatch(StackActions.pop());
 }
@@ -28,7 +32,7 @@ function reset(name, params) {
     CommonActions.reset({
       index: 0,
       key: null,
-      routes: [{name: name}],
+      routes: [{name: name, params: params}],
     }),
   );
 }
@@ -38,4 +42,5 @@ export default {
   reset,
   push,
   goBack,
+  replace
 };

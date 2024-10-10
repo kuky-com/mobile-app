@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     fontSize: 18, color: 'white'
   },
   confirmButton: {
-    width: 120, height: 30, alignItems: 'center', justifyContent: 'center',
+    width: 180, height: 30, alignItems: 'center', justifyContent: 'center',
   },
   confirmText: {
     fontSize: 14, fontWeight: '500',
@@ -100,15 +100,15 @@ function ConfirmActionSheets(props) {
     <ActionSheet headerAlwaysVisible id={props.sheetId} ref={actionSheetRef} containerStyle={{ backgroundColor: '#725ED4' }}>
       <ScrollView {...scrollHandlers} style={{ maxHeight: Dimensions.get('screen').height * 0.7 }}>
         <View style={[styles.container, { paddingBottom: insets.bottom }]}>
-          <Text style={styles.titleText}>{props.payload?.title}</Text>
-          <Text style={styles.messageText}>Are you sure you want to delete your account?</Text>
-          <Text style={styles.contentText}>Deleting your account means you will no longer have access to your profile, matches, messages or account permanently.</Text>
+          {!!props.payload?.header && <Text style={styles.titleText}>{props.payload?.header}</Text>}
+          {!!props.payload?.title && <Text style={styles.messageText}>{props.payload?.title}</Text>}
+          {!!props.payload?.message && <Text style={styles.contentText}>{props.payload?.message}</Text>}
 
           <TouchableOpacity onPress={onCancel} style={styles.cancelButton}>
-            <Text style={styles.cancelText}>Cancel</Text>
+            <Text style={styles.cancelText}>{props.payload?.cancelText}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={onConfirm} style={styles.confirmButton}>
-            <Text style={styles.confirmText}>Delete account</Text>
+            <Text style={styles.confirmText}>{props.payload?.confirmText}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

@@ -57,7 +57,7 @@ const GenderUpdateScreen = ({ navigation, route }) => {
                 console.log({ res })
                 if (res && res.data && res.data.success) {
                     NavigationService.reset('PronounsUpdateScreen')
-                    Toast.show({ text1: res.data.message, type: 'success' })
+                    // Toast.show({ text1: res.data.message, type: 'success' })
                 } else {
                     Toast.show({ text1: res.data.message, type: 'error' })
                 }
@@ -75,18 +75,16 @@ const GenderUpdateScreen = ({ navigation, route }) => {
                 <Image source={images.logo_with_text} style={{ width: 120, height: 40, marginBottom: 32 }} contentFit='contain' />
                 <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'black' }}>{`What’s your \gender?`}</Text>
                 <Text style={{ fontSize: 16, fontWeight: '500', color: 'black', lineHeight: 22 }}>{`Choose which best describes you.You can also add more about your gender if you would like.`}</Text>
-                <View style={{ flex: 1, width: '100%', paddingVertical: 32, gap: 16, alignItems: 'center', justifyContent: 'flex-start' }}>
+                <View style={{ flex: 1, width: '100%', paddingVertical: 32, gap: 16, alignItems: 'flex-start', justifyContent: 'flex-start' }}>
                     {
-                        ['man', 'woman', 'nonbinary'].map((item) => (
+                        ['Male', 'Female', 'Non Binary'].map((item) => (
                             <TouchableOpacity key={item} onPress={() => setGender(item)} style={styles.itemContainer}>
-                                <Text style={{ flex: 1, fontSize: 16, fontWeight: 'bold', color: '#333333' }}>{capitalize(item)}</Text>
+                                <Text style={{ flex: 1, fontSize: 16, fontWeight: 'bold', color: '#333333' }}>{item}</Text>
                                 <Image source={gender === item ? images.checked_icon : images.uncheck_icon} style={{ width: 24, height: 24 }} contentFit='contain' />
                             </TouchableOpacity>
                         ))
                     }
-                    <View style={{ width: '100%', alignItems: 'flex-start' }}>
                         <SwitchWithText enable={isPublic} setEnable={setPublic} />
-                    </View>
                 </View>
             </View>
             <TouchableOpacity onPress={onContinue} disabled={gender === null} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: (gender === null) ? '#9A9A9A' : '#333333', }}>

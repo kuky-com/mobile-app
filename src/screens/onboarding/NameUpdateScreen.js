@@ -11,7 +11,6 @@ import { StatusBar } from 'expo-status-bar'
 import dayjs from 'dayjs'
 import Toast from 'react-native-toast-message'
 import axios from 'axios'
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import apiClient from '@/utils/apiClient'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 
@@ -52,19 +51,17 @@ const styles = StyleSheet.create({
     },
 })
 
-const LocationUpdateScreen = ({ navigation, route }) => {
-    // const { onboarding } = route.params
+const NameUpdateScreen = ({ navigation, route }) => {
     const insets = useSafeAreaInsets()
-    const [location, setLocation] = useState('');
+    const [name, setName] = useState('');
 
     const onContinue = () => {
-        if (location.length > 0) {
-            apiClient.post('users/update', { location })
+        if (name.length > 0) {
+            apiClient.post('users/update', { full_name: name })
                 .then((res) => {
                     console.log({ res })
                     if (res && res.data && res.data.success) {
-                        NavigationService.reset('AvatarUpdateScreen')
-                        // Toast.show({ text1: res.data.message, type: 'success' })
+                        NavigationService.reset('BirthdayUpdateScreen')
                     } else {
                         Toast.show({ text1: res.data.message, type: 'error' })
                     }
@@ -82,35 +79,15 @@ const LocationUpdateScreen = ({ navigation, route }) => {
             <KeyboardAwareScrollView style={{ flex: 1, width: '100%' }}>
                 <View style={{ flex: 1, gap: 16, width: '100%' }}>
                     <Image source={images.logo_with_text} style={{ width: 120, height: 40, marginBottom: 32 }} contentFit='contain' />
-                    <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'black' }}>{`Where do you live?`}</Text>
+                    <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'black' }}>{`What is your name?`}</Text>
                     <View style={{ flex: 1, paddingVertical: 16, gap: 10, width: '100%', alignItems: 'center', justifyContent: 'flex-start' }}>
-                        {/* <GooglePlacesAutocomplete
-                        placeholder="Enter city name"
-                        minLength={2}
-                        autoFocus={true}
-                        fetchDetails={true}
-                        onFail={error => console.log({error})}
-                        onPress={(data, details = null) => {
-                            console.log('City details:', details);
-                            console.log('City name:', data.description);
-                        }}
-                        query={{
-                            key: 'AIzaSyDVWzk8veVsUF9Lz_1eDj7-aGiyPyQG2yE',
-                            language: 'en',
-                            types: '(cities)',
-                        }}
-                        styles={{
-                            textInput: styles.textInput,
-                            textInputContainer: styles.itemContainer
-                        }}
-                    /> */}
                         <View style={styles.itemContainer}>
                             <TextInput
                                 style={styles.textInput}
                                 underlineColorAndroid={'#00000000'}
-                                value={location}
-                                onChangeText={setLocation}
-                                placeholder='Enter your city name'
+                                value={name}
+                                onChangeText={setName}
+                                placeholder='Enter your full name'
                                 autoFocus
                                 onEndEditing={onContinue}
                             />
@@ -118,11 +95,11 @@ const LocationUpdateScreen = ({ navigation, route }) => {
                     </View>
                 </View>
             </KeyboardAwareScrollView>
-            <TouchableOpacity onPress={onContinue} disabled={(location.length === 0)} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: (location.length === 0) ? '#9A9A9A' : '#333333', }}>
+            <TouchableOpacity onPress={onContinue} disabled={(name.length === 0)} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: (name.length === 0) ? '#9A9A9A' : '#333333', }}>
                 <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Continue</Text>
             </TouchableOpacity>
         </View>
     )
 }
 
-export default LocationUpdateScreen
+export default NameUpdateScreen

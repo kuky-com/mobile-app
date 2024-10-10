@@ -2,12 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSCameraUsageDescription</key>
-	<string>This application required this permission inorder to upload the image</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This application required this permission inorder to upload the image</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>This application required this permission inorder to upload the image</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -58,6 +52,17 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>This application required this permission inorder to upload the image</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This application required this permission inorder to upload the image</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This application required this permission inorder to upload the image</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>SplashScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
