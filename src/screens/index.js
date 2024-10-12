@@ -46,6 +46,7 @@ import DislikeUpdateScreen from './profile/DislikeUpdateScreen';
 import InterestUpdateScreen from './profile/InterestUpdateScreen';
 import PurposeProfileScreen from './profile/PurposeProfileScreen';
 import { Platform } from 'react-native';
+import Purchases from 'react-native-purchases';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -67,6 +68,28 @@ const AppStack = ({ navgation }) => {
     const setDeviceId = useSetAtom(deviceIdAtom)
     const setPushToken = useSetAtom(pushTokenAtom)
     const currentUser = useAtomValue(userAtom)
+
+    useEffect(() => {
+        if(currentUser && currentUser.email) {
+            Purchases.logIn(currentUser.email)
+            .then(() => {})
+            .catch(() => {})
+        }
+    }, [currentUser])
+
+    useEffect(() => {
+        const configPurchase = () => {
+            Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
+
+            if (Platform.OS === 'ios') {
+                Purchases.configure({ apiKey: 'appl_YPuGMuhbpRNDXSjKjIzybDLxtgd' });
+            } else if (Platform.OS === 'android') {
+                Purchases.configure({ apiKey: '' });
+            }
+        }
+
+        configPurchase()
+    }, [])
 
     useEffect(() => {
         if (Platform.OS === 'ios') {

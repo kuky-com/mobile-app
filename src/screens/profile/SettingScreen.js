@@ -11,6 +11,7 @@ import { useSetAtom } from 'jotai'
 import React, { useState } from 'react'
 import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
+import Purchases from 'react-native-purchases'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Toast from 'react-native-toast-message'
 
@@ -46,6 +47,10 @@ const SettingScreen = ({ navigation }) => {
 
     const onLogout = async () => {
         setLoading(true)
+        Purchases.logOut()
+            .then(() => {})
+            .catch(() => {})
+            
         apiClient.get('auth/logout')
             .then(async (res) => {
                 setLoading(false)

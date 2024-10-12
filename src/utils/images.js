@@ -41,6 +41,8 @@ const add_tag = require('../assets/images/add_tag.png')
 const dislike_icon = require('../assets/images/dislike_icon.png')
 const seen_icon = require('../assets/images/seen_icon.png')
 const notification_icon = require('../assets/images/notification_icon.png')
+const subscriptions_bg = require('../assets/images/subscriptions_bg.png')
+const best_price = require('../assets/images/best_price.png')
 
 export default {
     logo_text,
@@ -87,5 +89,7 @@ export default {
     info_icon,
     dislike_icon,
     seen_icon,
-    notification_icon
+    notification_icon,
+    subscriptions_bg,
+    best_price
 }

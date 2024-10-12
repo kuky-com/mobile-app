@@ -1,10 +1,10 @@
 import Text from '@/components/Text'
 import images from '@/utils/images'
 import { Image } from 'expo-image'
-import React, { useCallback, useEffect, useState } from 'react'
-import { DeviceEventEmitter, StyleSheet, TouchableOpacity, View } from 'react-native'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { AppState, DeviceEventEmitter, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { GiftedChat, Bubble, InputToolbar, Actions, Send, Composer, Time } from 'react-native-gifted-chat'
+import { GiftedChat, Bubble, InputToolbar, Actions, Send, Composer, Time, Avatar } from 'react-native-gifted-chat'
 import { SheetManager } from 'react-native-actions-sheet'
 import { StatusBar } from 'expo-status-bar'
 import firestore from '@react-native-firebase/firestore'
@@ -15,6 +15,9 @@ import axios from 'axios'
 import apiClient from '@/utils/apiClient'
 import constants from '@/utils/constants'
 import Toast from 'react-native-toast-message'
+import Purchases from 'react-native-purchases'
+import NavigationService from '@/utils/NavigationService'
+import AppStack from '..'
 
 const styles = StyleSheet.create({
     container: {
@@ -106,18 +109,57 @@ const MessageScreen = ({ navigation, route }) => {
     const { conversation } = route.params
     const [messages, setMessages] = useState([]);
     const [currentConversation, setCurrentConversation] = useState(conversation)
+    const appState = useRef(AppStack.currentState);
+
+    const loadSubscriptionInfo = async () => {
+        try {
+            const customerInfo = await Purchases.getCustomerInfo()
+            console.log({ customerInfo: JSON.stringify(customerInfo) })
+
+            if(!(customerInfo && customerInfo.entitlements && customerInfo.entitlements.active && customerInfo.entitlements.active['pro'])){
+                setTimeout(() => {
+                    NavigationService.replace('PremiumRequestScreen', {conversation})
+                }, 300);
+            }
+        } catch (error) {
+            console.log({ error })
+        }
+    }
 
     useEffect(() => {
-        if(!currentConversation.profile) {
-            apiClient.post('matches/conversation', {conversation_id: currentConversation.conversation_id})
-            .then((res) => {
-                if(res && res.data && res.data.success) {
-                    setCurrentConversation(res.data.data)
-                }
-            })
-            .catch((error) => {
-                console.log({error})
-            })
+        loadSubscriptionInfo()
+    }, [])
+
+    
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (
+        appState.current && appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        loadSubscriptionInfo()
+      }
+
+      appState.current = nextAppState
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+    useEffect(() => {
+        if (!currentConversation.profile) {
+            apiClient.post('matches/conversation', { conversation_id: currentConversation.conversation_id })
+                .then((res) => {
+                    if (res && res.data && res.data.success) {
+                        setCurrentConversation(res.data.data)
+                    }
+                })
+                .catch((error) => {
+                    console.log({ error })
+                })
         }
     }, [currentConversation])
 
@@ -139,11 +181,13 @@ const MessageScreen = ({ navigation, route }) => {
                                 createdAt: firebaseData.createdAt.toDate(),
                                 user: {
                                     _id: firebaseData.user ? firebaseData.user?._id : 0,
-                                    name: firebaseData.user ? firebaseData.user?.full_name : ''
+                                    name: firebaseData.user ? firebaseData.user?.full_name : '',
+                                    avatar: currentConversation?.profile?.avatar
                                 },
                                 readBy: firebaseData.readBy || [],
                                 sent: true,
-                                received: (firebaseData.readBy || []).includes(currentConversation?.profile?.id)
+                                received: (firebaseData.readBy || []).includes(currentConversation?.profile?.id),
+                                showUserAvatar: true,
                             };
 
                             if (!data.readBy.includes(currentUser?.id)) {
@@ -169,8 +213,6 @@ const MessageScreen = ({ navigation, route }) => {
                             console.log({ error })
                         }
                     });
-
-                    console.log({ messagesFirestore })
                     setMessages(messagesFirestore);
                 }
 
@@ -282,7 +324,7 @@ const MessageScreen = ({ navigation, route }) => {
 
         apiClient.post('matches/last-message', { last_message: text, conversation_id: currentConversation.conversation_id })
             .then((res) => {
-                console.log({ res: res.data })
+                // console.log({ res: res.data })
             })
             .catch((error) => {
                 console.log({ error })
@@ -296,7 +338,7 @@ const MessageScreen = ({ navigation, route }) => {
                     apiClient.post('matches/disconnect',
                         { friend_id: conversation.profile.id, id: conversation.id })
                         .then(async (res) => {
-                            console.log({ res })
+                            // console.log({ res })
                             if (res && res.data && res.data.success) {
                                 Toast.show({ text1: res.data.message, type: 'success' })
                                 DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS)
@@ -326,20 +368,20 @@ const MessageScreen = ({ navigation, route }) => {
             payload: {
                 onCancel: () => {
                     apiClient.post('users/block-user', { friend_id: conversation.profile.id })
-                            .then((res) => {
-                                if (res && res.data && res.data.success) {
-                                    DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS)
-                                    Toast.show({ text1: res.data.message, type: 'success' })
-                                    setTimeout(() => {
-                                        navigation.goBack()
-                                    }, 200);
-                                } else {
-                                    Toast.show({ text1: res?.data?.message ?? 'Block action failed!', type: 'error' })
-                                }
-                            })
-                            .catch((error) => {
-                                Toast.show({ text1: error, type: 'error' })
-                            })
+                        .then((res) => {
+                            if (res && res.data && res.data.success) {
+                                DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS)
+                                Toast.show({ text1: res.data.message, type: 'success' })
+                                setTimeout(() => {
+                                    navigation.goBack()
+                                }, 200);
+                            } else {
+                                Toast.show({ text1: res?.data?.message ?? 'Block action failed!', type: 'error' })
+                            }
+                        })
+                        .catch((error) => {
+                            Toast.show({ text1: error, type: 'error' })
+                        })
                 },
                 onConfirm: () => { },
                 cancelText: "Block",
@@ -416,7 +458,7 @@ const MessageScreen = ({ navigation, route }) => {
     const likeAction = () => {
         apiClient.post('matches/accept', { friend_id: conversation.profile?.id })
             .then((res) => {
-                console.log({ res })
+                // console.log({ res })
                 DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS)
                 if (res && res.data && res.data.success && res.data.data) {
                     setCurrentConversation(res.data.data)
@@ -430,7 +472,7 @@ const MessageScreen = ({ navigation, route }) => {
     const rejectAction = () => {
         apiClient.post('matches/reject', { friend_id: conversation.profile?.id })
             .then((res) => {
-                console.log({ res })
+                // console.log({ res })
                 DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS)
             })
             .catch((error) => {
@@ -442,7 +484,7 @@ const MessageScreen = ({ navigation, route }) => {
     }
 
     const renderHeaderView = () => {
-        console.log({ conversation })
+        // console.log({ conversation })
         if (currentConversation.status === 'sent') {
             return (
                 <View style={{ width: '100%', padding: 16, alignItems: 'center', justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: '#D2D2D2', gap: 16 }}>
@@ -484,6 +526,14 @@ const MessageScreen = ({ navigation, route }) => {
         }
     }
 
+    const renderAvatar = (props) => {
+        return (
+            <TouchableOpacity onPress={openProfile} style={{width: 48, height: 48, borderWidth: 2, borderColor: '#aaaaaa',  borderRadius: 24}}>
+                <Image source={{ uri: currentConversation?.profile?.avatar }} style={{ width: 44, height: 44, borderRadius: 22, }} />
+            </TouchableOpacity>
+        );
+    }
+
     const openProfile = () => {
         navigation.push('ConnectProfileScreen', { profile: conversation.profile, showAcceptReject: false })
     }
@@ -513,6 +563,7 @@ const MessageScreen = ({ navigation, route }) => {
                 minInputToolbarHeight={66}
                 renderComposer={renderComposer}
                 renderSend={renderSend}
+                renderAvatar={renderAvatar}
                 renderTicks={currentMessage => {
                     const tickedUser = currentMessage.user._id
                     return (
