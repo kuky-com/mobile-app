@@ -3,7 +3,7 @@ import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import React, { useEffect, useState } from 'react'
-import { Dimensions, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
+import { Dimensions, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ImagePicker from 'react-native-image-crop-picker'
@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
     imageContainer: {
         backgroundColor: '#ECECEC', borderRadius: 20, alignItems: 'center',
         justifyContent: 'center',
-        width: Dimensions.get('screen').width - 48, height: Dimensions.get('screen').width - 48,
+        width: (Platform.isPad ? 600 : Dimensions.get('screen').width) - 48, height: (Platform.isPad ? 600 : Dimensions.get('screen').width) - 48,
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.25,
         elevation: 1,
@@ -143,7 +143,7 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
                     <Image source={images.back_icon_no_border} style={{ width: 25, height: 25 }} contentFit='contain' />
                 </TouchableOpacity>
             } */}
-            <View style={{ flex: 1, gap: 16 }}>
+            <View style={{ flex: 1, gap: 16, width: Platform.isPad ? 600 : '100%', alignSelf: 'center' }}>
                 <Image source={images.logo_with_text} style={{ width: 120, height: 40, marginBottom: 32 }} contentFit='contain' />
                 <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'black' }}>{`Add your \nprofile photos`}</Text>
                 <Text style={{ fontSize: 16, fontWeight: '500', color: 'black' }}>{`This is your main photo public to everyone`}</Text>
@@ -155,7 +155,7 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
                     }
                     {image &&
                         <View style={styles.imageContainer}>
-                            <Image style={{ width: '100%', height: '100%', borderRadius: 20 }} source={image} contentFit='cover' />
+                            <Image style={{ width: Platform.isPad ? 600 : Dimensions.get('screen').width - 32, height: Platform.isPad ? 600 : Dimensions.get('screen').width - 32, borderRadius: 20 }} source={image} contentFit='cover' />
                             <TouchableOpacity onPress={() => setImage(null)} style={styles.closeButton}>
                                 <Image source={images.close_icon} style={{ width: 15, height: 15 }} />
                             </TouchableOpacity>
@@ -163,7 +163,7 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
                     }
                 </View>
             </View>
-            <TouchableOpacity onPress={imageUrl ? onContinue : onUpload} disabled={image === null} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: image === null ? '#9A9A9A' : '#333333', }}>
+            <TouchableOpacity onPress={imageUrl ? onContinue : onUpload} disabled={image === null} style={{ width: Platform.isPad ? 600 : '100%', alignSelf: 'center', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: image === null ? '#9A9A9A' : '#333333', }}>
                 <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>{imageUrl ? 'Continue' : 'Upload'}</Text>
             </TouchableOpacity>
 

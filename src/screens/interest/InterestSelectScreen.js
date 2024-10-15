@@ -4,7 +4,7 @@ import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import { StatusBar } from 'expo-status-bar'
 import React, { useRef, useState } from 'react'
-import { Keyboard, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
+import { Keyboard, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Toast from 'react-native-toast-message'
@@ -68,7 +68,7 @@ const InterestSelectScreen = ({ navigation, route }) => {
                 </TouchableOpacity>
             }
             <KeyboardAwareScrollView style={{ flex: 1, width: '100%' }}>
-                <View style={{ flex: 1, width: '100%', gap: 24  }}>
+                <View style={{ flex: 1, width: Platform.isPad ? 600 : '100%', alignSelf: 'center', gap: 24  }}>
                     <View style={{ justifyContent: 'center', alignItems: 'center', gap: 8 }}>
                         <Image source={images.interest_icon} style={{ width: 20, height: 20 }} contentFit='contain' />
                         <Text style={{ color: '#E8FF58', fontSize: 18, fontWeight: '600', textAlign: 'center' }}>Interests and hobbies</Text>
@@ -109,7 +109,7 @@ const InterestSelectScreen = ({ navigation, route }) => {
                     </View>
                 </View>
             </KeyboardAwareScrollView>
-            <View style={{ flexDirection: 'row', width: '100%', gap: 16, alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', width: Platform.isPad ? 600 : '100%', alignSelf: 'center', gap: 16, alignItems: 'center' }}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={{ flex: 1, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FF8B8B' }}>
                     <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Discard</Text>
                 </TouchableOpacity>

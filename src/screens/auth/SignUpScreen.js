@@ -2,7 +2,7 @@ import Text from '@/components/Text'
 import images from '@/utils/images'
 import { Image } from 'expo-image'
 import React, { useEffect, useState } from 'react'
-import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { Linking, Platform, StyleSheet, TouchableOpacity, View } from 'react-native'
 import Toast from 'react-native-toast-message'
 import { appleAuth } from '@invertase/react-native-apple-authentication'
 import { GoogleSignin } from '@react-native-google-signin/google-signin'
@@ -109,12 +109,15 @@ const SignUpScreen = ({ navigation }) => {
                 Toast.show({ text1: i18n.t('error'), text2: i18n.t('cannot_login'), type: 'error' })
                 return
             }
+            let full_name = undefined
+            if(appleAuthRequestResponse.fullName) {
+                full_name = `${appleAuthRequestResponse.fullName?.givenName} ${appleAuthRequestResponse.fullName?.familyName}`
+            }
+            console.log({ appleAuthRequestResponse })
 
             setLoading(true)
 
-            console.log({ appleAuthRequestResponse })
-
-            apiClient.post('auth/apple', { token: appleAuthRequestResponse.identityToken, device_id: deviceId, platform: Platform.OS })
+            apiClient.post('auth/apple', { full_name, token: appleAuthRequestResponse.identityToken, device_id: deviceId, platform: Platform.OS })
                 .then((res) => {
                     console.log({ res: res.data })
                     setLoading(false)
@@ -148,6 +151,10 @@ const SignUpScreen = ({ navigation }) => {
         NavigationService.reset('SignInScreen')
     }
 
+    const openPolicy = () => {
+        Linking.openURL('https://www.kuky.com/privacy-policy')
+    }
+
     return (
         <View style={styles.container}>
             <StatusBar translucent style='light' />
@@ -155,7 +162,7 @@ const SignUpScreen = ({ navigation }) => {
                 <Image source={images.sign_up_bg} style={{ width: '100%', height: '100%' }} />
             </View>
             <View style={{ marginTop: -30, backgroundColor: 'white', borderRadius: 25, overflow: 'hidden', padding: 28, gap: 20, alignItems: 'center', paddingBottom: 48 }}>
-                <TouchableOpacity onPress={onSignUp} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333', }}>
+                <TouchableOpacity onPress={onSignUp} style={{ width: Platform.isPad ? 600 : '100%', alignSelf: 'center', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333', }}>
                     <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Sign Up with Email</Text>
                 </TouchableOpacity>
                 <View style={{ alignItems: 'center', justifyContent: 'center', gap: 10, flexDirection: 'row' }}>
@@ -172,9 +179,9 @@ const SignUpScreen = ({ navigation }) => {
                 <Text style={{ fontSize: 12, textAlign: 'center', fontWeight: '500', lineHeight: 17 }}>{`By tapping Sign Up / Login, you agree to our `}
                     <Text style={{ textDecorationLine: 'underline', fontWeight: 'bold' }}>Terms</Text>
                     {` .\nLearn how we process your data in our  `}
-                    <Text style={{ textDecorationLine: 'underline', fontWeight: 'bold' }}>Privacy Policy</Text>
+                    <Text onPress={openPolicy} style={{ textDecorationLine: 'underline', fontWeight: 'bold' }}>Privacy Policy</Text>
                     {` and `}
-                    <Text style={{ textDecorationLine: 'underline', fontWeight: 'bold' }}>Cookies Policy</Text>
+                    <Text onPress={openPolicy} style={{ textDecorationLine: 'underline', fontWeight: 'bold' }}>Cookies Policy</Text>
                     {`.`}
                 </Text>
             </View>

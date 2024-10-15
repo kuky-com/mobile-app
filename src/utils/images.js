@@ -43,6 +43,8 @@ const seen_icon = require('../assets/images/seen_icon.png')
 const notification_icon = require('../assets/images/notification_icon.png')
 const subscriptions_bg = require('../assets/images/subscriptions_bg.png')
 const best_price = require('../assets/images/best_price.png')
+const eye_hide_icon = require('../assets/images/eye_hide_icon.png')
+const eye_show_icon = require('../assets/images/eye_show_icon.png')
 
 export default {
     logo_text,
@@ -91,5 +93,7 @@ export default {
     seen_icon,
     notification_icon,
     subscriptions_bg,
-    best_price
+    best_price,
+    eye_hide_icon,
+    eye_show_icon
 }

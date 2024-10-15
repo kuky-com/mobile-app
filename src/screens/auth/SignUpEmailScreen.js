@@ -17,6 +17,7 @@ import { deviceIdAtom, pushTokenAtom, tokenAtom, userAtom } from '@/actions/glob
 import { getAuthenScreen } from '@/utils/utils'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import ButtonWithLoading from '@/components/ButtonWithLoading'
+import { FontAwesome5 } from '@expo/vector-icons'
 
 const styles = StyleSheet.create({
     container: {
@@ -35,6 +36,8 @@ const SignUpEmailScreen = ({ navigation }) => {
     const [email, setEmail] = useState('')
     const [fullName, setFullName] = useState('')
     const [password, setPassword] = useState('')
+
+    const [showPassword, setShowPassword] = useState(false)
 
     useEffect(() => {
         GoogleSignin.configure({
@@ -180,7 +183,7 @@ const SignUpEmailScreen = ({ navigation }) => {
 
             <View style={{ flex: 1, width: '100%', marginTop: -60, backgroundColor: 'white', borderRadius: 25, overflow: 'hidden', padding: 28, paddingBottom: 48 }}>
                 <KeyboardAwareScrollView style={{ width: '100%', flex: 1 }} showsVerticalScrollIndicator={false}>
-                    <View style={{ alignItems: 'center', width: '100%', flex: 1, gap: 20, }}>
+                    <View style={{ alignItems: 'center', width: Platform.isPad ? 600 : '100%', alignSelf: 'center', flex: 1, gap: 20, }}>
                         <Text style={{ fontSize: 24, color: '#333333', fontWeight: 'bold' }}>Create an account</Text>
                         <View style={{ width: '100%', paddingHorizontal: 24, paddingVertical: 16, borderRadius: 15, borderWidth: 2, borderColor: '#726E70' }}>
                             <TextInput
@@ -205,17 +208,23 @@ const SignUpEmailScreen = ({ navigation }) => {
                                 keyboardType='email-address'
                             />
                         </View>
-                        <View style={{ width: '100%', paddingHorizontal: 24, paddingVertical: 16, borderRadius: 15, borderWidth: 2, borderColor: '#726E70' }}>
+                        <View style={{flexDirection: 'row', alignItems: 'center', width: '100%', paddingHorizontal: 24, paddingVertical: 16, borderRadius: 15, borderWidth: 2, borderColor: '#726E70' }}>
                             <TextInput
                                 placeholder='Create a password'
                                 placeholderTextColor='#AAAAAA'
                                 underlineColorAndroid='#00000000'
-                                style={{ fontSize: 18, color: 'black', fontWeight: '500' }}
+                                style={{ fontSize: 18, color: 'black', fontWeight: '500', flex: 1 }}
                                 clearButtonMode='always'
                                 value={password}
                                 onChangeText={setPassword}
-                                secureTextEntry
+                                secureTextEntry={!showPassword}
                             />
+
+                            <TouchableOpacity
+                                onPress={() => setShowPassword(old => !old)}
+                                style={{ width: 30, height: 30, alignItems: 'center', justifyContent: 'center' }}>
+                                <FontAwesome5 name={!showPassword ? 'eye' : 'eye-slash'} size={20} color={!showPassword ? 'black' : '#777777'} />
+                            </TouchableOpacity>
                         </View>
                         <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', gap: 5 }}>
                             <View style={{ flex: 1, height: 1, backgroundColor: '#726E70' }} />

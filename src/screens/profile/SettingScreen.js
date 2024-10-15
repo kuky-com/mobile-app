@@ -42,7 +42,7 @@ const SettingScreen = ({ navigation }) => {
     }
 
     const onPrivacy = () => {
-        Linking.openURL('https://www.kuky.com/')
+        Linking.openURL('https://www.kuky.com/privacy-policy')
     }
 
     const onLogout = async () => {
@@ -50,7 +50,7 @@ const SettingScreen = ({ navigation }) => {
         Purchases.logOut()
             .then(() => {})
             .catch(() => {})
-            
+
         apiClient.get('auth/logout')
             .then(async (res) => {
                 setLoading(false)

@@ -1,6 +1,7 @@
 import { userAtom } from '@/actions/global'
 import Text from '@/components/Text'
 import apiClient from '@/utils/apiClient'
+import colors from '@/utils/colors'
 import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import dayjs from 'dayjs'
@@ -8,7 +9,7 @@ import { Image } from 'expo-image'
 import { StatusBar } from 'expo-status-bar'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import React, { useEffect, useState } from 'react'
-import { Dimensions, Linking, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { Dimensions, Linking, Platform, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Toast from 'react-native-toast-message'
@@ -100,6 +101,10 @@ const ProfileScreen = ({ navigation }) => {
         navigation.push('PurposeProfileScreen', { purposes: purposes, onUpdated: (newList) => setPurposes(newList) })
     }
 
+    const openNameEdit = () => {
+        navigation.push('UpdateProfileScreen')
+    }
+
     return (
         <View style={styles.container}>
             <StatusBar translucent style='dark' />
@@ -135,14 +140,19 @@ const ProfileScreen = ({ navigation }) => {
                         refreshing={false}
                         onRefresh={onRefresh} />}
                     showsVerticalScrollIndicator={false} style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 16, paddingTop: 24 }}>
-                    <View style={{ flex: 1, gap: 16, marginBottom: insets.bottom + 120 }}>
+                    <View style={{ flex: 1, width: Platform.isPad ? 600 : '100%', alignSelf: 'center', gap: 16, marginBottom: insets.bottom + 120 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                            <Text style={{ fontSize: 24, color: 'black', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1 }}>
+                                <Text style={{ fontSize: 24, color: 'black', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text>
+                                <TouchableOpacity onPress={openNameEdit} style={{width: 30, height: 30, alignItems: 'center', justifyContent: 'center', borderRadius: 15, backgroundColor: colors.mainColor}}>
+                                    <Image source={images.edit_icon} style={{ width: 15, height: 15, tintColor:'#E8FF58' }} />
+                                </TouchableOpacity>
+                            </View>
                             <View style={{ backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
                                 <Text style={{ color: '#E8FF58', fontSize: 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>
                             </View>
                         </View>
-                        <View style={{ justifyContent: 'space-between', width: Dimensions.get('screen').width - 32, height: Dimensions.get('screen').width - 32, borderRadius: 20, overflow: 'hidden' }}>
+                        <View style={{ justifyContent: 'space-between', width: Math.min(Dimensions.get('screen').width - 32, 600), height: Math.min(Dimensions.get('screen').width - 32, 600), borderRadius: 20, overflow: 'hidden' }}>
                             <Image source={{ uri: currentUser?.avatar }} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} contentFit='cover' />
                         </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>

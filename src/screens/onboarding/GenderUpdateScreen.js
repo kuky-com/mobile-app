@@ -3,7 +3,7 @@ import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import React, { useState } from 'react'
-import { Dimensions, StyleSheet, Switch, TextInput, TouchableOpacity, View } from 'react-native'
+import { Dimensions, Platform, StyleSheet, Switch, TextInput, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ImagePicker from 'react-native-image-crop-picker'
@@ -79,7 +79,7 @@ const GenderUpdateScreen = ({ navigation, route }) => {
     return (
         <View style={[styles.container, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 16 }]}>
             <StatusBar translucent style='dark' />
-            <View style={{ flex: 1, gap: 16 }}>
+            <View style={{ flex: 1, gap: 16, width: Platform.isPad ? 600 : '100%', alignSelf: 'center' }}>
                 <Image source={images.logo_with_text} style={{ width: 120, height: 40, marginBottom: 32 }} contentFit='contain' />
                 <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'black' }}>{`What’s your \gender?`}</Text>
                 <Text style={{ fontSize: 16, fontWeight: '500', color: 'black', lineHeight: 22 }}>{`Choose which best describes you.You can also add more about your gender if you would like.`}</Text>

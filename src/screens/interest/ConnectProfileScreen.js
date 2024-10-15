@@ -8,7 +8,7 @@ import dayjs from 'dayjs'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import React, { useEffect, useState } from 'react'
-import { Alert, DeviceEventEmitter, Dimensions, RefreshControl, ScrollView, StyleSheet, View } from 'react-native'
+import { Alert, DeviceEventEmitter, Dimensions, Platform, RefreshControl, ScrollView, StyleSheet, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -217,8 +217,8 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                     onRefresh={onRefresh}
                 />}
                 style={{ flex: 1, width: '100%' }}>
-                <View style={{ flex: 1, width: '100%', padding: 16, gap: 16, paddingBottom: insets.bottom + 16 }}>
-                    <View style={{ width: '100%', height: Math.min(Dimensions.get('screen').height - insets.top - insets.bottom - 220, (Dimensions.get('screen').width - 32) * 1.4), borderWidth: 8, borderColor: 'white', borderRadius: 15 }}>
+                <View style={{ flex: 1, width: Platform.isPad ? 600 : '100%', alignSelf: 'center', padding: 16, gap: 16, paddingBottom: insets.bottom + 16 }}>
+                    <View style={{ width: '100%', height: Math.min(700, Dimensions.get('screen').height - insets.top - insets.bottom - 220, (Dimensions.get('screen').width - 32) * 1.4), borderWidth: 8, borderColor: 'white', borderRadius: 15 }}>
                         <Image source={{ uri: profile?.avatar }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 10 }} contentFit='cover' />
 
                         <LinearGradient

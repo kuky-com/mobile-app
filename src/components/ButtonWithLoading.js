@@ -1,23 +1,24 @@
 import React from 'react'
-import { ActivityIndicator, TouchableOpacity } from 'react-native'
+import { ActivityIndicator, Platform, TouchableOpacity } from 'react-native'
 import Text from './Text'
+import { getUnit } from '@/utils/utils'
 
 const ButtonWithLoading = ({ text, onPress, loading = false, disabled = false, style = {} }) => {
 
     return (
         <TouchableOpacity
             onPress={() => onPress && onPress()}
-            disabled={disabled || loading}
+            disabled={!!disabled || !!loading}
             style={[{
-                width: '100%',
-                height: 60, borderRadius: 30,
+                width: Platform.isPad ? 600 : '100%', alignSelf: 'center',
+                height: getUnit(60), borderRadius: getUnit(30),
                 alignItems: 'center', justifyContent: 'center',
                 backgroundColor: disabled ? '#9A9A9A' : '#333333',
-                gap: 8,
+                gap: getUnit(8),
                 flexDirection: 'row'
             }, style]}
         >
-            <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>{text}</Text>
+            <Text style={{ fontSize: getUnit(18), fontWeight: '700', color: 'white' }}>{text}</Text>
             {loading && <ActivityIndicator color='white' size='small' />}
         </TouchableOpacity>
     )

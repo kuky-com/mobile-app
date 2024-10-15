@@ -1,7 +1,7 @@
 import { Header } from '@/components/Header';
 import Text from '@/components/Text';
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Dimensions, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import dayjs from 'dayjs';
 import { Image } from 'expo-image';
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     },
     name: {
         fontWeight: 'bold',
-        fontSize: 14,
+        fontSize: Platform.isPad ? 20 : 14,
         textAlign: 'center',
         color: 'white'
     },

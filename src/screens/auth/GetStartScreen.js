@@ -29,6 +29,7 @@ const GetStartScreen = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
+            <View style={{flex: 1, alignItems: 'center', justifyContent: 'center', width: Platform.isPad ? 600 : '100%', alignSelf: 'center'}}>
             <Image contentFit='contain' source={images.logo_text} style={{ height: 80, width: 150 }} />
             {/* <Text style={{ fontSize: 24, fontWeight: '700' }}>Better Together</Text> */}
             <View style={{ paddingVertical: 24, flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
@@ -62,6 +63,7 @@ const GetStartScreen = ({ navigation }) => {
             <TouchableOpacity onPress={openSignIn} style={{ padding: 8 }}>
                 <Text style={{ fontSize: 14, fontWeight: '700', color: '#333333' }}>Sign in</Text>
             </TouchableOpacity>
+            </View>
         </View>
     )
 }

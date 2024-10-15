@@ -1,6 +1,12 @@
+import { Platform } from "react-native";
+
 export function capitalize(str) {
     if (typeof str !== 'string') return '';
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+export const getUnit = (unit) => {
+    return Platform.isPad ? (unit * 1.2) : unit
 }
 
 export const getAuthenScreen = (currentUser) =>{

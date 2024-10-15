@@ -3,7 +3,7 @@ import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import React, { useEffect, useRef, useState } from 'react'
-import { Dimensions, Keyboard, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
+import { Dimensions, Keyboard, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ImagePicker from 'react-native-image-crop-picker'
@@ -139,7 +139,7 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
         <View style={[styles.container, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 16 }]}>
             <StatusBar translucent style='dark' />
             <KeyboardAwareScrollView style={{ flex: 1, width: '100%' }}>
-                <View style={{ flex: 1, gap: 16 }}>
+                <View style={{ flex: 1, gap: 16, width: Platform.isPad ? 600 : '100%', alignSelf: 'center' }}>
                     <Image source={images.logo_with_text} style={{ width: 120, height: 40, marginBottom: 32 }} contentFit='contain' />
                     <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'black' }}>{`What’s your \nbirthday?`}</Text>
                     <Text style={{ fontSize: 16, fontWeight: '500', color: 'black' }}>{`Your age will be shown to other users.`}</Text>

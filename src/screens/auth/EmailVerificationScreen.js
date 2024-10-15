@@ -104,7 +104,7 @@ const EmailVerificationScreen = ({ navigation, route }) => {
 
             <View style={{ flex: 1, width: '100%', marginTop: -60, backgroundColor: 'white', borderRadius: 25, overflow: 'hidden', padding: 28, paddingBottom: 48 }}>
                 <KeyboardAwareScrollView style={{ width: '100%', flex: 1 }} showsVerticalScrollIndicator={false}>
-                    <View style={{ alignItems: 'center', width: '100%', flex: 1, gap: 20, }}>
+                    <View style={{ alignItems: 'center', width: Platform.isPad ? 600 : '100%', alignSelf: 'center', flex: 1, gap: 20, }}>
                         <Text style={{ fontSize: 24, color: 'black', fontWeight: 'bold', width: '100%' }}>Enter your verification code</Text>
                         <Text style={{ color: '#726E70', fontSize: 15, width: '100%', marginBottom: 10 }}>{`We sent a code by text to `}
                             <Text style={{ color: '#5E30C1' }}>{email}</Text>

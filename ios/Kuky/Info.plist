@@ -40,7 +40,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>15</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
@@ -53,11 +53,11 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>This application required this permission inorder to upload the image</string>
+	<string>We need access to your camera to allow you to take a photo for your profile picture.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>This application required this permission inorder to upload the image</string>
+	<string>We need access to your camera to allow you to take a photo for your profile picture.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This application required this permission inorder to upload the image</string>
+	<string>We need access to your photo library to allow you to upload a photo as your profile picture.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>

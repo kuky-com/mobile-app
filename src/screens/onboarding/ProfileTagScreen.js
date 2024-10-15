@@ -3,7 +3,7 @@ import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import React, { useEffect, useState } from 'react'
-import { ActivityIndicator, DeviceEventEmitter, Dimensions, ScrollView, StyleSheet, Switch, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, DeviceEventEmitter, Dimensions, Platform, ScrollView, StyleSheet, Switch, TextInput, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ImagePicker from 'react-native-image-crop-picker'
@@ -99,7 +99,7 @@ const ProfileTagScreen = ({ navigation, route }) => {
     }, [])
 
     const onContinue = () => {
-        if (currentUser.tag) {
+        if (currentUser?.tag) {
             NavigationService.reset('OnboardingCompleteScreen')
         } else {
             getNewTag()
@@ -109,12 +109,12 @@ const ProfileTagScreen = ({ navigation, route }) => {
     return (
         <View style={[styles.container, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 16 }]}>
             <StatusBar translucent style='dark' />
-            <View style={{ flex: 1, gap: 16, width: '100%', alignItems: 'center' }}>
+            <View style={{ flex: 1, gap: 16, width: Platform.isPad ? 600 : '100%', alignSelf: 'center', alignItems: 'center' }}>
                 <Image source={images.logo_with_text} style={{ width: 120, height: 40, marginBottom: 32 }} contentFit='contain' />
                 <Text style={{ fontSize: 13, fontWeight: '600', color: 'black' }}>{`Your Profile Tag`}</Text>
                 <Text style={{ fontSize: 18, fontWeight: '600', color: 'black', lineHeight: 21, textAlign: 'center' }}>Based on your preferences, we’ve created a profile tag for you:</Text>
-                <View style={{ flex: 1, }}>
-                    <View style={{ justifyContent: 'space-between', width: Dimensions.get('screen').width - 64, height: Dimensions.get('screen').width - 64, borderRadius: 20, overflow: 'hidden' }}>
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+                    <View style={{ justifyContent: 'space-between', width: (Platform.isPad ? 600 : Dimensions.get('screen').width) - 64, height: (Platform.isPad ? 600 : Dimensions.get('screen').width) - 64, borderRadius: 20, overflow: 'hidden' }}>
                         <Image source={{ uri: currentUser?.avatar }} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} contentFit='cover' />
                         <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'flex-end', padding: 8 }}>
                             <View style={{ backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
@@ -130,7 +130,7 @@ const ProfileTagScreen = ({ navigation, route }) => {
 
                     </View>
                 </View>
-                <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'center' }}>
+                <View style={{ width: Platform.isPad ? 600 : '100%', alignSelf: 'center', flexDirection: 'row', justifyContent: 'center' }}>
                     <View style={{ backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
                         {!loading && <Text style={{ color: '#E8FF58', fontSize: 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>}
                         {loading && <ActivityIndicator color='white' size='small' />}
@@ -141,7 +141,7 @@ const ProfileTagScreen = ({ navigation, route }) => {
 
             <ButtonWithLoading
                 onPress={onContinue}
-                text={currentUser.tag ? 'Continue' : 'Refresh'}
+                text={currentUser?.tag ? 'Continue' : 'Refresh'}
                 loading={loading}
             />
         </View>

@@ -8,7 +8,7 @@ import { Image } from 'expo-image'
 import { StatusBar } from 'expo-status-bar'
 import { useAtom } from 'jotai'
 import React, { useRef, useState } from 'react'
-import { ActivityIndicator, DeviceEventEmitter, Keyboard, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, DeviceEventEmitter, Keyboard, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Toast from 'react-native-toast-message'
@@ -106,7 +106,7 @@ const DislikeUpdateScreen = ({ navigation, route }) => {
                 </TouchableOpacity>
             }
             <KeyboardAwareScrollView style={{ flex: 1, width: '100%' }}>
-                <View style={{ flex: 1, width: '100%', gap: 24 }}>
+                <View style={{ flex: 1, width: Platform.isPad ? 600 : '100%', alignSelf: 'center', gap: 24 }}>
                     <View style={{ justifyContent: 'center', alignItems: 'center', gap: 8 }}>
                         <Image source={images.dislike_icon} style={{ width: 20, height: 20 }} contentFit='contain' />
                         <Text style={{ color: '#FF8B8B', fontSize: 18, fontWeight: '600', textAlign: 'center' }}>Dislikes</Text>
@@ -146,7 +146,7 @@ const DislikeUpdateScreen = ({ navigation, route }) => {
                     </View>
                 </View>
             </KeyboardAwareScrollView>
-            <View style={{ flexDirection: 'row', width: '100%', gap: 16, alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', width: Platform.isPad ? 600 : '100%', alignSelf: 'center', gap: 16, alignItems: 'center' }}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={{ flex: 1, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FF8B8B' }}>
                     <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Discard</Text>
                 </TouchableOpacity>

@@ -3,7 +3,7 @@ import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import React, { useEffect, useRef, useState } from 'react'
-import { Dimensions, ScrollView, StyleSheet, Switch, TextInput, TouchableOpacity, View } from 'react-native'
+import { Dimensions, Platform, ScrollView, StyleSheet, Switch, TextInput, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ImagePicker from 'react-native-image-crop-picker'
@@ -110,7 +110,7 @@ const PurposeUpdateScreen = ({ navigation, route }) => {
     return (
         <View style={[styles.container, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 16 }]}>
             <StatusBar translucent style='dark' />
-            <View style={{ flex: 1, gap: 16, width: '100%' }}>
+            <View style={{ flex: 1, gap: 16, width: Platform.isPad ? 600 : '100%', alignSelf: 'center' }}>
                 <Image source={images.logo_with_text} style={{ width: 120, height: 40, marginBottom: 32 }} contentFit='contain' />
                 <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'black' }}>{`What are you battling?`}</Text>
                 <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black', lineHeight: 20 }}>This will be your <Text style={{ color: '#5E30C1' }}>{` main profile tag `}</Text> and will help us connect you with others who share similar experiences.</Text>

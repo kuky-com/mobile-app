@@ -9,7 +9,7 @@ import axios from 'axios'
 import { Image, ImageBackground } from 'expo-image'
 import { useAtomValue } from 'jotai'
 import React, { useEffect, useState } from 'react'
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Toast from 'react-native-toast-message'
 
@@ -87,7 +87,7 @@ const ReviewProfileScreen = ({ navigation }) => {
             <View style={{ width: '100%', alignItems: 'flex-end', paddingHorizontal: 16 }}>
                 <Image source={images.logo_with_text} style={{ width: 80, height: 30 }} contentFit='contain' />
             </View>
-            <ScrollView style={{ flex: 1, paddingHorizontal: 16, width: '100%' }}>
+            <ScrollView style={{ flex: 1, paddingHorizontal: 16, width: Platform.isPad ? 600 : '100%', alignSelf: 'center' }}>
                 <View style={{ flex: 1, gap: 16, width: '100%' }}>
                     <View style={{ width: '100%', paddingVertical: 16, alignItems: 'center', gap: 8 }}>
                         <Image source={{ uri: currentUser?.avatar }} contentFit='cover' style={{ width: 120, height: 120, borderRadius: 60, backgroundColor: colors.mainColor }} />

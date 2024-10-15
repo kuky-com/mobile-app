@@ -84,7 +84,7 @@ const AppStack = ({ navgation }) => {
             if (Platform.OS === 'ios') {
                 Purchases.configure({ apiKey: 'appl_YPuGMuhbpRNDXSjKjIzybDLxtgd' });
             } else if (Platform.OS === 'android') {
-                Purchases.configure({ apiKey: '' });
+                Purchases.configure({ apiKey: 'goog_aaeHeyOlZGrvhyQsCZOaHQkfvqb' });
             }
         }
 
@@ -288,7 +288,7 @@ const AppStack = ({ navgation }) => {
             <Stack.Screen name="UpdatePasswordScreen" component={UpdatePasswordScreen} />
             <Stack.Screen name="AvatarUpdateScreen" component={AvatarUpdateScreen} />
             <Stack.Screen name="VerificationSuccessScreen" component={VerificationSuccessScreen} />
-            <Stack.Screen name="PremiumRequestScreen" component={PremiumRequestScreen} />
+            <Stack.Screen name="PremiumRequestScreen" component={PremiumRequestScreen} options={{ ...TransitionPresets.ModalSlideFromBottomIOS }} />
             <Stack.Screen name="InterestSelectScreen" component={InterestSelectScreen} />
             <Stack.Screen name="DislikeSelectScreen" component={DislikeSelectScreen} />
             <Stack.Screen name="GetMatchScreen" component={GetMatchScreen} />

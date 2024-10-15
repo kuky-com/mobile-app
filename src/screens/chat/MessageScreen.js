@@ -119,7 +119,7 @@ const MessageScreen = ({ navigation, route }) => {
             if(!(customerInfo && customerInfo.entitlements && customerInfo.entitlements.active && customerInfo.entitlements.active['pro'])){
                 setTimeout(() => {
                     NavigationService.replace('PremiumRequestScreen', {conversation})
-                }, 300);
+                }, 500);
             }
         } catch (error) {
             console.log({ error })

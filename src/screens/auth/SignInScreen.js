@@ -17,6 +17,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import apiClient from '@/utils/apiClient'
 import { getAuthenScreen } from '@/utils/utils'
 import ButtonWithLoading from '@/components/ButtonWithLoading'
+import { FontAwesome5 } from '@expo/vector-icons'
 
 const styles = StyleSheet.create({
     container: {
@@ -33,6 +34,7 @@ const SignInScreen = ({ navigation }) => {
     const deviceId = useAtomValue(deviceIdAtom)
     const pushToken = useAtomValue(pushTokenAtom)
     const [loading, setLoading] = useState(false)
+    const [showPassword, setShowPassword] = useState(false)
 
     useEffect(() => {
         GoogleSignin.configure({
@@ -64,6 +66,7 @@ const SignInScreen = ({ navigation }) => {
     }
 
     const onGoogle = async () => {
+        if (loading) return
         try {
             setLoading(true)
             await GoogleSignin.hasPlayServices();
@@ -100,7 +103,7 @@ const SignInScreen = ({ navigation }) => {
     }
 
     const onApple = async () => {
-
+        if (loading) return
         try {
             const appleAuthRequestResponse = await appleAuth.performRequest({
                 requestedOperation: appleAuth.Operation.LOGIN,
@@ -144,6 +147,7 @@ const SignInScreen = ({ navigation }) => {
             Toast.show({ text1: "Please enter your email and password", type: 'error' })
             return
         }
+        if (loading) return
         setLoading(true)
         apiClient.post('auth/login', { email, password, device_id: deviceId, platform: Platform.OS })
             .then((res) => {
@@ -161,14 +165,14 @@ const SignInScreen = ({ navigation }) => {
                     NavigationService.reset(getAuthenScreen(currentUser))
                 } else {
                     Toast.show({ text1: res.data.message, type: 'error' })
-                    if(res.data.message === 'Email not verified') {
+                    if (res.data.message === 'Email not verified') {
                         apiClient.post('auth/resend-verification', { email: email })
-                        .then((res) => {
-                        })
-                        .catch((error) => {
-                            console.log({ error })
-                        })
-                        NavigationService.reset('EmailVerificationScreen', {email})
+                            .then((res) => {
+                            })
+                            .catch((error) => {
+                                console.log({ error })
+                            })
+                        NavigationService.reset('EmailVerificationScreen', { email })
                     }
                 }
             })
@@ -176,7 +180,7 @@ const SignInScreen = ({ navigation }) => {
                 console.log({ error })
                 Toast.show({ text1: error, type: 'error' })
 
-                
+
                 setLoading(false)
             })
     }
@@ -193,7 +197,7 @@ const SignInScreen = ({ navigation }) => {
 
             <View style={{ flex: 1, width: '100%', marginTop: -60, backgroundColor: 'white', borderRadius: 25, overflow: 'hidden', padding: 28, paddingBottom: 48 }}>
                 <KeyboardAwareScrollView style={{ width: '100%', flex: 1 }} showsVerticalScrollIndicator={false}>
-                    <View style={{ alignItems: 'center', width: '100%', flex: 1, gap: 20, }}>
+                    <View style={{ alignItems: 'center', width: Platform.isPad ? 600 : '100%', alignSelf: 'center', flex: 1, gap: 20, }}>
                         <Text style={{ fontSize: 24, color: '#333333', fontWeight: 'bold' }}>Welcome back</Text>
                         <View style={{ width: '100%', paddingHorizontal: 24, paddingVertical: 16, borderRadius: 15, borderWidth: 2, borderColor: '#726E70' }}>
                             <TextInput
@@ -207,18 +211,23 @@ const SignInScreen = ({ navigation }) => {
                                 keyboardType='email-address'
                             />
                         </View>
-                        <View style={{ width: '100%', paddingHorizontal: 24, paddingVertical: 16, borderRadius: 15, borderWidth: 2, borderColor: '#726E70' }}>
+                        <View style={{ flexDirection: 'row', width: '100%', paddingHorizontal: 24, paddingVertical: 16, borderRadius: 15, borderWidth: 2, borderColor: '#726E70' }}>
                             <TextInput
                                 placeholder='Password'
                                 placeholderTextColor='#AAAAAA'
                                 underlineColorAndroid='#00000000'
-                                style={{ fontSize: 18, color: 'black', fontWeight: '500' }}
+                                style={{ fontSize: 18, color: 'black', fontWeight: '500', flex: 1 }}
                                 clearButtonMode='always'
                                 value={password}
                                 onChangeText={setPassword}
-                                secureTextEntry
+                                secureTextEntry={!showPassword}
                                 onEndEditing={onSignIn}
                             />
+                            <TouchableOpacity
+                                onPress={() => setShowPassword(old => !old)}
+                                style={{ width: 30, height: 30, alignItems: 'center', justifyContent: 'center' }}>
+                                <FontAwesome5 name={!showPassword ? 'eye' : 'eye-slash'} size={20} color={!showPassword ? 'black' : '#777777'} />
+                            </TouchableOpacity>
                         </View>
                         <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', gap: 5 }}>
                             <View style={{ flex: 1, height: 1, backgroundColor: '#726E70' }} />
