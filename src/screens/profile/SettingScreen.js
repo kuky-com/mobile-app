@@ -45,6 +45,10 @@ const SettingScreen = ({ navigation }) => {
         Linking.openURL('https://www.kuky.com/privacy-policy')
     }
 
+    const onTerm = () => {
+        Linking.openURL('https://www.kuky.com/terms-and-conditions')
+    }
+
     const onLogout = async () => {
         setLoading(true)
         Purchases.logOut()
@@ -169,7 +173,11 @@ const SettingScreen = ({ navigation }) => {
                             <Image source={images.next_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
                         </TouchableOpacity>
                         <TouchableOpacity onPress={onPrivacy} style={[styles.buttonContainer]}>
-                            <Text style={{ color: '#333333', fontSize: 16, fontWeight: 'bold', flex: 1 }}>Privacy Policy & Conditions</Text>
+                            <Text style={{ color: '#333333', fontSize: 16, fontWeight: 'bold', flex: 1 }}>Privacy Policy</Text>
+                            <Image source={images.next_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={onTerm} style={[styles.buttonContainer]}>
+                            <Text style={{ color: '#333333', fontSize: 16, fontWeight: 'bold', flex: 1 }}>Terms of use</Text>
                             <Image source={images.next_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
                         </TouchableOpacity>
                         {/* <TouchableOpacity style={[styles.buttonContainer]}>

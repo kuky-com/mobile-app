@@ -150,15 +150,15 @@ const SignInScreen = ({ navigation }) => {
         if (loading) return
         setLoading(true)
         apiClient.post('auth/login', { email, password, device_id: deviceId, platform: Platform.OS })
-            .then((res) => {
-                console.log({ res })
+            .then(async (res) => {
+                // console.log({ res })
                 setLoading(false)
                 if (res && res.data && res.data.success) {
                     const currentUser = res.data.data.user
                     setUser(currentUser)
                     setToken(res.data.data.token)
-                    AsyncStorage.setItem('ACCESS_TOKEN', res.data.data.token)
-                    Toast.show({ text1: res.data.message, type: 'success' })
+                    await AsyncStorage.setItem('ACCESS_TOKEN', res.data.data.token)
+                    // Toast.show({ text1: res.data.message, type: 'success' })
                     setTimeout(() => {
                         checkPushToken()
                     }, 200);

@@ -65,7 +65,7 @@ const SplashScreen = ({ navigation }) => {
             } else {
                 setTimeout(() => {
                     openGetStart()
-                }, 2000);
+                }, 3000);
             }
         }
 

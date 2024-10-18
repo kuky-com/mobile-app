@@ -10,6 +10,7 @@ export const getUnit = (unit) => {
 }
 
 export const getAuthenScreen = (currentUser) =>{
+    console.log('call this one 11111')
     if (!currentUser?.full_name) {
         return 'NameUpdateScreen'
     } else if (!currentUser?.birthday) {

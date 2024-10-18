@@ -2,6 +2,7 @@ import { userAtom } from '@/actions/global'
 import Text from '@/components/Text'
 import apiClient from '@/utils/apiClient'
 import colors from '@/utils/colors'
+import constants from '@/utils/constants'
 import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import dayjs from 'dayjs'
@@ -9,8 +10,9 @@ import { Image } from 'expo-image'
 import { StatusBar } from 'expo-status-bar'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import React, { useEffect, useState } from 'react'
-import { Dimensions, Linking, Platform, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { DeviceEventEmitter, Dimensions, Linking, Platform, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
+import Purchases from 'react-native-purchases'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Toast from 'react-native-toast-message'
 
@@ -27,6 +29,12 @@ const styles = StyleSheet.create({
         paddingVertical: 20, paddingHorizontal: 16, gap: 10, backgroundColor: 'white',
         borderRadius: 20,
         alignItems: 'center'
+    },
+    subscriptionButton: {
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.5,
+        elevation: 1,
+        shadowColor: '#FFAB48',
     }
 })
 
@@ -38,9 +46,35 @@ const ProfileScreen = ({ navigation }) => {
     const [purposes, setPurposes] = useState([])
 
     const [currentUser, setCurrentUser] = useAtom(userAtom)
+    const [expiredDate, setExpiredDate] = useState(null)
+
+    const getSubscriptionInfo = async () => {
+        try {
+            const customerInfo = await Purchases.getCustomerInfo();
+            console.log({ customerInfo })
+            if (customerInfo && customerInfo.latestExpirationDate && dayjs().isBefore(dayjs(customerInfo.latestExpirationDate))) {
+                setExpiredDate(dayjs(customerInfo.latestExpirationDate).format('DD MMM YYYY'))
+            } else {
+                setExpiredDate(null)
+            }
+        } catch (e) {
+            console.log({ e })
+            setExpiredDate(null)
+        }
+    }
 
     useEffect(() => {
         onRefresh()
+    }, [])
+
+    useEffect(() => {
+        let eventListener = DeviceEventEmitter.addListener(constants.REFRESH_PROFILE, event => {
+            onRefresh()
+        });
+
+        return () => {
+            eventListener.remove();
+        };
     }, [])
 
     const openSetting = () => {
@@ -87,6 +121,8 @@ const ProfileScreen = ({ navigation }) => {
             .catch((error) => {
                 console.log({ error })
             })
+
+        getSubscriptionInfo()
     }
 
     const onAddDislikes = () => {
@@ -105,6 +141,14 @@ const ProfileScreen = ({ navigation }) => {
         navigation.push('UpdateProfileScreen')
     }
 
+    const openEditAvatar = () => {
+        navigation.push('AvatarProfileScreen')
+    }
+
+    const openSubscription = () => {
+        navigation.push('PremiumRequestScreen')
+    }
+
     return (
         <View style={styles.container}>
             <StatusBar translucent style='dark' />
@@ -114,9 +158,16 @@ const ProfileScreen = ({ navigation }) => {
                         <Image source={images.setting_icon} style={{ width: 22, height: 22 }} contentFit='contain' />
                     </TouchableOpacity>
                 </View> */}
-                <View style={{ paddingVertical: 12, gap: 8, width: '100%', alignItems: 'center', justifyContent: 'center', flexDirection: 'row' }}>
-                    <View style={{ width: 40, height: 40 }} />
-                    <Text style={{ flex: 1, textAlign: 'center', fontSize: 18, color: 'white', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text>
+                <View style={{ gap: 8, paddingTop: 16, paddingBottom: 8, width: '100%', alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
+                    
+                    <View style={{ width: 40, height: 40}}></View>
+                    <View style={{alignItems: 'center', gap: 8}}>
+                        <Text style={{ fontSize: 16, color: expiredDate ? '#FFAB48' : 'white', fontWeight: 'bold' }}>{expiredDate ? `Membership` : 'Free user'}</Text>
+                        <TouchableOpacity onPress={openSubscription} style={[styles.subscriptionButton, { paddingHorizontal: 16, height: 24, borderRadius: 12, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' }]}>
+                            <Text style={{ fontSize: 12, color: 'black', fontWeight: 'bold' }}>{expiredDate ? `Subscription end at: ${expiredDate}` : 'Upgrade now'}</Text>
+                        </TouchableOpacity>
+                    </View>
+                    {/* <Text style={{ flex: 1, textAlign: 'center', fontSize: 18, color: 'white', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text> */}
                     <TouchableOpacity onPress={openSetting} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
                         <Image source={images.setting_icon} style={{ width: 22, height: 22 }} contentFit='contain' />
                     </TouchableOpacity>
@@ -144,8 +195,8 @@ const ProfileScreen = ({ navigation }) => {
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1 }}>
                                 <Text style={{ fontSize: 24, color: 'black', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text>
-                                <TouchableOpacity onPress={openNameEdit} style={{width: 30, height: 30, alignItems: 'center', justifyContent: 'center', borderRadius: 15, backgroundColor: colors.mainColor}}>
-                                    <Image source={images.edit_icon} style={{ width: 15, height: 15, tintColor:'#E8FF58' }} />
+                                <TouchableOpacity onPress={openNameEdit} style={{ width: 30, height: 30, alignItems: 'center', justifyContent: 'center', borderRadius: 15, backgroundColor: colors.mainColor }}>
+                                    <Image source={images.edit_icon} style={{ width: 15, height: 15, tintColor: '#E8FF58' }} />
                                 </TouchableOpacity>
                             </View>
                             <View style={{ backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
@@ -154,6 +205,9 @@ const ProfileScreen = ({ navigation }) => {
                         </View>
                         <View style={{ justifyContent: 'space-between', width: Math.min(Dimensions.get('screen').width - 32, 600), height: Math.min(Dimensions.get('screen').width - 32, 600), borderRadius: 20, overflow: 'hidden' }}>
                             <Image source={{ uri: currentUser?.avatar }} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} contentFit='cover' />
+                            <TouchableOpacity onPress={openEditAvatar} style={{ position: 'absolute', top: 16, right: 16, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20, backgroundColor: colors.mainColor, borderWidth: 1, borderColor: '#E8FF58' }}>
+                                <Image source={images.edit_icon} style={{ width: 20, height: 20, tintColor: '#E8FF58' }} />
+                            </TouchableOpacity>
                         </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
                             <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'flex-start' }}>
@@ -174,7 +228,7 @@ const ProfileScreen = ({ navigation }) => {
                                 <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
                                     <Image source={images.location_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
                                 </View>
-                                <Text style={{ fontSize: 14, color: 'black' }}>{`${currentUser?.location}`}</Text>
+                                <Text style={{ fontSize: 14, color: 'black' }}>{`${currentUser?.location ?? ''}`}</Text>
                             </View>
                         </View>
 

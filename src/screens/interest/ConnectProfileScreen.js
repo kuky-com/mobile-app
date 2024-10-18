@@ -81,6 +81,9 @@ const ConnectProfileScreen = ({ navigation, route }) => {
     }, [])
 
     const likeAction = () => {
+
+        // NavigationService.push('GetMatchScreen', { match: matchInfo })
+        // return
         try {
             setLoading(true)
             apiClient.post('matches/accept', { friend_id: profile.id })

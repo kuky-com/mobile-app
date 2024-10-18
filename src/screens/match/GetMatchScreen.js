@@ -26,11 +26,11 @@ const GetMatchScreen = ({ navigation, route }) => {
     const currentUser = useAtomValue(userAtom)
 
     const onContinue = () => {
-        if(currentUser.id === match.sender_id) {
-            NavigationService.replace('MessageScreen', { conversation: {...match, profile: match.receiver} })
+        if (currentUser.id === match.sender_id) {
+            NavigationService.replace('MessageScreen', { conversation: { ...match, profile: match.receiver } })
         } else {
-            NavigationService.replace('MessageScreen', { conversation: {...match, profile: match.sender} })
-        }   
+            NavigationService.replace('MessageScreen', { conversation: { ...match, profile: match.sender } })
+        }
     }
 
     const onSkip = () => {
@@ -42,11 +42,18 @@ const GetMatchScreen = ({ navigation, route }) => {
             <Text style={{ fontSize: 26, fontWeight: 'bold', color: '#E8FF58' }}>You've Connected!</Text>
             <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white', textAlign: 'center' }}>You’ve found someone to share your journey with.</Text>
             <ImageBackground source={images.wave_bg} style={{ width: Dimensions.get('screen').width - 32, height: Dimensions.get('screen').width - 32, alignItems: 'center', justifyContent: 'center' }}>
-                <View style={{paddingRight: 80}}>
-                    <Image style={{ width: 120, height: 120, borderRadius: 60, borderWidth: 2, borderColor: '#E8FF58' }} contentFit='cover' source={{uri: match?.receiver?.avatar}} />
+                <View style={{ paddingRight: 80 }}>
+                    <Image style={{ width: 120, height: 120, borderRadius: 60, borderWidth: 2, borderColor: '#E8FF58' }} contentFit='cover' source={{ uri: currentUser.avatar }} />
+                    <View style={{ position: 'absolute', top: 130, right: 130, alignItems: 'center', height: 26, borderRadius: 13, justifyContent: 'center', paddingHorizontal: 16, backgroundColor: '#E8FF58' }}>
+                        <Text style={{ fontSize: 11, fontWeight: 'bold', color: 'black' }}>{currentUser.tag?.name}</Text>
+                    </View>
                 </View>
-                <View style={{marginTop: -60, paddingLeft: 100}}>
-                    <Image style={{ width: 150, height: 150, borderRadius: 75, borderWidth: 2, borderColor: '#E8FF58' }} contentFit='cover' source={{uri: match?.sender?.avatar}} />
+                <View style={{ marginTop: -60, paddingLeft: 100 }}>
+                    <Image style={{ width: 150, height: 150, borderRadius: 75, borderWidth: 2, borderColor: '#E8FF58' }} contentFit='cover' source={{ uri: match?.profile?.avatar }} />
+
+                    <View style={{ position: 'absolute', top: 160, left: 180, alignItems: 'center', height: 26, borderRadius: 13, justifyContent: 'center', paddingHorizontal: 16, backgroundColor: '#E8FF58' }}>
+                        <Text style={{ fontSize: 11, fontWeight: 'bold', color: 'black' }}>{match?.profile?.tag?.name}</Text>
+                    </View>
                 </View>
             </ImageBackground>
             <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white', textAlign: 'center' }}>Your experiences can make a difference</Text>

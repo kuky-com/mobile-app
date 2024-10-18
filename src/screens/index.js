@@ -47,6 +47,7 @@ import InterestUpdateScreen from './profile/InterestUpdateScreen';
 import PurposeProfileScreen from './profile/PurposeProfileScreen';
 import { Platform } from 'react-native';
 import Purchases from 'react-native-purchases';
+import AvatarProfileScreen from './profile/AvatarProfileScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -135,7 +136,7 @@ const AppStack = ({ navgation }) => {
 
     useEffect(() => {
         const unsubscribe = messaging().onMessage(async remoteMessage => {
-          Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
+        //   Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
         });
     
         return unsubscribe;
@@ -306,6 +307,7 @@ const AppStack = ({ navgation }) => {
             <Stack.Screen name="DislikeUpdateScreen" component={DislikeUpdateScreen} />
             <Stack.Screen name="InterestUpdateScreen" component={InterestUpdateScreen} />
             <Stack.Screen name="PurposeProfileScreen" component={PurposeProfileScreen} />
+            <Stack.Screen name="AvatarProfileScreen" component={AvatarProfileScreen} />
         </Stack.Navigator>
     );
 };

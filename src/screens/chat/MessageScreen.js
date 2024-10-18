@@ -488,6 +488,9 @@ const MessageScreen = ({ navigation, route }) => {
         if (currentConversation.status === 'sent') {
             return (
                 <View style={{ width: '100%', padding: 16, alignItems: 'center', justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: '#D2D2D2', gap: 16 }}>
+                    <View style={{backgroundColor: '#725ED4', height: 24, borderRadius: 12, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center'}}>
+                        <Text style={{fontSize: 14, fontWeight: 'bold', color: 'white'}}>{currentConversation?.profile?.tag?.name}</Text>
+                    </View>
                     <Text style={{ color: 'black', fontSize: 12, fontWeight: '600' }}>{`${currentConversation.sender.full_name} sent request at ${dayjs(conversation.sent_date).format('MMM DD')}`}</Text>
                     {
                         currentUser.id === currentConversation.receiver_id &&
