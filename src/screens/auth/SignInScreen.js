@@ -4,7 +4,7 @@ import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import React, { useEffect, useState } from 'react'
-import { Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
+import { Alert, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { appleAuth } from '@invertase/react-native-apple-authentication'
 import { GoogleSignin } from '@react-native-google-signin/google-signin'
@@ -114,20 +114,30 @@ const SignInScreen = ({ navigation }) => {
                 Toast.show({ text1: i18n.t('error'), text2: i18n.t('cannot_login'), type: 'error' })
                 return
             }
+            
+            let full_name = undefined
+            if(appleAuthRequestResponse.fullName && appleAuthRequestResponse.fullName?.givenName && appleAuthRequestResponse.fullName?.familyName) {
+                full_name = `${appleAuthRequestResponse.fullName?.givenName} ${appleAuthRequestResponse.fullName?.familyName}`
+            }
 
             setLoading(true)
 
-            apiClient.post('auth/apple', { token: appleAuthRequestResponse.identityToken, device_id: deviceId, platform: Platform.OS })
+            apiClient.post('auth/apple', { full_name, token: appleAuthRequestResponse.identityToken, device_id: deviceId, platform: Platform.OS })
                 .then((res) => {
                     setLoading(false)
                     if (res && res.data && res.data.success) {
-                        setUser(res.data.data.user)
-                        setToken(res.data.data.token)
-                        AsyncStorage.setItem('ACCESS_TOKEN', res.data.data.token)
-                        setTimeout(() => {
-                            checkPushToken()
-                        }, 200);
-                        NavigationService.reset(getAuthenScreen(res.data.data.user))
+                        if(res.data.data) {
+                            setUser(res.data.data.user)
+                            setToken(res.data.data.token)
+                            AsyncStorage.setItem('ACCESS_TOKEN', res.data.data.token)
+                            setTimeout(() => {
+                                checkPushToken()
+                            }, 200);
+                            NavigationService.reset(getAuthenScreen(res.data.data.user))
+                        } else {
+                            Alert.alert('Error', res.data.message)
+                        }
+                        
                     } else {
                         Toast.show({ text1: res?.data?.message, type: 'error' })
                     }

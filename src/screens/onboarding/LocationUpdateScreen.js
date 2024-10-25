@@ -15,6 +15,7 @@ import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplet
 import apiClient from '@/utils/apiClient'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import ButtonWithLoading from '@/components/ButtonWithLoading'
+import { getAuthenScreen } from '@/utils/utils'
 
 const styles = StyleSheet.create({
     container: {
@@ -68,7 +69,8 @@ const LocationUpdateScreen = ({ navigation, route }) => {
                     .then((res) => {
                         setLoading(false)
                         if (res && res.data && res.data.success) {
-                            NavigationService.reset('AvatarUpdateScreen')
+                            // NavigationService.reset('AvatarUpdateScreen')
+                            NavigationService.reset(getAuthenScreen(res.data.data))
                             // Toast.show({ text1: res.data.message, type: 'success' })
                         } else {
                             Toast.show({ text1: res.data.message, type: 'error' })

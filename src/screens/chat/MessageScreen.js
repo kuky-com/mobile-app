@@ -2,7 +2,7 @@ import Text from '@/components/Text'
 import images from '@/utils/images'
 import { Image } from 'expo-image'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { AppState, DeviceEventEmitter, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Alert, AppState, DeviceEventEmitter, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { GiftedChat, Bubble, InputToolbar, Actions, Send, Composer, Time, Avatar } from 'react-native-gifted-chat'
 import { SheetManager } from 'react-native-actions-sheet'
@@ -17,7 +17,7 @@ import constants from '@/utils/constants'
 import Toast from 'react-native-toast-message'
 import Purchases from 'react-native-purchases'
 import NavigationService from '@/utils/NavigationService'
-import AppStack from '..'
+import AvatarImage from '@/components/AvatarImage'
 
 const styles = StyleSheet.create({
     container: {
@@ -95,11 +95,12 @@ const styles = StyleSheet.create({
     inputContainer: {
         flex: 1,
         paddingVertical: 0,
+        marginTop: 8
     },
     inputText: {
         fontSize: 16,
         color: 'black',
-        textAlignVertical: 'top'
+        textAlignVertical: 'top',
     }
 })
 
@@ -109,16 +110,17 @@ const MessageScreen = ({ navigation, route }) => {
     const { conversation } = route.params
     const [messages, setMessages] = useState([]);
     const [currentConversation, setCurrentConversation] = useState(conversation)
-    const appState = useRef(AppStack.currentState);
+    const appState = useRef(AppState.currentState);
+    const [loading, setLoading] = useState(false)
 
     const loadSubscriptionInfo = async () => {
         try {
             const customerInfo = await Purchases.getCustomerInfo()
-            console.log({ customerInfo: JSON.stringify(customerInfo) })
+            // console.log({ customerInfo: JSON.stringify(customerInfo) })
 
-            if(!(customerInfo && customerInfo.entitlements && customerInfo.entitlements.active && customerInfo.entitlements.active['pro'])){
+            if (!(customerInfo && customerInfo.entitlements && customerInfo.entitlements.active && customerInfo.entitlements.active['pro'])) {
                 setTimeout(() => {
-                    NavigationService.replace('PremiumRequestScreen', {conversation})
+                    NavigationService.replace('PremiumRequestScreen', { conversation })
                 }, 500);
             }
         } catch (error) {
@@ -127,41 +129,49 @@ const MessageScreen = ({ navigation, route }) => {
     }
 
     useEffect(() => {
-        loadSubscriptionInfo()
+        // loadSubscriptionInfo()
     }, [])
 
-    
 
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', nextAppState => {
-      if (
-        appState.current && appState.current.match(/inactive|background/) &&
-        nextAppState === 'active'
-      ) {
-        loadSubscriptionInfo()
-      }
-
-      appState.current = nextAppState
-    });
-
-    return () => {
-      subscription.remove();
-    };
-  }, []);
 
     useEffect(() => {
-        if (!currentConversation.profile) {
+        const subscription = AppState.addEventListener('change', nextAppState => {
+            if (
+                appState.current && appState.current.match(/inactive|background/) &&
+                nextAppState === 'active'
+            ) {
+                loadSubscriptionInfo()
+            }
+
+            appState.current = nextAppState
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, []);
+
+    useEffect(() => {
+
+        if (!conversation.profile) {
+            setLoading(true)
             apiClient.post('matches/conversation', { conversation_id: currentConversation.conversation_id })
                 .then((res) => {
                     if (res && res.data && res.data.success) {
+                        setLoading(false)
                         setCurrentConversation(res.data.data)
+                    } else {
+                        Alert.alert('Error', 'This chat has ended. You can start a new match!', [
+                            { text: 'Ok', onPress: () => navigation.goBack() }
+                        ])
                     }
                 })
                 .catch((error) => {
                     console.log({ error })
+                    setLoading(false)
                 })
         }
-    }, [currentConversation])
+    }, [conversation])
 
     useEffect(() => {
         const unsubscribe = firestore()
@@ -219,7 +229,7 @@ const MessageScreen = ({ navigation, route }) => {
             });
 
         return () => unsubscribe();
-    }, [currentConversation.conversation_id, currentUser?.id]);
+    }, [currentConversation, currentUser?.id]);
 
     const renderBubble = (bubbleProps) => {
         return (
@@ -233,7 +243,8 @@ const MessageScreen = ({ navigation, route }) => {
                         borderTopRightRadius: 25,
                         borderTopLeftRadius: 25,
                         paddingHorizontal: 10,
-                        paddingVertical: 6
+                        paddingVertical: 6,
+                        marginBottom: 15
                     },
                     left: {
                         backgroundColor: '#CFC7F7',
@@ -242,7 +253,8 @@ const MessageScreen = ({ navigation, route }) => {
                         borderTopRightRadius: 25,
                         borderTopLeftRadius: 25,
                         paddingHorizontal: 10,
-                        paddingVertical: 6
+                        paddingVertical: 6,
+                        marginBottom: 15
                     }
                 }}
                 textStyle={{
@@ -393,16 +405,18 @@ const MessageScreen = ({ navigation, route }) => {
     }
 
     const onReport = async () => {
+
         const options = [
-            { text: 'Inappropriate' },
-            { text: 'Nudity or sexual activity' },
-            { text: 'Violence or threat of violence' },
-            { text: 'Hate speech or symbols' },
-            { text: 'Bullying or harassment' },
-            { text: 'Spam' }
+            { text: 'Inappropriate', color: '#333333' },
+            { text: 'Nudity or sexual activity', color: '#333333' },
+            { text: 'Violence or threat of violence', color: '#333333' },
+            { text: 'Hate speech or symbols', color: '#333333' },
+            { text: 'Bullying or harassment', color: '#333333' },
+            { text: 'Spam', color: '#333333' },
+            { text: 'Cancel', style: 'cancel-text' }
         ]
 
-        await SheetManager.show('action-sheets', {
+        await SheetManager.show('cmd-action-sheets', {
             payload: {
                 actions: options,
                 title: 'Why do you want to report this match?',
@@ -433,6 +447,7 @@ const MessageScreen = ({ navigation, route }) => {
 
     const moreAction = async () => {
         const options = [
+            { text: 'Leave a Review', color: '#5E30C1' },
             { text: 'End Connection', color: '#FF2323' },
             { text: 'Report', color: '#FF2323' },
             { text: 'Block', color: '#FF2323' },
@@ -443,16 +458,22 @@ const MessageScreen = ({ navigation, route }) => {
             payload: {
                 actions: options,
                 onPress(index) {
-                    if (index === 0) {
+                    if(index === 0) {
+                        onReview()
+                    }else if (index === 1) {
                         onDisconnect()
-                    } else if (index === 1) {
-                        onReport()
                     } else if (index === 2) {
+                        onReport()
+                    } else if (index === 3) {
                         onBlock()
                     }
                 },
             },
         });
+    }
+
+    const onReview = () =>{
+        navigation.push('ReviewMatchScreen', {profile: currentConversation.profile})
     }
 
     const likeAction = () => {
@@ -486,14 +507,21 @@ const MessageScreen = ({ navigation, route }) => {
     const renderHeaderView = () => {
         // console.log({ conversation })
         if (currentConversation.status === 'sent') {
+            let connectionText = ''
+            if(currentConversation.sender?.id === currentUser?.id) {
+                connectionText = `You sent a matching request to ${currentConversation.receiver.full_name} ${dayjs(conversation.sent_date).fromNow()}`
+            } else {
+                connectionText = `You received a matching request from ${currentConversation.sender.full_name} ${dayjs(conversation.sent_date).fromNow()}`
+            }
+
             return (
                 <View style={{ width: '100%', padding: 16, alignItems: 'center', justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: '#D2D2D2', gap: 16 }}>
-                    <View style={{backgroundColor: '#725ED4', height: 24, borderRadius: 12, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center'}}>
-                        <Text style={{fontSize: 14, fontWeight: 'bold', color: 'white'}}>{currentConversation?.profile?.tag?.name}</Text>
+                    <View style={{ backgroundColor: '#725ED4', height: 24, borderRadius: 12, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
+                        <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'white' }}>{currentConversation?.profile?.tag?.name}</Text>
                     </View>
-                    <Text style={{ color: 'black', fontSize: 12, fontWeight: '600' }}>{`${currentConversation.sender.full_name} sent request at ${dayjs(conversation.sent_date).format('MMM DD')}`}</Text>
+                    <Text style={{ color: 'black', fontSize: 12, fontWeight: '600', textAlign: 'center' }}>{connectionText}</Text>
                     {
-                        currentUser.id === currentConversation.receiver_id &&
+                        currentUser?.id === currentConversation.receiver_id &&
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 32 }}>
                             <TouchableOpacity onPress={rejectAction} style={{ width: 120, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333' }}>
                                 <Text style={{ color: 'white', fontSize: 13, fontWeight: '600' }}>Reject</Text>
@@ -509,7 +537,7 @@ const MessageScreen = ({ navigation, route }) => {
         if (currentConversation.status === 'accepted') {
             return (
                 <View style={{ width: '100%', padding: 16, alignItems: 'center', justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: '#D2D2D2', gap: 16 }}>
-                    <Text style={{ color: 'black', fontSize: 12, fontWeight: '600' }}>{`You matched on ${dayjs(currentConversation.response_date).format('MMM DD')}`}</Text>
+                    <Text style={{ color: 'black', fontSize: 12, fontWeight: '600', textAlign: 'center' }}>{`🎉 You matched with ${currentConversation?.profile.full_name} ${dayjs(currentConversation.response_date).fromNow()}!\nContinue your conversation below.`}</Text>
                     {/* <View style={{ width: '100%', flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center', padding: 8, borderRadius: 10, backgroundColor: '#7B65E8' }}>
                         <Image source={images.category_icon} style={{ width: 16, height: 16 }} contentFit='contain' />
@@ -531,8 +559,9 @@ const MessageScreen = ({ navigation, route }) => {
 
     const renderAvatar = (props) => {
         return (
-            <TouchableOpacity onPress={openProfile} style={{width: 48, height: 48, borderWidth: 2, borderColor: '#aaaaaa',  borderRadius: 24}}>
-                <Image source={{ uri: currentConversation?.profile?.avatar }} style={{ width: 44, height: 44, borderRadius: 22, }} />
+            <TouchableOpacity onPress={openProfile} style={{ width: 48, height: 48, borderWidth: 2, borderColor: '#aaaaaa', borderRadius: 24 }}>
+                {/* <Image source={{ uri: currentConversation?.profile?.avatar }} style={{ width: 44, height: 44, borderRadius: 22, }} /> */}
+                <AvatarImage full_name={currentConversation?.profile?.full_name}  style={{ width: 44, height: 44, borderRadius: 22, }} avatar={currentConversation?.profile?.avatar} />
             </TouchableOpacity>
         );
     }
@@ -549,7 +578,11 @@ const MessageScreen = ({ navigation, route }) => {
                     <Image source={images.back_icon_no_border} style={{ width: 20, height: 20 }} contentFit='contain' />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={openProfile}>
-                    <Image source={{ uri: currentConversation?.profile?.avatar }} style={{ width: 50, height: 50, borderWidth: 2, borderColor: 'white', borderRadius: 25, }} />
+                    {/* <Image source={{ uri: currentConversation?.profile?.avatar }} style={{ width: 50, height: 50, borderWidth: 2, borderColor: 'white', borderRadius: 25, }} /> */}
+                    <AvatarImage 
+                        full_name={currentConversation?.profile?.full_name} 
+                        avatar={currentConversation?.profile?.avatar} 
+                        style={{ width: 50, height: 50, borderWidth: 2, borderColor: 'white', borderRadius: 25, }} />
                 </TouchableOpacity>
                 <Text onPress={openProfile} style={{ fontSize: 18, color: 'white', fontWeight: 'bold' }}>{currentConversation?.profile?.full_name}</Text>
                 <View style={{ flex: 1, alignItems: 'center', flexDirection: 'row', justifyContent: 'flex-end' }}>
@@ -570,9 +603,9 @@ const MessageScreen = ({ navigation, route }) => {
                 renderTicks={currentMessage => {
                     const tickedUser = currentMessage.user._id
                     return (
-                        <View style={{ position: 'absolute', bottom: -5, right: -8 }}>
-                            {!!currentMessage.received && tickedUser === currentUser?.id && currentUser?.id && (<Text style={{ color: 'green', fontSize: 8 }}>✓✓</Text>)}
-                            {!!currentMessage.sent && !currentMessage.received && tickedUser === currentUser?.id && currentUser?.id && (<Text style={{ color: 'green', fontSize: 8 }}>✓</Text>)}
+                        <View style={{ position: 'absolute', bottom: -20, right: -8 }}>
+                            {!!currentMessage.received && tickedUser === currentUser?.id && currentUser?.id && (<Text style={{ color: '#6C6C6C', fontWeight: 'bold', fontSize: 8 }}>Read</Text>)}
+                            {!!currentMessage.sent && !currentMessage.received && tickedUser === currentUser?.id && currentUser?.id && (<Text style={{ color: '#6C6C6C', fontSize: 8 }}>Delivered</Text>)}
                         </View>
                     )
                 }}
@@ -591,6 +624,11 @@ const MessageScreen = ({ navigation, route }) => {
                 }}
                 alwaysShowSend
             />
+            {loading &&
+                <View style={[StyleSheet.absoluteFill, { backgroundColor: '#000000ee', alignItems: 'center', justifyContent: 'center' }]}>
+                    <ActivityIndicator color='white' />
+                </View>
+            }
         </View>
     )
 }

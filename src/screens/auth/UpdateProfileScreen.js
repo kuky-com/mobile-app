@@ -36,7 +36,7 @@ const UpdateProfileScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(false)
 
     const moreAction = async () => {
-        const options = currentUser.login_type === 'email' ? [
+        const options = currentUser?.login_type === 'email' ? [
             { text: 'Update Password' }
         ] : []
 

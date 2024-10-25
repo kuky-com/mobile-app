@@ -4109,6 +4109,14 @@ expo-linear-gradient@^13.0.2:
   resolved "https://registry.yarnpkg.com/expo-linear-gradient/-/expo-linear-gradient-13.0.2.tgz#21bd7bc7c71ef4f7c089521daa16db729d2aec5f"
   integrity sha512-EDcILUjRKu4P1rtWcwciN6CSyGtH7Bq4ll3oTRV7h3h8oSzSilH1g6z7kTAMlacPBKvMnkkWOGzW6KtgMKEiTg==
 
+expo-linking@^6.3.1:
+  version "6.3.1"
+  resolved "https://registry.yarnpkg.com/expo-linking/-/expo-linking-6.3.1.tgz#05aef8a42bd310391d0b00644be40d80ece038d9"
+  integrity sha512-xuZCntSBGWCD/95iZ+mTUGTwHdy8Sx+immCqbUBxdvZ2TN61P02kKg7SaLS8A4a/hLrSCwrg5tMMwu5wfKr35g==
+  dependencies:
+    expo-constants "~16.0.0"
+    invariant "^2.2.4"
+
 expo-modules-autolinking@1.11.2:
   version "1.11.2"
   resolved "https://registry.yarnpkg.com/expo-modules-autolinking/-/expo-modules-autolinking-1.11.2.tgz#98245eb66f157bbfebebd2d576256ea7c683c605"
@@ -4140,6 +4148,11 @@ expo-status-bar@^1.12.1:
   version "1.12.1"
   resolved "https://registry.yarnpkg.com/expo-status-bar/-/expo-status-bar-1.12.1.tgz#52ce594aab5064a0511d14375364d718ab78aa66"
   integrity sha512-/t3xdbS8KB0prj5KG5w7z+wZPFlPtkgs95BsmrP/E7Q0xHXTcDcQ6Cu2FkFuRM+PKTb17cJDnLkawyS5vDLxMA==
+
+expo-tracking-transparency@^4.0.2:
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/expo-tracking-transparency/-/expo-tracking-transparency-4.0.2.tgz#f4fc8332c3baba51638b82b90d7cb259e8ed37a9"
+  integrity sha512-ZQzdR9D6LHr60QEwwJq2OLl0bwzgqt+O2C/OqSchFR1IekL4syf53f9QmjHK8oRIkLzEGxKIirTrKcE0j9Ko6A==
 
 expo@~51.0.28:
   version "51.0.32"
@@ -6760,6 +6773,11 @@ react-native-device-info@^13.0.0:
   resolved "https://registry.yarnpkg.com/react-native-device-info/-/react-native-device-info-13.0.0.tgz#6c272ffe805f74b2aaa22c81ae989286448c83b4"
   integrity sha512-TKCq4XKl8lzB04RdEbADxkbzDJwOfWcxZxNcf1LweT+A+KRAUv1no7bch7RM0WLyMVKMTa2hbusESnzxB5QQRA==
 
+react-native-fbsdk-next@^13.1.3:
+  version "13.1.3"
+  resolved "https://registry.yarnpkg.com/react-native-fbsdk-next/-/react-native-fbsdk-next-13.1.3.tgz#ce46289eb9df3e2caef039ab11fc17f3023aff1d"
+  integrity sha512-/QhYBNHfYYjaq4cFq3aLgDXh3EfM+AKDt7/k5bssKjFY6gddOHWR/tLhyKCerniAr072eVzqrjaifZVbw4AQ9g==
+
 react-native-gesture-handler@^2.19.0:
   version "2.19.0"
   resolved "https://registry.yarnpkg.com/react-native-gesture-handler/-/react-native-gesture-handler-2.19.0.tgz#16deaefcefe77d6b4b7fa48a82ef52be61ddbb07"
@@ -6806,6 +6824,11 @@ react-native-image-crop-picker@^0.41.2:
   version "0.41.2"
   resolved "https://registry.yarnpkg.com/react-native-image-crop-picker/-/react-native-image-crop-picker-0.41.2.tgz#824fa8fee8391fbb3e0b5ae2973221a2dff0cafb"
   integrity sha512-GcDu/adXU/1y/MrxsbOfqcGRGWC2pTttt5VGy/jyRJ6GXfoC29fTQf8SG5kGtc5schSR6K+mKYO4uW6eJPljlQ==
+
+react-native-in-app-review@^4.3.3:
+  version "4.3.3"
+  resolved "https://registry.yarnpkg.com/react-native-in-app-review/-/react-native-in-app-review-4.3.3.tgz#61f09f110de18f0a470a9bb55b9f49600390085f"
+  integrity sha512-Q9sXBtK8tCBYFPCGmMgeMlkxXC5e6vAyPZK26OC1oOKUuKUd0QORnryk/qbwnuN4fLshHQN8UKlLgyHLGRuK3A==
 
 react-native-iphone-x-helper@^1.0.3, react-native-iphone-x-helper@^1.3.1:
   version "1.3.1"
@@ -6866,10 +6889,20 @@ react-native-safe-area-context@^4.11.0:
   resolved "https://registry.yarnpkg.com/react-native-safe-area-context/-/react-native-safe-area-context-4.11.0.tgz#d45271363672dc1923ddb0ce5a6ad588e210c85d"
   integrity sha512-Bg7bozxEB+ZS+H3tVYs5yY1cvxNXgR6nRQwpSMkYR9IN5CbxohLnSprrOPG/ostTCd4F6iCk0c51pExEhifSKQ==
 
+react-native-share@^11.0.4:
+  version "11.0.4"
+  resolved "https://registry.yarnpkg.com/react-native-share/-/react-native-share-11.0.4.tgz#9d7ed7b15e68aa739fc0cbb67738b650f878ed80"
+  integrity sha512-i91n1Pcdaxxr39uxR5KduXjqi5FSEXuEO6rmeHl8OPs5rqo4No36qJXUU6du4TZUI6tFSENdxnzZMh3OsMF+ug==
+
 react-native-skeleton-placeholder@^5.2.4:
   version "5.2.4"
   resolved "https://registry.yarnpkg.com/react-native-skeleton-placeholder/-/react-native-skeleton-placeholder-5.2.4.tgz#a654fa083ff274a39c763e086f8a850c556d4c95"
   integrity sha512-OZntVq1hU1UX33FltxK2ezT2v9vHIhV8YnEbnMWUCvxT0N9OsgD1qxiHm6qb9YRJVgq2o5z3S7dNPsPnDF/jNg==
+
+react-native-smartlook-analytics@^2.1.19:
+  version "2.1.19"
+  resolved "https://registry.yarnpkg.com/react-native-smartlook-analytics/-/react-native-smartlook-analytics-2.1.19.tgz#6ce1f16b8b608d5810fee635893fb83bcd46ebee"
+  integrity sha512-6qRwMJW8WAeznqs7VGJfmshgEYkMEU2aLzgnP+FxdF5lpCZ4eCHuSCYjdidkteKn3n6wqKxAIuIfYO9VogRupA==
 
 react-native-swipe-list-view@^3.2.9:
   version "3.2.9"

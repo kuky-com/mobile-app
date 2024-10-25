@@ -20,6 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useAtom, useAtomValue } from 'jotai'
 import constants from '@/utils/constants'
 import ButtonWithLoading from '@/components/ButtonWithLoading'
+import AvatarImage from '@/components/AvatarImage'
 
 const styles = StyleSheet.create({
     container: {
@@ -115,7 +116,8 @@ const ProfileTagScreen = ({ navigation, route }) => {
                 <Text style={{ fontSize: 18, fontWeight: '600', color: 'black', lineHeight: 21, textAlign: 'center' }}>Based on your preferences, we’ve created a profile tag for you:</Text>
                 <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center'}}>
                     <View style={{ justifyContent: 'space-between', width: (Platform.isPad ? 600 : Dimensions.get('screen').width) - 64, height: (Platform.isPad ? 600 : Dimensions.get('screen').width) - 64, borderRadius: 20, overflow: 'hidden' }}>
-                        <Image source={{ uri: currentUser?.avatar }} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} contentFit='cover' />
+                        {/* <Image source={{ uri: currentUser?.avatar }} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} contentFit='cover' /> */}
+                        <AvatarImage full_name={currentUser?.full_name} avatar={currentUser?.avatar} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} />
                         <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'flex-end', padding: 8 }}>
                             <View style={{ backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
                                 {!loading && <Text style={{ color: '#E8FF58', fontSize: 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>}

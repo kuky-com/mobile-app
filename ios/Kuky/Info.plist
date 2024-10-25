@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>LSMinimumSystemVersion</key>
-	<string>12.0</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -21,15 +19,19 @@
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.0</string>
+	<string>1.0.3</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
+			<key>CFBundleURLName</key>
+			<string>kuky</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>com.kuky</string>
+				<string>kuky</string>
+				<string>fb1051248213166532</string>
 			</array>
 		</dict>
 		<dict>
@@ -42,9 +44,35 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>15</string>
+	<string>1</string>
+	<key>FacebookAppID</key>
+	<string>1051248213166532</string>
+	<key>FacebookAutoLogAppEventsEnabled</key>
+	<true/>
+	<key>FacebookClientToken</key>
+	<string>cead2336fa565310eb0c23875b87302a</string>
+	<key>FacebookCodelessDebugLogEnabled</key>
+	<true/>
+	<key>FacebookDisplayName</key>
+	<string>Kuky</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+    <string>itms-apps</string>
+		<string>fbapi</string>
+		<string>fb-messenger-api</string>
+		<string>fbauth2</string>
+		<string>fbshareextension</string>
+    <string>whatsapp</string>
+        <string>mailto</string>
+        <string>instagram</string>
+            <string>instagram-stories</string>
+            <string>fb</string>
+            <string>facebook-stories</string>
+	</array>
+	<key>LSMinimumSystemVersion</key>
+	<string>12.0</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -60,6 +88,8 @@
 	<string>We need access to your camera to allow you to take a photo for your profile picture.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>We need access to your photo library to allow you to upload a photo as your profile picture.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>This identifier will be used to deliver personalized matching to you.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>

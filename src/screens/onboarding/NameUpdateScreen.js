@@ -14,6 +14,7 @@ import axios from 'axios'
 import apiClient from '@/utils/apiClient'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import ButtonWithLoading from '@/components/ButtonWithLoading'
+import { getAuthenScreen } from '@/utils/utils'
 
 const styles = StyleSheet.create({
     container: {
@@ -67,7 +68,8 @@ const NameUpdateScreen = ({ navigation, route }) => {
                         setLoading(false)
                         console.log({ res })
                         if (res && res.data && res.data.success) {
-                            NavigationService.reset('BirthdayUpdateScreen')
+                            // NavigationService.reset('BirthdayUpdateScreen')
+                            NavigationService.reset(getAuthenScreen(res.data.data))
                         } else {
                             Toast.show({ text1: res.data.message, type: 'error' })
                         }

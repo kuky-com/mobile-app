@@ -45,6 +45,8 @@ const subscriptions_bg = require('../assets/images/subscriptions_bg.png')
 const best_price = require('../assets/images/best_price.png')
 const eye_hide_icon = require('../assets/images/eye_hide_icon.png')
 const eye_show_icon = require('../assets/images/eye_show_icon.png')
+const star_fill = require('../assets/images/star_fill.png')
+const star_empty = require('../assets/images/star_empty.png')
 
 export default {
     logo_text,
@@ -95,5 +97,7 @@ export default {
     subscriptions_bg,
     best_price,
     eye_hide_icon,
-    eye_show_icon
+    eye_show_icon,
+    star_fill,
+    star_empty
 }

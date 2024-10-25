@@ -1,3 +1,4 @@
+import AvatarImage from '@/components/AvatarImage'
 import { Header } from '@/components/Header'
 import Text from '@/components/Text'
 import apiClient from '@/utils/apiClient'
@@ -46,7 +47,8 @@ const NotificationListScreen = ({ navigation }) => {
     const renderItem = ({ item, index }) => {
         return (
             <TouchableOpacity onPress={() => openDetail(item, index)} key={`notification-${item.id}`} style={{ flexDirection: 'row', gap: 8, alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#78787988' }}>
-                <Image source={{ uri: item?.sender?.avatar }} style={{ width: 60, height: 60, borderRadius: 30, borderWidth: 2, borderColor: '#E9E5FF' }} />
+                {/* <Image source={{ uri: item?.sender?.avatar }} style={{ width: 60, height: 60, borderRadius: 30, borderWidth: 2, borderColor: '#E9E5FF' }} /> */}
+                <AvatarImage avatar={item?.sender?.avatar} full_name={item?.sender?.full_name} style={{ width: 60, height: 60, borderRadius: 30, borderWidth: 2, borderColor: '#E9E5FF' }} />
                 <View style={{ flex: 1, gap: 8 }}>
                     <Text style={{ fontSize: 14, color: 'black', fontWeight: 'bold' }}>{item.title}</Text>
                     <Text style={{ fontSize: 11, color: '#333333' }}>{item.content}</Text>
@@ -69,7 +71,7 @@ const NotificationListScreen = ({ navigation }) => {
     const seenItem = (item, index) => {
         const newItem = {...item, seen: true}
         const newNotications = [...notifications]
-        newNotications.splice(index, 1, [newItem])
+        newNotications.splice(index, 1, newItem)
         setNotifications(newNotications)
 
         apiClient.post('notifications/seen', {notification_id: item.id})
@@ -81,11 +83,21 @@ const NotificationListScreen = ({ navigation }) => {
         .catch((error) => {
             Toast.show({ text1: error, type: 'error' })
         })
+
+
+        if((item.notification_type === 'message' || 
+            item.notification_type === 'new_request' ||
+            item.notification_type === 'new_match') && item.match && item.match.conversation_id
+        ) {
+            navigation.push('MessageScreen', {conversation: {conversation_id: item.match.conversation_id}})
+        } else if (item.notification_type === 'new_suggestions') {
+            navigation.push('ConnectProfileScreen', { profile: {id: item.suggest_id} });
+        }
     }
 
     const askSeenAll = async () => {
         const options = [
-            { text: 'Seen all notifications', image: images.seen_icon, }
+            { text: 'Mark All as Read', image: images.seen_icon, }
         ]
 
         await SheetManager.show('action-sheets', {

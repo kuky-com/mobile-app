@@ -1,4 +1,5 @@
 import { userAtom } from '@/actions/global'
+import AvatarImage from '@/components/AvatarImage'
 import Text from '@/components/Text'
 import apiClient from '@/utils/apiClient'
 import colors from '@/utils/colors'
@@ -15,10 +16,12 @@ import { SheetManager } from 'react-native-actions-sheet'
 import Purchases from 'react-native-purchases'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Toast from 'react-native-toast-message'
+import Share from 'react-native-share'
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1
+        flex: 1,
+        backgroundColor: 'white'
     },
     buttonContainer: {
         shadowOffset: { width: 0, height: 1 },
@@ -48,20 +51,20 @@ const ProfileScreen = ({ navigation }) => {
     const [currentUser, setCurrentUser] = useAtom(userAtom)
     const [expiredDate, setExpiredDate] = useState(null)
 
-    const getSubscriptionInfo = async () => {
-        try {
-            const customerInfo = await Purchases.getCustomerInfo();
-            console.log({ customerInfo })
-            if (customerInfo && customerInfo.latestExpirationDate && dayjs().isBefore(dayjs(customerInfo.latestExpirationDate))) {
-                setExpiredDate(dayjs(customerInfo.latestExpirationDate).format('DD MMM YYYY'))
-            } else {
-                setExpiredDate(null)
-            }
-        } catch (e) {
-            console.log({ e })
-            setExpiredDate(null)
-        }
-    }
+    // const getSubscriptionInfo = async () => {
+    //     try {
+    //         const customerInfo = await Purchases.getCustomerInfo();
+    //         console.log({ customerInfo })
+    //         if (customerInfo && customerInfo.latestExpirationDate && dayjs().isBefore(dayjs(customerInfo.latestExpirationDate))) {
+    //             setExpiredDate(dayjs(customerInfo.latestExpirationDate).format('DD MMM YYYY'))
+    //         } else {
+    //             setExpiredDate(null)
+    //         }
+    //     } catch (e) {
+    //         console.log({ e })
+    //         setExpiredDate(null)
+    //     }
+    // }
 
     useEffect(() => {
         onRefresh()
@@ -122,7 +125,7 @@ const ProfileScreen = ({ navigation }) => {
                 console.log({ error })
             })
 
-        getSubscriptionInfo()
+        // getSubscriptionInfo()
     }
 
     const onAddDislikes = () => {
@@ -149,6 +152,14 @@ const ProfileScreen = ({ navigation }) => {
         navigation.push('PremiumRequestScreen')
     }
 
+    const onShare = () => {
+        Share.open({url: Platform.OS === 'ios' ? 'https://apps.apple.com/au/app/kuky/id6711341485' : 'https://play.google.com/store/apps/details?id=com.kuky.android',})
+            .then(() => { })
+            .catch((error) => {
+                console.log({error})
+             })
+    }
+
     return (
         <View style={styles.container}>
             <StatusBar translucent style='dark' />
@@ -159,20 +170,20 @@ const ProfileScreen = ({ navigation }) => {
                     </TouchableOpacity>
                 </View> */}
                 <View style={{ gap: 8, paddingTop: 16, paddingBottom: 8, width: '100%', alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
-                    
-                    <View style={{ width: 40, height: 40}}></View>
-                    <View style={{alignItems: 'center', gap: 8}}>
+
+                    <View style={{ width: 40, height: 40 }}></View>
+                    {/* <View style={{alignItems: 'center', gap: 8}}>
                         <Text style={{ fontSize: 16, color: expiredDate ? '#FFAB48' : 'white', fontWeight: 'bold' }}>{expiredDate ? `Membership` : 'Free user'}</Text>
                         <TouchableOpacity onPress={openSubscription} style={[styles.subscriptionButton, { paddingHorizontal: 16, height: 24, borderRadius: 12, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' }]}>
                             <Text style={{ fontSize: 12, color: 'black', fontWeight: 'bold' }}>{expiredDate ? `Subscription end at: ${expiredDate}` : 'Upgrade now'}</Text>
                         </TouchableOpacity>
-                    </View>
-                    {/* <Text style={{ flex: 1, textAlign: 'center', fontSize: 18, color: 'white', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text> */}
+                    </View> */}
+                    <Text style={{ flex: 1, textAlign: 'center', fontSize: 18, color: 'white', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text>
                     <TouchableOpacity onPress={openSetting} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
                         <Image source={images.setting_icon} style={{ width: 22, height: 22 }} contentFit='contain' />
                     </TouchableOpacity>
                 </View>
-                {/* <View style={{ height: 30, alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
+                <View style={{ height: 30, alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
                     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                         <TouchableOpacity onPress={() => setMode('edit')} style={{ borderBottomWidth: 1, borderBottomColor: mode === 'edit' ? '#E8FF58' : 'transparent', height: 30, alignItems: 'center', width: 50, justifyContent: 'center' }}>
                             <Text style={{ fontSize: 16, color: mode === 'edit' ? '#E8FF58' : 'rgba(232, 255, 88, 0.5)' }}>Edit</Text>
@@ -183,132 +194,246 @@ const ProfileScreen = ({ navigation }) => {
                             <Text style={{ fontSize: 16, color: mode === 'view' ? '#E8FF58' : 'rgba(232, 255, 88, 0.5)' }}>View</Text>
                         </TouchableOpacity>
                     </View>
-                </View> */}
+                </View>
             </View>
-            <View style={{ flex: 1 }}>
-                <ScrollView
-                    refreshControl={<RefreshControl
-                        refreshing={false}
-                        onRefresh={onRefresh} />}
-                    showsVerticalScrollIndicator={false} style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 16, paddingTop: 24 }}>
-                    <View style={{ flex: 1, width: Platform.isPad ? 600 : '100%', alignSelf: 'center', gap: 16, marginBottom: insets.bottom + 120 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1 }}>
-                                <Text style={{ fontSize: 24, color: 'black', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text>
-                                <TouchableOpacity onPress={openNameEdit} style={{ width: 30, height: 30, alignItems: 'center', justifyContent: 'center', borderRadius: 15, backgroundColor: colors.mainColor }}>
+            {
+                mode === 'edit' &&
+                <View style={{ flex: 1 }}>
+                    <ScrollView
+                        refreshControl={<RefreshControl
+                            refreshing={false}
+                            onRefresh={onRefresh} />}
+                        showsVerticalScrollIndicator={false} style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 16, paddingTop: 24 }}>
+                        <View style={{ flex: 1, width: Platform.isPad ? 600 : '100%', alignSelf: 'center', gap: 16, marginBottom: insets.bottom + 120 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1 }}>
+                                    <TouchableOpacity onPress={openNameEdit} style={{ width: 26, height: 26, alignItems: 'center', justifyContent: 'center', borderRadius: 15, backgroundColor: colors.mainColor }}>
+                                        <Image source={images.edit_icon} style={{ width: 12, height: 12, tintColor: '#E8FF58' }} />
+                                    </TouchableOpacity>
+                                    <Text style={{ fontSize: 24, color: 'black', fontWeight: 'bold', flex: 1 }}>{`${currentUser?.full_name}`}</Text>
+                                </View>
+                                <View style={{ backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
+                                    <Text style={{ color: '#E8FF58', fontSize: 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>
+                                </View>
+                            </View>
+                            <View style={{ justifyContent: 'space-between', width: Math.min(Dimensions.get('screen').width - 32, 600), height: Math.min(Dimensions.get('screen').width - 32, 600), borderRadius: 20, overflow: 'hidden' }}>
+                                <AvatarImage avatar={currentUser?.avatar} full_name={currentUser?.full_name} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} />
+                                <TouchableOpacity onPress={openEditAvatar} style={{ position: 'absolute', top: 16, right: 16, width: 30, height: 30, alignItems: 'center', justifyContent: 'center', borderRadius: 15, backgroundColor: colors.mainColor, borderWidth: 1, borderColor: '#E8FF58' }}>
                                     <Image source={images.edit_icon} style={{ width: 15, height: 15, tintColor: '#E8FF58' }} />
                                 </TouchableOpacity>
                             </View>
-                            <View style={{ backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
-                                <Text style={{ color: '#E8FF58', fontSize: 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>
-                            </View>
-                        </View>
-                        <View style={{ justifyContent: 'space-between', width: Math.min(Dimensions.get('screen').width - 32, 600), height: Math.min(Dimensions.get('screen').width - 32, 600), borderRadius: 20, overflow: 'hidden' }}>
-                            <Image source={{ uri: currentUser?.avatar }} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} contentFit='cover' />
-                            <TouchableOpacity onPress={openEditAvatar} style={{ position: 'absolute', top: 16, right: 16, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20, backgroundColor: colors.mainColor, borderWidth: 1, borderColor: '#E8FF58' }}>
-                                <Image source={images.edit_icon} style={{ width: 20, height: 20, tintColor: '#E8FF58' }} />
-                            </TouchableOpacity>
-                        </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
-                            <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'flex-start' }}>
-                                <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
-                                    <Image source={images.birthday_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
+                            <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
+                                <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'flex-start' }}>
+                                    <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
+                                        <Image source={images.birthday_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
+                                    </View>
+                                    <Text style={{ fontSize: 14, color: 'black' }}>{`${dayjs().diff(dayjs(currentUser?.birthday, 'MM-DD-YYYY'), 'years')} yrs`}</Text>
                                 </View>
-                                <Text style={{ fontSize: 14, color: 'black' }}>{`${dayjs().diff(dayjs(currentUser?.birthday, 'MM-DD-YYYY'), 'years')} yrs`}</Text>
+
+                                <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'center' }}>
+                                    <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
+                                        <Image source={images.gender_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
+                                    </View>
+                                    <Text style={{ fontSize: 14, color: 'black' }}>{`${currentUser?.pronouns.split('/ ')[0]}`}</Text>
+                                </View>
+
+                                <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'flex-end' }}>
+                                    <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
+                                        <Image source={images.location_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
+                                    </View>
+                                    <Text style={{ fontSize: 14, color: 'black' }}>{`${currentUser?.location ?? ''}`}</Text>
+                                </View>
                             </View>
 
-                            <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'center' }}>
-                                <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
-                                    <Image source={images.gender_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
+                            <View style={{ backgroundColor: '#725ED4', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
+                                <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
+                                    <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>Your purposes</Text>
                                 </View>
-                                <Text style={{ fontSize: 14, color: 'black' }}>{`${currentUser?.pronouns.split('/ ')[0]}`}</Text>
-                            </View>
-
-                            <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'flex-end' }}>
-                                <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
-                                    <Image source={images.location_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
+                                <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} />
+                                <View style={{ paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16 }}>
+                                    {
+                                        purposes.map((item) => {
+                                            return (
+                                                <TouchableOpacity key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F2F0FF' }}>
+                                                    <Text style={{ fontSize: 14, color: 'black', fontWeight: '700' }}>{item.name}</Text>
+                                                </TouchableOpacity>
+                                            )
+                                        })
+                                    }
+                                    <TouchableOpacity onPress={onEditPurposes} style={{ width: 68, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E8FF58' }}>
+                                        <Image style={{ width: 20, height: 20 }} source={images.edit_icon} contentFit='contain' />
+                                    </TouchableOpacity>
                                 </View>
-                                <Text style={{ fontSize: 14, color: 'black' }}>{`${currentUser?.location ?? ''}`}</Text>
                             </View>
-                        </View>
-
-                        <View style={{ backgroundColor: '#725ED4', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
-                            <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
-                                <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>Your purposes</Text>
-                            </View>
-                            <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} />
-                            <View style={{ paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16 }}>
-                                {
-                                    purposes.map((item) => {
-                                        return (
-                                            <TouchableOpacity key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F2F0FF' }}>
-                                                <Text style={{ fontSize: 14, color: 'black', fontWeight: '700' }}>{item.name}</Text>
-                                            </TouchableOpacity>
-                                        )
-                                    })
-                                }
-                                <TouchableOpacity onPress={onEditPurposes} style={{ width: 68, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E8FF58' }}>
-                                    <Image style={{ width: 20, height: 20 }} source={images.edit_icon} contentFit='contain' />
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                        <View style={{ backgroundColor: '#725ED4', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
-                            <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
-                                <Image source={images.interest_icon} style={{ width: 18, height: 18, tintColor: 'white' }} contentFit='contain' />
-                                <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>Interests and hobbies</Text>
-                            </View>
-                            <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} />
-                            <View style={{ paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16 }}>
-                                {
-                                    likes.map((item) => {
-                                        return (
-                                            <TouchableOpacity key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F2F0FF' }}>
-                                                <Image style={{ width: 22, height: 22 }} contentFit='contain' source={images.seen_icon} />
-                                                <Text style={{ fontSize: 14, color: 'black', fontWeight: '700' }}>{item.name}</Text>
-                                                {/* <TouchableOpacity style={{ backgroundColor: '#E8FF58', borderWidth: 1, borderColor: '#333333', width: 16, height: 16, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
+                            <View style={{ backgroundColor: '#725ED4', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
+                                <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
+                                    <Image source={images.interest_icon} style={{ width: 18, height: 18, tintColor: 'white' }} contentFit='contain' />
+                                    <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>Interests and hobbies</Text>
+                                </View>
+                                <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} />
+                                <View style={{ paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16 }}>
+                                    {
+                                        likes.map((item) => {
+                                            return (
+                                                <TouchableOpacity key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F2F0FF' }}>
+                                                    <Image style={{ width: 22, height: 22 }} contentFit='contain' source={images.seen_icon} />
+                                                    <Text style={{ fontSize: 14, color: 'black', fontWeight: '700' }}>{item.name}</Text>
+                                                    {/* <TouchableOpacity style={{ backgroundColor: '#E8FF58', borderWidth: 1, borderColor: '#333333', width: 16, height: 16, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
                                                     <Image source={images.close_icon} style={{ width: 10, height: 10, tintColor: '#333333' }} contentFit='contain' />
                                                 </TouchableOpacity> */}
-                                            </TouchableOpacity>
-                                        )
-                                    })
-                                }
-                                <TouchableOpacity onPress={onAddLikes} style={{ width: 68, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E8FF58' }}>
-                                    <Image style={{ width: 20, height: 20 }} source={images.edit_icon} contentFit='contain' />
-                                </TouchableOpacity>
+                                                </TouchableOpacity>
+                                            )
+                                        })
+                                    }
+                                    <TouchableOpacity onPress={onAddLikes} style={{ width: 68, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E8FF58' }}>
+                                        <Image style={{ width: 20, height: 20 }} source={images.edit_icon} contentFit='contain' />
+                                    </TouchableOpacity>
+                                </View>
                             </View>
-                        </View>
-                        <View style={{ backgroundColor: '#725ED4', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
-                            <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
-                                <Image source={images.dislike_icon} style={{ width: 18, height: 18, tintColor: 'white' }} contentFit='contain' />
-                                <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>Dislike</Text>
-                            </View>
-                            <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} />
-                            <View style={{ paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16 }}>
-                                {
-                                    dislikes.map((item) => {
-                                        return (
-                                            <TouchableOpacity key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FF8B8B' }}>
-                                                <Image style={{ width: 22, height: 22 }} contentFit='contain' source={images.seen_icon} />
-                                                <Text style={{ fontSize: 14, color: 'black', fontWeight: '700' }}>{item.name}</Text>
-                                                {/* <TouchableOpacity style={{ backgroundColor: '#E8FF58', borderWidth: 1, borderColor: '#333333', width: 16, height: 16, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
+                            <View style={{ backgroundColor: '#725ED4', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
+                                <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
+                                    <Image source={images.dislike_icon} style={{ width: 18, height: 18, tintColor: 'white' }} contentFit='contain' />
+                                    <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>Dislike</Text>
+                                </View>
+                                <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} />
+                                <View style={{ paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16 }}>
+                                    {
+                                        dislikes.map((item) => {
+                                            return (
+                                                <TouchableOpacity key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FF8B8B' }}>
+                                                    <Image style={{ width: 22, height: 22 }} contentFit='contain' source={images.seen_icon} />
+                                                    <Text style={{ fontSize: 14, color: 'black', fontWeight: '700' }}>{item.name}</Text>
+                                                    {/* <TouchableOpacity style={{ backgroundColor: '#E8FF58', borderWidth: 1, borderColor: '#333333', width: 16, height: 16, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
                                                     <Image source={images.close_icon} style={{ width: 10, height: 10, tintColor: '#333333' }} contentFit='contain' />
                                                 </TouchableOpacity> */}
-                                            </TouchableOpacity>
-                                        )
-                                    })
-                                }
-                                <TouchableOpacity onPress={onAddDislikes} style={{ width: 68, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E8FF58' }}>
-                                    <Image style={{ width: 20, height: 20 }} source={images.edit_icon} contentFit='contain' />
-                                </TouchableOpacity>
+                                                </TouchableOpacity>
+                                            )
+                                        })
+                                    }
+                                    <TouchableOpacity onPress={onAddDislikes} style={{ width: 68, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E8FF58' }}>
+                                        <Image style={{ width: 20, height: 20 }} source={images.edit_icon} contentFit='contain' />
+                                    </TouchableOpacity>
+                                </View>
                             </View>
-                        </View>
 
-                        {/* <TouchableOpacity onPress={onSave} disabled={(newLikes !== likes || newDislikes !== dislikes) && newLikes.length + newDislikes.length === 0} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: ((newLikes !== likes || newDislikes !== dislikes) && newLikes.length + newDislikes.length === 0) ? '#9A9A9A' : '#333333', }}>
+                            {/* <TouchableOpacity onPress={onSave} disabled={(newLikes !== likes || newDislikes !== dislikes) && newLikes.length + newDislikes.length === 0} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: ((newLikes !== likes || newDislikes !== dislikes) && newLikes.length + newDislikes.length === 0) ? '#9A9A9A' : '#333333', }}>
                             <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Save</Text>
                         </TouchableOpacity> */}
-                    </View>
-                </ScrollView>
-            </View>
+                        </View>
+                    </ScrollView>
+                </View>
+            }
+            {
+                mode === 'view' &&
+                <View style={{ flex: 1 }}>
+                    <ScrollView
+                        refreshControl={<RefreshControl
+                            refreshing={false}
+                            onRefresh={onRefresh} />}
+                        showsVerticalScrollIndicator={false} style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 16, paddingTop: 24 }}>
+                        <View style={{ flex: 1, width: Platform.isPad ? 600 : '100%', alignSelf: 'center', gap: 16, marginBottom: insets.bottom + 120 }}>
+                            <View style={{ borderWidth: 1, borderRadius: 10, borderColor: colors.mainColor, padding: 16, gap: 16 }}>
+                                <Text style={{ color: '#333333', fontSize: 14, textAlign: 'center' }}>Let your friends know you found a great match on Kuky!</Text>
+                                <TouchableOpacity onPress={onShare} style={{ paddingHorizontal: 32, justifyContent: 'center', height: 40, alignItems: 'center', borderRadius: 20, backgroundColor: colors.mainColor }}>
+                                    <Text style={{ fontSize: 16, color: 'white', fontWeight: 'bold' }}>Invite a friend</Text>
+                                </TouchableOpacity>
+                            </View>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1 }}>
+                                    <Text style={{ fontSize: 24, color: 'black', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text>
+                                </View>
+                                <View style={{ backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
+                                    <Text style={{ color: '#E8FF58', fontSize: 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>
+                                </View>
+                            </View>
+                            <View style={{ justifyContent: 'space-between', width: Math.min(Dimensions.get('screen').width - 32, 600), height: Math.min(Dimensions.get('screen').width - 32, 600), borderRadius: 20, overflow: 'hidden' }}>
+                                <AvatarImage avatar={currentUser?.avatar} full_name={currentUser?.full_name} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} />
+                            </View>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
+                                <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'flex-start' }}>
+                                    <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
+                                        <Image source={images.birthday_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
+                                    </View>
+                                    <Text style={{ fontSize: 14, color: 'black' }}>{`${dayjs().diff(dayjs(currentUser?.birthday, 'MM-DD-YYYY'), 'years')} yrs`}</Text>
+                                </View>
+
+                                <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'center' }}>
+                                    <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
+                                        <Image source={images.gender_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
+                                    </View>
+                                    <Text style={{ fontSize: 14, color: 'black' }}>{`${currentUser?.pronouns.split('/ ')[0]}`}</Text>
+                                </View>
+
+                                <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'flex-end' }}>
+                                    <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
+                                        <Image source={images.location_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
+                                    </View>
+                                    <Text style={{ fontSize: 14, color: 'black' }}>{`${currentUser?.location ?? ''}`}</Text>
+                                </View>
+                            </View>
+                            <View>
+                            <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
+                                    <Text style={{ color: 'black', fontSize: 16, fontWeight: 'bold' }}>Your purposes</Text>
+                                </View>
+                            <View style={{ backgroundColor: '#E9E5FF', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
+                                
+                                <View style={{ paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16 }}>
+                                    {
+                                        purposes.map((item) => {
+                                            return (
+                                                <TouchableOpacity key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#725ED4' }}>
+                                                    <Text style={{ fontSize: 14, color: '#E8FF58', fontWeight: '700' }}>{item.name}</Text>
+                                                </TouchableOpacity>
+                                            )
+                                        })
+                                    }
+                                </View>
+                            </View>
+                            </View>
+                            <View>
+                                <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
+                                    <Image source={images.interest_icon} style={{ width: 18, height: 18, tintColor: 'black' }} contentFit='contain' />
+                                    <Text style={{ color: 'black', fontSize: 16, fontWeight: '600' }}>Interests and hobbies</Text>
+                                </View>
+                                <View style={{ backgroundColor: '#E9E5FF', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
+
+                                    <View style={{ paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16 }}>
+                                        {
+                                            likes.map((item) => {
+                                                return (
+                                                    <TouchableOpacity key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#725ED4' }}>
+                                                        <Text style={{ fontSize: 14, color: '#E8FF58', fontWeight: '700' }}>{item.name}</Text>
+                                                    </TouchableOpacity>
+                                                )
+                                            })
+                                        }
+                                    </View>
+                                </View>
+                            </View>
+                            <View>
+                                <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
+                                    <Image source={images.dislike_icon} style={{ width: 18, height: 18, tintColor: 'black' }} contentFit='contain' />
+                                    <Text style={{ color: 'black', fontSize: 16, fontWeight: '600' }}>Dislike</Text>
+                                </View>
+                                <View style={{ backgroundColor: '#E9E5FF', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
+
+                                    <View style={{ paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16 }}>
+                                        {
+                                            dislikes.map((item) => {
+                                                return (
+                                                    <TouchableOpacity key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FF8B8B' }}>
+                                                        <Text style={{ fontSize: 14, color: 'black', fontWeight: '700' }}>{item.name}</Text>
+                                                    </TouchableOpacity>
+                                                )
+                                            })
+                                        }
+                                    </View>
+                                </View>
+                            </View>
+                        </View>
+                    </ScrollView>
+                </View>
+            }
         </View>
     )
 }

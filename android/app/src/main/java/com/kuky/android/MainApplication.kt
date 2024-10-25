@@ -2,6 +2,7 @@ package com.kuky.android
 
 import android.app.Application
 import android.content.res.Configuration
+import com.facebook.appevents.AppEventsLogger
 
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
@@ -46,6 +47,7 @@ class MainApplication : Application(), ReactApplication {
       load()
     }
     ApplicationLifecycleDispatcher.onApplicationCreate(this)
+      AppEventsLogger.activateApp(this, "1051248213166532");
   }
 
   override fun onConfigurationChanged(newConfig: Configuration) {

@@ -37,6 +37,13 @@ const styles = StyleSheet.create({
         backgroundColor: '#333333',
         marginTop: 16
     },
+    cancelWhiteButton: {
+        width: '100%',
+        height: 54, borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 16
+    },
     cancelText: {
         color: 'white',
         fontSize: 16,
@@ -64,6 +71,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         backgroundColor: '#f0f0f0',
     },
+    cancelWhite: {
+        fontSize: 14, fontWeight: 'bold',
+        color: 'white'
+    },
+
 });
 
 function CommandActionSheets(props) {
@@ -86,16 +98,21 @@ function CommandActionSheets(props) {
             <ScrollView
                 {...scrollHandlers}
                 style={{
-                    height: (props.payload?.actions ?? []).length * 85,
+                    height: (props.payload?.actions ?? []).length * 85 + ((props.payload?.header ?? '').length > 0 ? 60 : 0) + ((props.payload?.title ?? '').length > 0 ? 80 : 0),
                     minHeight: 120,
                     maxHeight: Dimensions.get('screen').height * 0.8,
                     backgroundColor: '#725ED4',
                 }}
                 keyboardShouldPersistTaps={'handled'}>
                 <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+                    {(props.payload?.header ?? '').length > 0 && (
+                        <View style={{ padding: 16, width: '100%'}}>
+                            <Text style={{ fontSize: 20, color: '#E8FF58', textAlign: 'center', fontWeight: 'bold' }}>{(props.payload?.title ?? '')}</Text>
+                        </View>
+                    )}
                     {(props.payload?.title ?? '').length > 0 && (
-                        <View style={{ padding: 16, width: '100%', borderBottomWidth: 0.5, borderBottomColor: '#eeeeee' }}>
-                            <Text style={{ fontSize: 16, color: 'black', fontWeight: 'bold' }}>{(props.payload?.title ?? '')}</Text>
+                        <View style={{ padding: 16, width: '100%'}}>
+                            <Text style={{ fontSize: (props.payload?.header ?? '').length > 0 ? 14 : 18, color: 'white', textAlign: 'center', fontWeight: 'bold' }}>{(props.payload?.title ?? '')}</Text>
                         </View>
                     )}
                     {(props.payload?.actions ?? []).length > 10 && (
@@ -127,7 +144,7 @@ function CommandActionSheets(props) {
                                         }, 500);
                                     }
                                 }}
-                                style={style === 'cancel' ? styles.cancelButton : styles.buttonContainer}>
+                                style={style === 'cancel' ? styles.cancelButton : (style === 'cancel-text' ? styles.cancelWhiteButton : styles.buttonContainer)}>
                                 {image && (
                                     <Image
                                         source={image}
@@ -135,7 +152,7 @@ function CommandActionSheets(props) {
                                         contentFit="contain"
                                     />
                                 )}
-                                <Text style={[style === 'cancel' ? styles.cancelText : styles.text, color ? { color } : {}]}>{text}</Text>
+                                <Text style={[style === 'cancel' ? styles.cancelText : (style === 'cancel-text' ? styles.cancelWhite : styles.text), color ? { color } : {}]}>{text}</Text>
                             </TouchableOpacity>
                         );
                     })}

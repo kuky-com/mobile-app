@@ -11,6 +11,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "scheme": "kuky",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.kuky"
@@ -36,6 +37,19 @@
             "./src/assets/fonts/Comfortaa-Regular.ttf",
             "./src/assets/fonts/Comfortaa-SemiBold.ttf"
           ]
+        }
+      ],
+      [
+        "react-native-fbsdk-next",
+        {
+          "appID": "1051248213166532",
+          "clientToken": "cead2336fa565310eb0c23875b87302a",
+          "displayName": "Kuky",
+          "scheme": "fb1051248213166532",
+          "advertiserIDCollectionEnabled": true,
+          "autoLogAppEventsEnabled": true,
+          "isAutoInitEnabled": true,
+          "iosUserTrackingPermission": "This identifier will be used to deliver personalized ads to you."
         }
       ]
     ]

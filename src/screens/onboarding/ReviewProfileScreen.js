@@ -1,4 +1,5 @@
 import { userAtom } from '@/actions/global'
+import AvatarImage from '@/components/AvatarImage'
 import ButtonWithLoading from '@/components/ButtonWithLoading'
 import Text from '@/components/Text'
 import apiClient from '@/utils/apiClient'
@@ -90,7 +91,8 @@ const ReviewProfileScreen = ({ navigation }) => {
             <ScrollView style={{ flex: 1, paddingHorizontal: 16, width: Platform.isPad ? 600 : '100%', alignSelf: 'center' }}>
                 <View style={{ flex: 1, gap: 16, width: '100%' }}>
                     <View style={{ width: '100%', paddingVertical: 16, alignItems: 'center', gap: 8 }}>
-                        <Image source={{ uri: currentUser?.avatar }} contentFit='cover' style={{ width: 120, height: 120, borderRadius: 60, backgroundColor: colors.mainColor }} />
+                        {/* <Image source={{ uri: currentUser?.avatar }} contentFit='cover' style={{ width: 120, height: 120, borderRadius: 60, backgroundColor: colors.mainColor }} /> */}
+                        <AvatarImage avatar={currentUser?.avatar } full_name={currentUser?.full_name} contentFit='cover' style={{ width: 120, height: 120, borderRadius: 60, backgroundColor: colors.mainColor }} />
                         <Text style={{ color: 'black', fontSize: 22, fontWeight: 'bold' }}>{currentUser?.full_name}</Text>
                     </View>
                     <View style={{ backgroundColor: '#725ED4', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>

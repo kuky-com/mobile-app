@@ -5,6 +5,7 @@ import { View, StyleSheet, TouchableOpacity, Dimensions, Platform } from 'react-
 import { LinearGradient } from 'expo-linear-gradient';
 import dayjs from 'dayjs';
 import { Image } from 'expo-image';
+import AvatarImage from './AvatarImage';
 
 const itemWidth = Dimensions.get('screen').width * 0.5 - 24
 
@@ -21,7 +22,7 @@ const DynamicLikeItem = ({ itemWidth, item, onPress }) => {
 
     return (
         <TouchableOpacity onPress={() => onPress && onPress()} style={[styles.cardContainer, {width: itemWidth, height: itemHeight}]}>
-            <Image
+            {/* <Image
                 source={{ uri: item?.avatar }}
                 style={[styles.image, { height: itemHeight }]}
                 // onLoad={(event) => {
@@ -29,6 +30,11 @@ const DynamicLikeItem = ({ itemWidth, item, onPress }) => {
                 //     onImageLoad(item.id, width, height);
                 // }}
                 contentFit='cover'
+            /> */}
+            <AvatarImage 
+                avatar={item?.avatar}
+                full_name={item?.full_name}
+                style={[styles.image, { height: itemHeight }]}
             />
             <View style={styles.tagContainer}>
                 <Text style={styles.tagText}>{item?.tag?.name}</Text>

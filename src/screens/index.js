@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Tabbar from '@/components/Tabbar';
 import { createStackNavigator, TransitionPresets } from '@react-navigation/stack';
@@ -48,6 +48,11 @@ import PurposeProfileScreen from './profile/PurposeProfileScreen';
 import { Platform } from 'react-native';
 import Purchases from 'react-native-purchases';
 import AvatarProfileScreen from './profile/AvatarProfileScreen';
+import * as Linking from 'expo-linking';
+import NotificationSettingScreen from './profile/NotificationSettingScreen';
+import InAppReview from 'react-native-in-app-review'
+import MySubscriptionScreen from './profile/MySubscriptionScreen';
+import ReviewMatchScreen from './match/ReviewMatchScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -69,14 +74,58 @@ const AppStack = ({ navgation }) => {
     const setDeviceId = useSetAtom(deviceIdAtom)
     const setPushToken = useSetAtom(pushTokenAtom)
     const currentUser = useAtomValue(userAtom)
+    const url = Linking.useURL();
+    const urlHandleRef = useRef(null)
 
     useEffect(() => {
-        if(currentUser && currentUser.email) {
-            Purchases.logIn(currentUser.email)
-            .then(() => {})
-            .catch(() => {})
+        if (currentUser && currentUser?.email) {
+            Purchases.logIn(currentUser?.email)
+                .then(() => { })
+                .catch(() => { })
         }
     }, [currentUser])
+
+    useEffect(() => {
+        try {
+            setTimeout(() => {
+                AsyncStorage.getItem('APP_START_COUNTER')
+                    .then((value) => {
+                        let counter = 0
+                        if (value) {
+                            counter = parseInt(value)
+                        }
+
+                        counter += 1
+
+                        AsyncStorage.setItem('APP_START_COUNTER', counter.toString())
+
+                        // console.log({counter, isReviewAvailable: InAppReview.isAvailable()})
+                        if (counter % 10 === 0) {
+                            InAppReview.RequestInAppReview()
+                                .then((hasFlowFinishedSuccessfully) => {
+                                    console.log('InAppReview in android', hasFlowFinishedSuccessfully);
+
+                                    console.log(
+                                        'InAppReview in ios has launched successfully',
+                                        hasFlowFinishedSuccessfully,
+                                    );
+
+                                    if (hasFlowFinishedSuccessfully) {
+                                    }
+                                })
+                                .catch((error) => {
+                                    console.log(error);
+                                });
+                        }
+                    })
+                    .catch((error) => {
+
+                    })
+            }, 2000);
+        } catch (error) {
+
+        }
+    }, [])
 
     useEffect(() => {
         const configPurchase = () => {
@@ -91,6 +140,57 @@ const AppStack = ({ navgation }) => {
 
         configPurchase()
     }, [])
+
+    useEffect(() => {
+        try {
+            // console.log({deepLink: event})
+            // const { url } = event;
+            if (url && currentUser) {
+                if (urlHandleRef && urlHandleRef.current) {
+                    clearTimeout(urlHandleRef.current)
+                    urlHandleRef.current = null
+                }
+
+                urlHandleRef.current = setTimeout(async () => {
+                    const route = Linking.parse(url);
+                    if (route?.hostname === 'profile') {
+                        const profile_id = route?.path;
+
+                        const token = await AsyncStorage.getItem('ACCESS_TOKEN')
+                        if (token) {
+                            if (navigationRef.current.getCurrentRoute().name === 'ConnectProfileScreen') {
+                                NavigationService.replace('ConnectProfileScreen', { profile: { id: profile_id } });
+                            } else {
+                                NavigationService.push('ConnectProfileScreen', { profile: { id: profile_id } });
+                            }
+                        }
+
+                    }
+                    if (route?.hostname === 'conversation') {
+                        const conversation_id = route?.path;
+                        const token = await AsyncStorage.getItem('ACCESS_TOKEN')
+                        if (token) {
+                            if (navigationRef.current.getCurrentRoute().name === 'ConnectProfileScreen') {
+                                NavigationService.replace('MessageScreen', { conversation: { conversation_id: conversation_id } });
+                            } else {
+                                NavigationService.push('MessageScreen', { conversation: { conversation_id: conversation_id } });
+                            }
+                        }
+                    }
+                }, 1000);
+
+            }
+
+        } catch (error) {
+
+        }
+
+        // const listener = Linking.addEventListener('url', handleDeepLink);
+
+        // return () => {
+        //     listener.remove()
+        // };
+    }, [url, currentUser]);
 
     useEffect(() => {
         if (Platform.OS === 'ios') {
@@ -136,62 +236,66 @@ const AppStack = ({ navgation }) => {
 
     useEffect(() => {
         const unsubscribe = messaging().onMessage(async remoteMessage => {
-        //   Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
+            //   Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
         });
-    
-        return unsubscribe;
-      }, []);
 
-      useEffect(() => {
+        return unsubscribe;
+    }, []);
+
+    useEffect(() => {
         const unsubscribe = messaging().onNotificationOpenedApp(remoteMessage => {
             if (remoteMessage) {
-                if(remoteMessage.data && remoteMessage.data.data) {
+                if (remoteMessage.data && remoteMessage.data.data) {
                     try {
                         const notiData = JSON.parse(remoteMessage.data.data)
-                        if(navigationRef.current.getCurrentRoute().name === 'SplashScreen') {
+                        if (navigationRef.current.getCurrentRoute().name === 'SplashScreen') {
                             setTimeout(() => {
-                                if(notiData.type === 'message') {
-                                    if(notiData.match && notiData.match.conversation_id) {
+                                if (notiData.type === 'message') {
+                                    if (notiData.match && notiData.match.conversation_id) {
                                         NavigationService.resetRaw([
-                                            {name: 'Dashboard'},
-                                            {name: 'MessageScreen', params: {conversation: notiData.match}}
+                                            { name: 'Dashboard' },
+                                            { name: 'MessageScreen', params: { conversation: notiData.match } }
                                         ])
                                     } else {
                                         NavigationService.resetRaw([
-                                            {name: 'Dashboard'},
-                                            {name: 'MatchesScreen'}
+                                            { name: 'Dashboard' },
+                                            { name: 'MatchesScreen' }
                                         ])
                                     }
+                                } else if (notiData.type === 'new_suggestions' && notiData.suggest) {
+                                    NavigationService.push('ConnectProfileScreen', { profile: { id: notiData.suggest?.id } });
                                 } else {
-                                    NavigationService.resetRaw([
-                                        {name: 'Dashboard'},
-                                        {name: 'NotificationScreen'}
-                                    ])
+                                    // NavigationService.resetRaw([
+                                    //     { name: 'Dashboard' },
+                                    //     { name: 'NotificationScreen' }
+                                    // ])
                                 }
                             }, 1200);
                         } else {
-                            if(notiData.type === 'message') {
-                                if(notiData.match && notiData.match.conversation_id) {
+                            if (notiData.type === 'message') {
+                                if (notiData.match && notiData.match.conversation_id) {
                                     NavigationService.resetRaw([
-                                        {name: 'Dashboard'},
-                                        {name: 'MessageScreen', params: {conversation: notiData.match}}
+                                        { name: 'Dashboard' },
+                                        { name: 'MessageScreen', params: { conversation: notiData.match } }
                                     ])
                                 } else {
                                     NavigationService.resetRaw([
-                                        {name: 'Dashboard'},
-                                        {name: 'MatchesScreen'}
+                                        { name: 'Dashboard' },
+                                        { name: 'MatchesScreen' }
                                     ])
                                 }
+                            } else if (notiData.type === 'new_suggestions' && notiData.suggest) {
+                                NavigationService.push('ConnectProfileScreen', { profile: { id: notiData.suggest?.id } });
                             } else {
-                                NavigationService.resetRaw([
-                                    {name: 'Dashboard'},
-                                    {name: 'NotificationScreen'}
-                                ])
+                                // NavigationService.resetRaw([
+                                //     { name: 'Dashboard' },
+                                //     { name: 'NotificationScreen' }
+                                // ])
                             }
                         }
-                        
+
                     } catch (error) {
-                        console.log({error})
+                        console.log({ error })
                     }
                 }
             }
@@ -201,53 +305,53 @@ const AppStack = ({ navgation }) => {
             .getInitialNotification()
             .then(remoteMessage => {
                 if (remoteMessage) {
-                    if(remoteMessage.data && remoteMessage.data.data) {
+                    if (remoteMessage.data && remoteMessage.data.data) {
                         try {
                             const notiData = JSON.parse(remoteMessage.data.data)
-                            if(navigationRef.current.getCurrentRoute().name === 'SplashScreen') {
+                            if (navigationRef.current.getCurrentRoute().name === 'SplashScreen') {
                                 setTimeout(() => {
-                                    if(notiData.type === 'message') {
-                                        if(notiData.match && notiData.match.conversation_id) {
+                                    if (notiData.type === 'message') {
+                                        if (notiData.match && notiData.match.conversation_id) {
                                             NavigationService.resetRaw([
-                                                {name: 'Dashboard'},
-                                                {name: 'MessageScreen', params: {conversation: notiData.match}}
+                                                { name: 'Dashboard' },
+                                                { name: 'MessageScreen', params: { conversation: notiData.match } }
                                             ])
                                         } else {
                                             NavigationService.resetRaw([
-                                                {name: 'Dashboard'},
-                                                {name: 'NotificationScreen'}
+                                                { name: 'Dashboard' },
+                                                { name: 'NotificationScreen' }
                                             ])
                                         }
                                     } else {
                                         NavigationService.resetRaw([
-                                            {name: 'Dashboard'},
-                                            {name: 'NotificationScreen'}
+                                            { name: 'Dashboard' },
+                                            { name: 'NotificationScreen' }
                                         ])
                                     }
                                 }, 1200);
                             } else {
-                                if(notiData.type === 'message') {
-                                    if(notiData.match && notiData.match.conversation_id) {
+                                if (notiData.type === 'message') {
+                                    if (notiData.match && notiData.match.conversation_id) {
                                         NavigationService.resetRaw([
-                                            {name: 'Dashboard'},
-                                            {name: 'MessageScreen', params: {conversation: notiData.match}}
+                                            { name: 'Dashboard' },
+                                            { name: 'MessageScreen', params: { conversation: notiData.match } }
                                         ])
                                     } else {
                                         NavigationService.resetRaw([
-                                            {name: 'Dashboard'},
-                                            {name: 'NotificationScreen'}
+                                            { name: 'Dashboard' },
+                                            { name: 'NotificationScreen' }
                                         ])
                                     }
                                 } else {
                                     NavigationService.resetRaw([
-                                        {name: 'Dashboard'},
-                                        {name: 'NotificationScreen'}
+                                        { name: 'Dashboard' },
+                                        { name: 'NotificationScreen' }
                                     ])
                                 }
                             }
-                            
+
                         } catch (error) {
-                            console.log({error})
+                            console.log({ error })
                         }
                     }
                 }
@@ -261,8 +365,8 @@ const AppStack = ({ navgation }) => {
             const deviceId = await DeviceInfo.getUniqueId()
             setDeviceId(deviceId)
             AsyncStorage.setItem('DEVICE_ID', deviceId)
-            .then(() => {})
-            .catch(() => {})
+                .then(() => { })
+                .catch(() => { })
         }
 
         getDeviceId()
@@ -308,6 +412,9 @@ const AppStack = ({ navgation }) => {
             <Stack.Screen name="InterestUpdateScreen" component={InterestUpdateScreen} />
             <Stack.Screen name="PurposeProfileScreen" component={PurposeProfileScreen} />
             <Stack.Screen name="AvatarProfileScreen" component={AvatarProfileScreen} />
+            <Stack.Screen name="NotificationSettingScreen" component={NotificationSettingScreen} />
+            <Stack.Screen name="MySubscriptionScreen" component={MySubscriptionScreen} />
+            <Stack.Screen name="ReviewMatchScreen" component={ReviewMatchScreen} />
         </Stack.Navigator>
     );
 };

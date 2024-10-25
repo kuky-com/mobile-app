@@ -10,6 +10,7 @@ import firebase from '@react-native-firebase/messaging';
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import constants from '@/utils/constants';
 import apiClient from '@/utils/apiClient';
+import AvatarImage from './AvatarImage';
 
 const styles = StyleSheet.create({
     container: {
@@ -119,7 +120,8 @@ const Tabbar = ({ navigation, state }) => {
 
             <TouchableWithoutFeedback onPress={() => openTab(2)}>
                 <View style={[styles.buttonContainer]}>
-                    <Image style={[styles.buttonIcon, { borderRadius: 14 }]} source={currentUser?.avatar ? { uri: currentUser?.avatar } : images.logo_icon} />
+                    {/* <Image style={[styles.buttonIcon, { borderRadius: 14 }]} source={currentUser?.avatar ? { uri: currentUser?.avatar } : images.logo_icon} /> */}
+                    <AvatarImage avatar={currentUser?.avatar} full_name={currentUser?.full_name} style={[styles.buttonIcon, { borderRadius: 14 }]} />
                     <Text style={{ fontSize: 10, fontWeight: '700', color: currentIndex === 2 ? colors.mainColor : '#949494' }}>Profile</Text>
                 </View>
             </TouchableWithoutFeedback>

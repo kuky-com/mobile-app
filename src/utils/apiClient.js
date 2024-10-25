@@ -2,8 +2,9 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const apiClient = axios.create({
-  // baseURL: 'http://192.168.1.18:8000/api',
+  // baseURL: 'http://192.168.1.83:8000/api',
   baseURL: 'https://api.kuky.com/api',
+  // baseURL: 'https://api-test.kuky.com/api',
   timeout: 20000,                
 });
 

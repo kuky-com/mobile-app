@@ -9,7 +9,7 @@ export const getUnit = (unit) => {
     return Platform.isPad ? (unit * 1.2) : unit
 }
 
-export const getAuthenScreen = (currentUser) =>{
+export const getAuthenScreen = (currentUser, exclude = 'AvatarUpdateScreen') =>{
     console.log('call this one 11111')
     if (!currentUser?.full_name) {
         return 'NameUpdateScreen'
@@ -19,7 +19,7 @@ export const getAuthenScreen = (currentUser) =>{
         return 'GenderUpdateScreen'
     } else if (!currentUser?.pronouns) {
         return 'PronounsUpdateScreen'
-    } else if (!currentUser?.avatar) {
+    }  else if (!currentUser?.avatar && exclude !== 'AvatarUpdateScreen') {
         return 'AvatarUpdateScreen'
     } else if (!currentUser?.purposes || currentUser?.purposes.length === 0) {
         return 'PurposeUpdateScreen'

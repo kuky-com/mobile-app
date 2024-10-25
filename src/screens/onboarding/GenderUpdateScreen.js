@@ -11,7 +11,7 @@ import { StatusBar } from 'expo-status-bar'
 import dayjs from 'dayjs'
 import Toast from 'react-native-toast-message'
 import axios from 'axios'
-import { capitalize } from '@/utils/utils'
+import { capitalize, getAuthenScreen } from '@/utils/utils'
 import DoubleSwitch from '@/components/DoubleSwitch'
 import SwitchWithText from '@/components/SwitchWithText'
 import apiClient from '@/utils/apiClient'
@@ -60,7 +60,8 @@ const GenderUpdateScreen = ({ navigation, route }) => {
                 .then((res) => {
                     setLoading(false)
                     if (res && res.data && res.data.success) {
-                        NavigationService.reset('PronounsUpdateScreen')
+                        // NavigationService.reset('PronounsUpdateScreen')
+                        NavigationService.reset(getAuthenScreen(res.data.data))
                         // Toast.show({ text1: res.data.message, type: 'success' })
                     } else {
                         Toast.show({ text1: res.data.message, type: 'error' })

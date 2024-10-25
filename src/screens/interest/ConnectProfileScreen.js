@@ -1,3 +1,5 @@
+import { userAtom } from '@/actions/global'
+import AvatarImage from '@/components/AvatarImage'
 import { Header } from '@/components/Header'
 import Text from '@/components/Text'
 import apiClient from '@/utils/apiClient'
@@ -7,11 +9,15 @@ import NavigationService from '@/utils/NavigationService'
 import dayjs from 'dayjs'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
+import { useAtom } from 'jotai'
 import React, { useEffect, useState } from 'react'
 import { Alert, DeviceEventEmitter, Dimensions, Platform, RefreshControl, ScrollView, StyleSheet, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
+import { AEMReporterIOS, AppEventsLogger } from 'react-native-fbsdk-next'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Properties } from 'react-native-smartlook-analytics'
+import Smartlook from 'react-native-smartlook-analytics'
 import Toast from 'react-native-toast-message'
 
 const styles = StyleSheet.create({
@@ -43,6 +49,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
     const [loading, setLoading] = useState(false)
     const [currentProfile, setCurrentProfile] = useState(profile)
     const [matchInfo, setMatchInfo] = useState(null)
+    const currentUser = useAtom(userAtom)
 
     const onRefresh = () => {
         try {
@@ -62,6 +69,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                                 }
                             ])
                         } else {
+                            console.log({friendProfile: res.data.data.user})
                             setCurrentProfile(res.data.data.user)
                             setMatchInfo(res.data.data.match)
                         }
@@ -78,6 +86,18 @@ const ConnectProfileScreen = ({ navigation, route }) => {
 
     useEffect(() => {
         onRefresh()
+
+        try {
+            AppEventsLogger.logEvent('open_profile', {user_id: currentUser?.id, profile_id: profile.id})
+            AEMReporterIOS.logAEMEvent('open_profile', 2, '', {user_id: currentUser?.id, profile_id: profile.id})
+
+            const properties = new Properties();
+            properties.putString("user_id", currentUser?.id.toString());
+            properties.putString("profile_id", profile.id.toString());
+            Smartlook.instance.analytics.trackEvent('open_profile', properties)
+        } catch (error) {
+            
+        }
     }, [])
 
     const likeAction = () => {
@@ -111,7 +131,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                 type: 'sent',
                 position: 'top',
                 text1: 'Connection Sent!',
-                text2: `Your invitation to connect has been sent to ${profile?.full_name}.`,
+                text2: `Your invitation to connect has been sent to ${currentProfile?.full_name}.`,
                 visibilityTime: 2000,
                 autoHide: true,
             });
@@ -222,8 +242,8 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                 style={{ flex: 1, width: '100%' }}>
                 <View style={{ flex: 1, width: Platform.isPad ? 600 : '100%', alignSelf: 'center', padding: 16, gap: 16, paddingBottom: insets.bottom + 16 }}>
                     <View style={{ width: '100%', height: Math.min(700, Dimensions.get('screen').height - insets.top - insets.bottom - 220, (Dimensions.get('screen').width - 32) * 1.4), borderWidth: 8, borderColor: 'white', borderRadius: 15 }}>
-                        <Image source={{ uri: profile?.avatar }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 10 }} contentFit='cover' />
-
+                        {/* <Image source={{ uri: currentProfile?.avatar }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 10 }} contentFit='cover' /> */}
+                        <AvatarImage avatar={currentProfile?.avatar} full_name={currentProfile?.full_name} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 10 }}/>
                         <LinearGradient
                             colors={['transparent', 'rgba(0,0,0,0.79)']}
                             style={styles.nameBackground}
@@ -231,7 +251,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                         <View style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
                             <View style={{ width: '100%', alignItems: 'flex-end', padding: 16 }}>
                                 <View style={styles.tagContainer}>
-                                    <Text style={styles.tagText}>{profile?.tag?.name}</Text>
+                                    <Text style={styles.tagText}>{currentProfile?.tag?.name}</Text>
                                 </View>
                             </View>
                             <View style={{ flex: 1, width: '100%', justifyContent: 'flex-end', paddingBottom: 25, paddingHorizontal: 16, gap: 16 }}>

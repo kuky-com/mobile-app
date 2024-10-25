@@ -11,11 +11,13 @@ import { StatusBar } from 'expo-status-bar'
 import dayjs from 'dayjs'
 import Toast from 'react-native-toast-message'
 import axios from 'axios'
-import { capitalize } from '@/utils/utils'
+import { capitalize, getAuthenScreen } from '@/utils/utils'
 import DoubleSwitch from '@/components/DoubleSwitch'
 import SwitchWithText from '@/components/SwitchWithText'
 import apiClient from '@/utils/apiClient'
 import ButtonWithLoading from '@/components/ButtonWithLoading'
+import { useAtom } from 'jotai'
+import { userAtom } from '@/actions/global'
 
 const styles = StyleSheet.create({
     container: {
@@ -53,6 +55,7 @@ const PronounsUpdateScreen = ({ navigation, route }) => {
     const [pronouns, setPronouns] = useState(null);
     const [isPublic, setPublic] = useState(true);
     const [loading, setLoading] = useState(false)
+    const [currentUser, setUser] = useAtom(userAtom)
 
     const onContinue = () => {
         try {
@@ -62,7 +65,9 @@ const PronounsUpdateScreen = ({ navigation, route }) => {
                     console.log({ res })
                     setLoading(false)
                     if (res && res.data && res.data.success) {
-                        NavigationService.reset('LocationUpdateScreen')
+                        // NavigationService.reset('LocationUpdateScreen')
+                        setUser(res.data.data)
+                        NavigationService.reset(getAuthenScreen(res.data.data, null))
                         // Toast.show({ text1: res.data.message, type: 'success' })
                     } else {
                         Toast.show({ text1: res.data.message, type: 'error' })

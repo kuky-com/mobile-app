@@ -83,7 +83,7 @@ const ExploreScreen = ({ navigation }) => {
         if (isFetching) {
             return (
                 <View style={{
-                    backgroundColor: '#eeeeee', borderRadius: 15, margin: 8,
+                    backgroundColor: '#eeeeee', borderRadius: 20, margin: 8,
                     borderWidth: 1, borderColor: 'white'
                 }}>
                     <SkeletonPlaceholder borderRadius={20} backgroundColor='white'>
@@ -92,8 +92,7 @@ const ExploreScreen = ({ navigation }) => {
                             width={ITEM_WIDTH} height={ITEM_WIDTH + 40}
                             backgroundColor='blue'
                             style={{
-                                backgroundColor: 'blue', borderRadius: 15,
-                                borderWidth: 1, borderColor: 'white', paddingVertical: 16
+                                backgroundColor: 'blue', borderRadius: 20, paddingVertical: 16
                             }}>
                             <SkeletonPlaceholder.Item right={8} width={ITEM_WIDTH / 2} height={20} borderRadius={10} />
                             <SkeletonPlaceholder.Item right={20} width={ITEM_WIDTH - 40} height={20} borderRadius={10} />

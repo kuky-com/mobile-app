@@ -11,6 +11,7 @@ import { useSetAtom } from 'jotai'
 import React, { useState } from 'react'
 import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
+import { getBuildNumber, getVersion } from 'react-native-device-info'
 import Purchases from 'react-native-purchases'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Toast from 'react-native-toast-message'
@@ -52,8 +53,8 @@ const SettingScreen = ({ navigation }) => {
     const onLogout = async () => {
         setLoading(true)
         Purchases.logOut()
-            .then(() => {})
-            .catch(() => {})
+            .then(() => { })
+            .catch(() => { })
 
         apiClient.get('auth/logout')
             .then(async (res) => {
@@ -85,26 +86,51 @@ const SettingScreen = ({ navigation }) => {
         navigation.navigate('BlockedUsersScreen')
     }
 
+    const mySubscription = () => {
+        navigation.navigate('MySubscriptionScreen')
+    }
+
     const onDeleteAccount = async (reason) => {
         await SheetManager.show('confirm-action-sheets', {
             payload: {
                 onCancel: () => { },
-                onConfirm: () => {
-                    apiClient.post('users/delete-account', { reason: reason })
-                        .then(async (res) => {
-                            if (res && res.data && res.data.success) {
-                                Toast.show({ text1: res.data.message, type: 'success' })
-                                await AsyncStorage.removeItem('ACCESS_TOKEN')
-                                setToken(null)
-                                setUser(null)
-                                NavigationService.reset('GetStartScreen')
-                            } else {
-                                Toast.show({ text1: res?.data?.message ?? 'Block action failed!', type: 'error' })
-                            }
-                        })
-                        .catch((error) => {
-                            Toast.show({ text1: error, type: 'error' })
-                        })
+                onConfirm: async () => {
+                    const options = [
+                        { text: 'I met someone', color: '#333333' },
+                        { text: 'I need a break', color: '#333333' },
+                        { text: 'Other', color: '#333333' },
+                        { text: 'Cancel', style: 'cancel' },
+                    ]
+
+                    await SheetManager.show('cmd-action-sheets', {
+                        payload: {
+                            actions: options,
+                            header: 'DELETE ACCOUNT',
+                            title: 'Are you sure you want to delete your account?',
+                            onPress(index) {
+                                if (index < (options.length - 1)) {
+                                    setLoading(true)
+                                    apiClient.post('users/delete-account', { reason: options[index].text })
+                                        .then(async (res) => {
+                                            setLoading(false)
+                                            if (res && res.data && res.data.success) {
+                                                Toast.show({ text1: res.data.message, type: 'success' })
+                                                await AsyncStorage.removeItem('ACCESS_TOKEN')
+                                                setToken(null)
+                                                setUser(null)
+                                                NavigationService.reset('GetStartScreen')
+                                            } else {
+                                                Toast.show({ text1: res?.data?.message ?? 'Block action failed!', type: 'error' })
+                                            }
+                                        })
+                                        .catch((error) => {
+                                            setLoading(false)
+                                            Toast.show({ text1: error, type: 'error' })
+                                        })
+                                }
+                            },
+                        },
+                    });
                 },
                 cancelText: "Cancel",
                 confirmText: "Delete Account",
@@ -115,28 +141,63 @@ const SettingScreen = ({ navigation }) => {
         });
     }
 
-    const deleteReason = async () => {
-        const options = [
-            { text: 'I met someone' },
-            { text: 'I need a break' },
-            { text: 'Other' },
-        ]
-
-        await SheetManager.show('action-sheets', {
+    const deactiveAccount = async () => {
+        await SheetManager.show('confirm-action-sheets', {
             payload: {
-                actions: options,
-                title: 'Are you sure you want to delete your account?',
-                onPress(index) {
-                    if (index < options.length) {
-                        onDeleteAccount(options[index].text)
-                    }
+                onCancel: () => { },
+                onConfirm: async () => {
+                    const options = [
+                        { text: 'I met someone', color: '#333333' },
+                        { text: 'I need a break', color: '#333333' },
+                        { text: 'Other', color: '#333333' },
+                        { text: 'Cancel', style: 'cancel' },
+                    ]
+
+                    await SheetManager.show('cmd-action-sheets', {
+                        payload: {
+                            actions: options,
+                            header: 'DEACTIVATE ACCOUNT',
+                            title: 'Why do you want to deactivate your account?',
+                            onPress(index) {
+                                if (index < (options.length - 1)) {
+                                    setLoading(true)
+                                    apiClient.post('users/deactive-account', { reason: options[index].text })
+                                        .then(async (res) => {
+                                            setLoading(false)
+                                            if (res && res.data && res.data.success) {
+                                                Toast.show({ text1: res.data.message, type: 'success' })
+                                                await AsyncStorage.removeItem('ACCESS_TOKEN')
+                                                setToken(null)
+                                                setUser(null)
+                                                NavigationService.reset('GetStartScreen')
+                                            } else {
+                                                Toast.show({ text1: res?.data?.message ?? 'Block action failed!', type: 'error' })
+                                            }
+                                        })
+                                        .catch((error) => {
+                                            setLoading(false)
+                                            Toast.show({ text1: error, type: 'error' })
+                                        })
+                                }
+                            },
+                        },
+                    });
                 },
+                cancelText: "Cancel",
+                confirmText: "Deactivate my account",
+                header: 'DEACTIVATE ACCOUNT',
+                title: `Are you sure you want to deactivate your account?`,
+                message: `Deactivating your account means that your account will be hidden and not shown to other users. To activate your account, sign in. `
             },
         });
     }
 
     const editProfile = () => {
         navigation.navigate('UpdateProfileScreen')
+    }
+
+    const openNotification = () => {
+        navigation.navigate('NotificationSettingScreen')
     }
 
     return (
@@ -156,14 +217,18 @@ const SettingScreen = ({ navigation }) => {
                             <Text style={{ color: '#333333', fontSize: 16, fontWeight: 'bold', flex: 1 }}>My Subscription</Text>
                             <Image source={images.next_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
                         </TouchableOpacity> */}
+                        <TouchableOpacity onPress={mySubscription} style={[styles.buttonContainer]}>
+                            <Text style={{ color: '#333333', fontSize: 16, fontWeight: 'bold', flex: 1 }}>My Subscription</Text>
+                            <Image source={images.next_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
+                        </TouchableOpacity>
                         <TouchableOpacity onPress={editProfile} style={[styles.buttonContainer]}>
                             <Text style={{ color: '#333333', fontSize: 16, fontWeight: 'bold', flex: 1 }}>Account Information</Text>
                             <Image source={images.next_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
                         </TouchableOpacity>
-                        {/* <TouchableOpacity onPress={openInterest} style={[styles.buttonContainer]}>
-                            <Text style={{ color: '#333333', fontSize: 16, fontWeight: 'bold', flex: 1 }}>Interests & Hobbies</Text>
+                        <TouchableOpacity onPress={openNotification} style={[styles.buttonContainer]}>
+                            <Text style={{ color: '#333333', fontSize: 16, fontWeight: 'bold', flex: 1 }}>Notification settings</Text>
                             <Image source={images.next_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
-                        </TouchableOpacity> */}
+                        </TouchableOpacity>
                         <TouchableOpacity onPress={openBlocked} style={[styles.buttonContainer]}>
                             <Text style={{ color: '#333333', fontSize: 16, fontWeight: 'bold', flex: 1 }}>Blocked List</Text>
                             <Image source={images.next_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
@@ -180,20 +245,28 @@ const SettingScreen = ({ navigation }) => {
                             <Text style={{ color: '#333333', fontSize: 16, fontWeight: 'bold', flex: 1 }}>Terms of use</Text>
                             <Image source={images.next_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
                         </TouchableOpacity>
-                        {/* <TouchableOpacity style={[styles.buttonContainer]}>
-                            <Text style={{ color: '#333333', fontSize: 16, fontWeight: 'bold', flex: 1 }}>Deactivate my account</Text>
-                            <Image source={images.next_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
-                        </TouchableOpacity> */}
-                        <TouchableOpacity onPress={deleteReason} style={[styles.buttonContainer]}>
-                            <Text style={{ color: '#333333', fontSize: 16, fontWeight: 'bold', flex: 1 }}>Delete Account</Text>
-                            <Image source={images.delete_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
-                        </TouchableOpacity>
 
-                        <ButtonWithLoading 
+                        <Text style={{ fontSize: 13, color: '#aaaaaa', fontWeight: 'bold', width: '100%', textAlign: 'center' }}>{`Version: ${getVersion()} (Build ${getBuildNumber()})`}</Text>
+
+                        <ButtonWithLoading
                             text='Logout'
                             onPress={onLogout}
                             loading={loading}
                         />
+
+                        
+
+                        <ButtonWithLoading
+                            text='Deactivate my account'
+                            onPress={deactiveAccount}
+                            loading={loading}
+                            style={{ marginTop: 32 }}
+                        />
+                        <TouchableOpacity onPress={onDeleteAccount} style={{ padding: 8, width: '100%', alignItems: 'center' }}>
+                            <Text style={{ color: '#333333', fontSize: 16, fontWeight: 'bold' }}>Delete Account</Text>
+                        </TouchableOpacity>
+
+
                     </View>
                 </ScrollView>
             </View>

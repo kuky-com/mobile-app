@@ -1,3 +1,4 @@
+import AvatarImage from '@/components/AvatarImage'
 import { Header } from '@/components/Header'
 import Text from '@/components/Text'
 import apiClient from '@/utils/apiClient'
@@ -46,7 +47,8 @@ const BlockedUsersScreen = ({ navigation }) => {
         console.log({item})
         return (
             <View key={`blocked-${item.id}`} style={{ flexDirection: 'row', gap: 16, alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#78787988' }}>
-                <Image source={{ uri: item?.blockedUser?.avatar }} style={{ width: 60, height: 60, borderRadius: 30 }} />
+                {/* <Image source={{ uri: item?.blockedUser?.avatar }} style={{ width: 60, height: 60, borderRadius: 30 }} /> */}
+                <AvatarImage avatar={item?.blockedUser?.avatar } full_name={item?.blockedUser?.full_name} style={{ width: 60, height: 60, borderRadius: 30 }} />
                 <Text style={{ flex: 1, fontSize: 16, color: 'black', fontSize: 16, fontWeight: 'bold' }}>{item?.blockedUser?.full_name}</Text>
                 <TouchableOpacity onPress={() => unBlockUser(item, index)} style={{ paddingHorizontal: 5, paddingVertical: 5, alignItems: 'center', justifyContent: 'center' }}>
                     <Text style={{ fontSize: 16, color: '#6900D3', fontWeight: 'bold' }}>Unblock</Text>

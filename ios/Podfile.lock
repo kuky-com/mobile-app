@@ -966,6 +966,10 @@ PODS:
     - ExpoModulesCore
   - Expo (51.0.32):
     - ExpoModulesCore
+  - ExpoAdapterFBSDKNext (13.1.3):
+    - ExpoModulesCore
+    - FBSDKCoreKit
+    - React-Core
   - ExpoAdapterGoogleSignIn (13.1.0):
     - ExpoModulesCore
     - GoogleSignIn (~> 7.1)
@@ -1010,6 +1014,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - ExpoTrackingTransparency (4.0.2):
+    - ExpoModulesCore
   - EXSplashScreen (0.27.5):
     - DoubleConversion
     - ExpoModulesCore
@@ -1032,7 +1038,22 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - FBAEMKit (17.3.0):
+    - FBSDKCoreKit_Basics (= 17.3.0)
+  - FBAudienceNetwork (6.15.2)
   - FBLazyVector (0.74.5)
+  - FBSDKCoreKit (17.3.0):
+    - FBAEMKit (= 17.3.0)
+    - FBSDKCoreKit_Basics (= 17.3.0)
+  - FBSDKCoreKit_Basics (17.3.0)
+  - FBSDKGamingServicesKit (17.3.0):
+    - FBSDKCoreKit (= 17.3.0)
+    - FBSDKCoreKit_Basics (= 17.3.0)
+    - FBSDKShareKit (= 17.3.0)
+  - FBSDKLoginKit (17.3.0):
+    - FBSDKCoreKit (= 17.3.0)
+  - FBSDKShareKit (17.3.0):
+    - FBSDKCoreKit (= 17.3.0)
   - Firebase/CoreOnly (10.29.0):
     - FirebaseCore (= 10.29.0)
   - Firebase/Crashlytics (10.29.0):
@@ -2194,9 +2215,28 @@ PODS:
   - React-Mapbuffer (0.74.5):
     - glog
     - React-debug
+  - react-native-fbsdk-next (13.1.3):
+    - React-Core
+    - react-native-fbsdk-next/Core (= 13.1.3)
+    - react-native-fbsdk-next/Login (= 13.1.3)
+    - react-native-fbsdk-next/Share (= 13.1.3)
+  - react-native-fbsdk-next/Core (13.1.3):
+    - FBSDKCoreKit (~> 17.3)
+    - React-Core
+  - react-native-fbsdk-next/Login (13.1.3):
+    - FBSDKLoginKit (~> 17.3)
+    - React-Core
+  - react-native-fbsdk-next/Share (13.1.3):
+    - FBSDKGamingServicesKit (~> 17.3)
+    - FBSDKShareKit (~> 17.3)
+    - React-Core
   - react-native-get-random-values (1.11.0):
     - React-Core
+  - react-native-in-app-review (4.3.3):
+    - React-Core
   - react-native-safe-area-context (4.11.0):
+    - React-Core
+  - react-native-smartlook-analytics (2.1.19):
     - React-Core
   - React-nativeconfig (0.74.5)
   - React-NativeModulesApple (0.74.5):
@@ -2561,6 +2601,27 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - RNShare (11.0.4):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - SDWebImage (5.19.7):
     - SDWebImage/Core (= 5.19.7)
   - SDWebImage/Core (5.19.7)
@@ -2582,6 +2643,7 @@ DEPENDENCIES:
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - Expo (from `../node_modules/expo`)
+  - ExpoAdapterFBSDKNext (from `../node_modules/react-native-fbsdk-next/ios`)
   - "ExpoAdapterGoogleSignIn (from `../node_modules/@react-native-google-signin/google-signin/expo/ios`)"
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
   - ExpoFileSystem (from `../node_modules/expo-file-system/ios`)
@@ -2590,7 +2652,9 @@ DEPENDENCIES:
   - ExpoKeepAwake (from `../node_modules/expo-keep-awake/ios`)
   - ExpoLinearGradient (from `../node_modules/expo-linear-gradient/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
+  - ExpoTrackingTransparency (from `../node_modules/expo-tracking-transparency/ios`)
   - EXSplashScreen (from `../node_modules/expo-splash-screen/ios`)
+  - FBAudienceNetwork (~> 6.15.0)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
@@ -2621,8 +2685,11 @@ DEPENDENCIES:
   - React-jsitracing (from `../node_modules/react-native/ReactCommon/hermes/executor/`)
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
+  - react-native-fbsdk-next (from `../node_modules/react-native-fbsdk-next`)
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
+  - react-native-in-app-review (from `../node_modules/react-native-in-app-review`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
+  - react-native-smartlook-analytics (from `../node_modules/react-native-smartlook-analytics`)
   - React-nativeconfig (from `../node_modules/react-native/ReactCommon`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
@@ -2661,6 +2728,7 @@ DEPENDENCIES:
   - RNImageCropPicker (from `../node_modules/react-native-image-crop-picker`)
   - RNPurchases (from `../node_modules/react-native-purchases`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
+  - RNShare (from `../node_modules/react-native-share`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -2668,6 +2736,13 @@ SPEC REPOS:
     - abseil
     - AppAuth
     - BoringSSL-GRPC
+    - FBAEMKit
+    - FBAudienceNetwork
+    - FBSDKCoreKit
+    - FBSDKCoreKit_Basics
+    - FBSDKGamingServicesKit
+    - FBSDKLoginKit
+    - FBSDKShareKit
     - Firebase
     - FirebaseAppCheckInterop
     - FirebaseAuthInterop
@@ -2717,6 +2792,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-constants/ios"
   Expo:
     :path: "../node_modules/expo"
+  ExpoAdapterFBSDKNext:
+    :path: "../node_modules/react-native-fbsdk-next/ios"
   ExpoAdapterGoogleSignIn:
     :path: "../node_modules/@react-native-google-signin/google-signin/expo/ios"
   ExpoAsset:
@@ -2733,6 +2810,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-linear-gradient/ios"
   ExpoModulesCore:
     :path: "../node_modules/expo-modules-core"
+  ExpoTrackingTransparency:
+    :path: "../node_modules/expo-tracking-transparency/ios"
   EXSplashScreen:
     :path: "../node_modules/expo-splash-screen/ios"
   FBLazyVector:
@@ -2792,10 +2871,16 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/logger"
   React-Mapbuffer:
     :path: "../node_modules/react-native/ReactCommon"
+  react-native-fbsdk-next:
+    :path: "../node_modules/react-native-fbsdk-next"
   react-native-get-random-values:
     :path: "../node_modules/react-native-get-random-values"
+  react-native-in-app-review:
+    :path: "../node_modules/react-native-in-app-review"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
+  react-native-smartlook-analytics:
+    :path: "../node_modules/react-native-smartlook-analytics"
   React-nativeconfig:
     :path: "../node_modules/react-native/ReactCommon"
   React-NativeModulesApple:
@@ -2872,6 +2957,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-purchases"
   RNReanimated:
     :path: "../node_modules/react-native-reanimated"
+  RNShare:
+    :path: "../node_modules/react-native-share"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -2884,6 +2971,7 @@ SPEC CHECKSUMS:
   DoubleConversion: 76ab83afb40bddeeee456813d9c04f67f78771b5
   EXConstants: 409690fbfd5afea964e5e9d6c4eb2c2b59222c59
   Expo: 33132a667698a3259a4e6c0af1b4936388e5fa33
+  ExpoAdapterFBSDKNext: 28938bda1b439172156ae0699842cfbba63ba3b0
   ExpoAdapterGoogleSignIn: da10ae7e7c1d73a10c2facebcdfe5ebea8e073ce
   ExpoAsset: 323700f291684f110fb55f0d4022a3362ea9f875
   ExpoFileSystem: 80bfe850b1f9922c16905822ecbf97acd711dc51
@@ -2892,8 +2980,16 @@ SPEC CHECKSUMS:
   ExpoKeepAwake: 3b8815d9dd1d419ee474df004021c69fdd316d08
   ExpoLinearGradient: 8cec4a09426d8934c433e83cb36262d72c667fce
   ExpoModulesCore: db3e31e694684f08223d713e89f7648c6d3e04d0
+  ExpoTrackingTransparency: 005340638bbd48449066a6c1a54ee44ae65ed7b4
   EXSplashScreen: d8b3c547b9b18a41d80c6f6b274c4c26664febd4
+  FBAEMKit: 92f488a9c97208e2f6f01655750944d213fbc0b0
+  FBAudienceNetwork: 2457a89b45e2596241fd81b0c2fd8cb6f6053869
   FBLazyVector: ac12dc084d1c8ec4cc4d7b3cf1b0ebda6dab85af
+  FBSDKCoreKit: 1be47a742ccdddf8dd85272c3953534214dc0f30
+  FBSDKCoreKit_Basics: fcafe75f7deeed1146d04ea51b45a69731e63c16
+  FBSDKGamingServicesKit: c9cb7317649310a4211796166c255122b7513480
+  FBSDKLoginKit: ad0d6485feace32d65f407f6a288c4dfa8ec559c
+  FBSDKShareKit: e96f20fc2f6f68d25ae310a0f64f147f25ef66a4
   Firebase: cec914dab6fd7b1bd8ab56ea07ce4e03dd251c2d
   FirebaseAppCheckInterop: 6a1757cfd4067d8e00fccd14fcc1b8fd78cfac07
   FirebaseAuthInterop: 17db81e9b198afb0f95ce48c133825727eed55d3
@@ -2951,8 +3047,11 @@ SPEC CHECKSUMS:
   React-jsitracing: c83efb63c8e9e1dff72a3c56e88ae1c530a87795
   React-logger: 257858bd55f3a4e1bc0cf07ddc8fb9faba6f8c7c
   React-Mapbuffer: dce508662b995ffefd29e278a16b78217039d43d
+  react-native-fbsdk-next: 0326e3f3892b3f1cb66bfb884f289e2bb818ee89
   react-native-get-random-values: 21325b2244dfa6b58878f51f9aa42821e7ba3d06
+  react-native-in-app-review: db8bb167a5f238e7ceca5c242d6b36ce8c4404a4
   react-native-safe-area-context: 851c62c48dce80ccaa5637b6aa5991a1bc36eca9
+  react-native-smartlook-analytics: 4aa35ae2a6dad94c6d4271a4f9689ef4f8642bc7
   React-nativeconfig: f326487bc61eba3f0e328da6efb2711533dcac46
   React-NativeModulesApple: d89733f5baed8b9249ca5a8e497d63c550097312
   React-perflogger: ed4e0c65781521e0424f2e5e40b40cc7879d737e
@@ -2992,6 +3091,7 @@ SPEC CHECKSUMS:
   RNImageCropPicker: 771e2ca319d2cf92e04ebf334ece892ee9a6728f
   RNPurchases: 441b4e0a0afea31df7578c3a222747a64c8a4893
   RNReanimated: e2b3ca09939e02ff62c1d8f408f0d93209c07717
+  RNShare: 24a07f7e6eb56469a2dd534e202c51eb927cc361
   SDWebImage: 8a6b7b160b4d710e2a22b6900e25301075c34cb3
   SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
@@ -3000,6 +3100,6 @@ SPEC CHECKSUMS:
   TOCropViewController: 80b8985ad794298fb69d3341de183f33d1853654
   Yoga: 1ab23c1835475da69cf14e211a560e73aab24cb0
 
-PODFILE CHECKSUM: 8b492fd8cc0cf1f9a450b38f11fffdb663dc84b9
+PODFILE CHECKSUM: 9406969ebaac8904313a86002f448244cea237ba
 
 COCOAPODS: 1.15.2
