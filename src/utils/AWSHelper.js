@@ -10,8 +10,8 @@ const options = {
 }
 
 let credentials = {
-  accessKeyId: "AKIAY3SHLBBZOIIURZHD",
-  secretAccessKey: "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",
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 }
 const client = new S3Client({
   region: options.region,
