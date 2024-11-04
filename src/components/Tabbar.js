@@ -121,7 +121,7 @@ const Tabbar = ({ navigation, state }) => {
             <TouchableWithoutFeedback onPress={() => openTab(2)}>
                 <View style={[styles.buttonContainer]}>
                     {/* <Image style={[styles.buttonIcon, { borderRadius: 14 }]} source={currentUser?.avatar ? { uri: currentUser?.avatar } : images.logo_icon} /> */}
-                    <AvatarImage avatar={currentUser?.avatar} full_name={currentUser?.full_name} style={[styles.buttonIcon, { borderRadius: 14 }]} />
+                    <AvatarImage avatar={currentUser?.avatar} full_name={currentUser?.full_name} style={[styles.buttonIcon, { borderRadius: 14 }, currentIndex === 2 ? {borderWidth: 2, borderColor: colors.mainColor} : {}]} />
                     <Text style={{ fontSize: 10, fontWeight: '700', color: currentIndex === 2 ? colors.mainColor : '#949494' }}>Profile</Text>
                 </View>
             </TouchableWithoutFeedback>

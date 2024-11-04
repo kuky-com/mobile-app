@@ -113,6 +113,17 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                     DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS)
                     if (res && res.data && res.data.success && res.data.data && res.data.data.status === 'accepted') {
                         NavigationService.replace('GetMatchScreen', { match: res.data.data })
+
+                        Toast.show({
+                            type: 'sent',
+                            position: 'top',
+                            text1: 'Connection Sent!',
+                            text2: `Your invitation to connect has been sent to ${currentProfile?.full_name}.`,
+                            visibilityTime: 2000,
+                            autoHide: true,
+                        });
+                    } else if (res && res.data && !res.data.success) {
+                        Alert.alert('Pending profile approved', res.data.message)
                     } else {
                         navigation.goBack()
                         navigation.navigate('MatchesScreen')
@@ -126,16 +137,6 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                         navigation.goBack()
                     }, 1000)
                 })
-
-            Toast.show({
-                type: 'sent',
-                position: 'top',
-                text1: 'Connection Sent!',
-                text2: `Your invitation to connect has been sent to ${currentProfile?.full_name}.`,
-                visibilityTime: 2000,
-                autoHide: true,
-            });
-
 
         } catch (error) {
             setLoading(false)

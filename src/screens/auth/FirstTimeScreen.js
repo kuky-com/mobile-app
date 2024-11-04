@@ -11,7 +11,6 @@ import { Image } from 'expo-image'
 import { useAtomValue, useSetAtom } from 'jotai'
 import React, { useEffect, useState } from 'react'
 import { ActivityIndicator, Dimensions, StyleSheet, View } from 'react-native'
-import LottieView from 'lottie-react-native'
 
 const styles = StyleSheet.create({
     container: {
@@ -19,15 +18,16 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 16,
-        backgroundColor: 'white'
+        backgroundColor: colors.mainColor,
+        paddingHorizontal: 16
     }
 })
 
-const SplashScreen = ({ navigation }) => {
+const FirstTimeScreen = ({ navigation }) => {
     const setUser = useSetAtom(userAtom)
     const setToken = useSetAtom(tokenAtom)
     const pushToken = useAtomValue(pushTokenAtom)
-    const [alreadyLoad, setAlreadyLoad] = useState(true)
+    const [isFirstTime, setIsFirstTime] = useState(true)
 
     const openGetStart = () => {
         NavigationService.reset('GetStartScreen')
@@ -46,9 +46,7 @@ const SplashScreen = ({ navigation }) => {
                         setUser(res.data.data)
                         setToken(token)
 
-                        setTimeout(() => {
-                            NavigationService.reset(getAuthenScreen(res.data.data))
-                        }, 3000);
+                        NavigationService.reset(getAuthenScreen(res.data.data))
 
                         console.log({ pushToken })
                         if (pushToken) {
@@ -61,54 +59,32 @@ const SplashScreen = ({ navigation }) => {
                                 })
                         }
                     } else {
-                        setTimeout(() => {
-                            openGetStart()
-                        }, 3000);
+                        openGetStart()
                     }
                 })
                 .catch((error) => {
-                    setTimeout(() => {
-                        openGetStart()
-                    }, 3000);
+                    openGetStart()
                     console.log({ error })
                 })
         } else {
-            setTimeout(() => {
-                openGetStart()
-            }, 4000);
+            openGetStart()
         }
     }
 
-    useEffect(() => {
-
-        const getFirstTime = async () => {
-            const alreadyLoad = await AsyncStorage.getItem('ALREADY_LOADED')
-            AsyncStorage.setItem('ALREADY_LOADED', 'loaded')
-            if(alreadyLoad === 'loaded') {
-                getRoute()
-            } else {
-                setTimeout(() => {
-                    NavigationService.reset('FirstTimeScreen')
-                }, 2500);
-            }
-        }
-
-        getFirstTime()
-    }, [])
-
     return (
         <View style={styles.container}>
-            <LottieView
-                autoPlay
-                style={{
-                    width: Dimensions.get('screen').width,
-                    height: Dimensions.get('screen').height,
-                    backgroundColor: 'white',
-                }}
-                source={require('../../assets/animations/splash.json')}
-            />
+            <Image contentFit='contain' source={images.logo_text} style={{ height: 80, width: 150, tintColor: 'white' }} />
+            <Text style={{ fontSize: 24, fontWeight: '700', color: 'white' }}>Better Together</Text>
+            <View style={{ paddingVertical: 16 }}>
+                <Image contentFit='contain' source={images.splash_bg} style={{ width: Dimensions.get('screen').width - 32, height: Dimensions.get('screen').width - 32 }} />
+            </View>
+            <Text style={{ fontSize: 20, fontWeight: '500', textAlign: 'center', color: 'white' }}>{`Let Our AI Connect You`}</Text>
+            <Text style={{ fontSize: 20, fontWeight: '500', textAlign: 'center', color: 'white' }}>{`with People Who Understand`}</Text>
+            <Text style={{ fontSize: 20, fontWeight: '500', textAlign: 'center', color: 'white' }}>{`You!`}</Text>
+            {!isFirstTime && <ActivityIndicator size='large' color={'white'} />}
+            {isFirstTime && <ButtonWithLoading text='Start Your Journey' onPress={getRoute} />}
         </View>
     )
 }
 
-export default SplashScreen
+export default FirstTimeScreen

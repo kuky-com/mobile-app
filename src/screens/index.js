@@ -45,7 +45,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import DislikeUpdateScreen from './profile/DislikeUpdateScreen';
 import InterestUpdateScreen from './profile/InterestUpdateScreen';
 import PurposeProfileScreen from './profile/PurposeProfileScreen';
-import { Platform } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import Purchases from 'react-native-purchases';
 import AvatarProfileScreen from './profile/AvatarProfileScreen';
 import * as Linking from 'expo-linking';
@@ -53,6 +53,9 @@ import NotificationSettingScreen from './profile/NotificationSettingScreen';
 import InAppReview from 'react-native-in-app-review'
 import MySubscriptionScreen from './profile/MySubscriptionScreen';
 import ReviewMatchScreen from './match/ReviewMatchScreen';
+import OnboardingVideoIntroScreen from './onboarding/OnboardingVideoIntroScreen';
+import OnboardingVideoPurposeScreen from './onboarding/OnboardingVideoPurposeScreen';
+import FirstTimeScreen from './auth/FirstTimeScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -82,8 +85,74 @@ const AppStack = ({ navgation }) => {
             Purchases.logIn(currentUser?.email)
                 .then(() => { })
                 .catch(() => { })
+        } else {
+            Purchases.logOut()
+                .then(() => { })
+                .catch(() => { })
         }
     }, [currentUser])
+
+    useEffect(() => {
+        const getVersion = () => {
+            apiClient.get('/users/latest-version')
+                .then((res) => {
+                    console.log({ res })
+                    if (res && res.data && res.data.success) {
+
+                        let version = null
+                        if (Platform.OS === 'android') {
+                            version = res.data.data.version_android
+                        } else {
+                            version = res.data.data.version_ios
+                        }
+
+                        const appVersion = DeviceInfo.getVersion()
+
+                        console.log({ appVersion, version: res.data.data.version_ios })
+                        if (appVersion < version) {
+                            if (res.data.data.is_required) {
+                                Alert.alert(`Version ${version}`, res.data.data.description, [
+                                    {
+                                        text: 'Update Now', onPress: () => {
+                                            Linking.openURL(Platform.select(
+                                                {
+                                                    ios: 'itms-apps://apps.apple.com/id/app/kuky/id6711341485',
+                                                    android: 'https://play.google.com/store/apps/details?id=com.kuky.android'
+                                                }))
+                                        }
+                                    }
+                                ])
+                            } else {
+                                if (Math.floor(Math.random() * 3) === 1) {
+                                    Alert.alert(`Version ${version}`, res.data.data.description, [
+                                        {
+                                            text: 'Later'
+                                        },
+                                        {
+                                            text: 'Update Now', onPress: () => {
+                                                Linking.openURL(Platform.select(
+                                                    {
+                                                        ios: 'itms-apps://apps.apple.com/id/app/kuky/id6711341485',
+                                                        android: 'https://play.google.com/store/apps/details?id=com.kuky.android'
+                                                    }))
+                                            },
+                                            
+                                        }
+                                    ])
+                                }
+                            }
+                        }
+                    }
+                })
+                .catch((error) => {
+                    console.log({ error })
+                })
+        }
+
+        setTimeout(() => {
+            getVersion()
+        }, 5000);
+    }, [])
 
     useEffect(() => {
         try {
@@ -391,6 +460,8 @@ const AppStack = ({ navgation }) => {
             <Stack.Screen name="ConnectProfileScreen" component={ConnectProfileScreen} />
             <Stack.Screen name="UpdateProfileScreen" component={UpdateProfileScreen} />
             <Stack.Screen name="UpdatePasswordScreen" component={UpdatePasswordScreen} />
+            <Stack.Screen name="OnboardingVideoPurposeScreen" component={OnboardingVideoPurposeScreen} />
+            <Stack.Screen name="OnboardingVideoIntroScreen" component={OnboardingVideoIntroScreen} />
             <Stack.Screen name="AvatarUpdateScreen" component={AvatarUpdateScreen} />
             <Stack.Screen name="VerificationSuccessScreen" component={VerificationSuccessScreen} />
             <Stack.Screen name="PremiumRequestScreen" component={PremiumRequestScreen} options={{ ...TransitionPresets.ModalSlideFromBottomIOS }} />
@@ -415,6 +486,7 @@ const AppStack = ({ navgation }) => {
             <Stack.Screen name="NotificationSettingScreen" component={NotificationSettingScreen} />
             <Stack.Screen name="MySubscriptionScreen" component={MySubscriptionScreen} />
             <Stack.Screen name="ReviewMatchScreen" component={ReviewMatchScreen} />
+            <Stack.Screen name="FirstTimeScreen" component={FirstTimeScreen} />
         </Stack.Navigator>
     );
 };

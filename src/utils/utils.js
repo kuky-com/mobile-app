@@ -25,6 +25,10 @@ export const getAuthenScreen = (currentUser, exclude = 'AvatarUpdateScreen') =>{
         return 'PurposeUpdateScreen'
     } else if (!currentUser?.interests || currentUser?.interests.length === 0) {
         return 'ReviewProfileScreen'
+    // } else if (!currentUser?.video_intro) {
+    //     return 'OnboardingVideoIntroScreen'
+    // } else if (!currentUser?.video_purpose) {
+    //     return 'OnboardingVideoPurposeScreen'
     } else if (!currentUser?.profile_tag) {
         return 'ProfileTagScreen'
     }

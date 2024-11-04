@@ -53,7 +53,7 @@ const GetMatchScreen = ({ navigation, route }) => {
                 <View style={{ marginTop: -60, paddingLeft: 100 }}>
                     {/* <Image style={{ width: 150, height: 150, borderRadius: 75, borderWidth: 2, borderColor: '#E8FF58' }} contentFit='cover' source={{ uri: match?.profile?.avatar }} /> */}
                     <AvatarImage style={{ width: 150, height: 150, borderRadius: 75, borderWidth: 2, borderColor: '#E8FF58' }} avatar={match?.profile?.avatar} full_name={currentUser?.full_name} />
-                    <View style={{ position: 'absolute', top: 160, left: 180, alignItems: 'center', height: 26, borderRadius: 13, justifyContent: 'center', paddingHorizontal: 16, backgroundColor: '#E8FF58' }}>
+                    <View style={{ position: 'absolute', top: 160, left: 120, alignItems: 'center', height: 26, borderRadius: 13, justifyContent: 'center', paddingHorizontal: 16, backgroundColor: '#E8FF58' }}>
                         <Text style={{ fontSize: 11, fontWeight: 'bold', color: 'black' }}>{match?.profile?.tag?.name}</Text>
                     </View>
                 </View>

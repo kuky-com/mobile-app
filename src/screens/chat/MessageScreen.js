@@ -115,6 +115,10 @@ const MessageScreen = ({ navigation, route }) => {
 
     const loadSubscriptionInfo = async () => {
         try {
+            if(currentUser?.is_premium_user) {
+                return
+            }
+
             const customerInfo = await Purchases.getCustomerInfo()
             // console.log({ customerInfo: JSON.stringify(customerInfo) })
 
@@ -129,7 +133,7 @@ const MessageScreen = ({ navigation, route }) => {
     }
 
     useEffect(() => {
-        // loadSubscriptionInfo()
+        loadSubscriptionInfo()
     }, [])
 
 
@@ -155,7 +159,7 @@ const MessageScreen = ({ navigation, route }) => {
 
         if (!conversation.profile) {
             setLoading(true)
-            apiClient.post('matches/conversation', { conversation_id: currentConversation.conversation_id })
+            apiClient.post('matches/conversation', { conversation_id: conversation.conversation_id })
                 .then((res) => {
                     if (res && res.data && res.data.success) {
                         setLoading(false)
@@ -176,12 +180,14 @@ const MessageScreen = ({ navigation, route }) => {
     useEffect(() => {
         const unsubscribe = firestore()
             .collection('conversations')
-            .doc(currentConversation.conversation_id)
+            .doc(conversation.conversation_id)
             .collection('messages')
             .orderBy('createdAt', 'desc')
             .onSnapshot(querySnapshot => {
                 if (querySnapshot) {
                     const messagesFirestore = []
+                    let hadSend = false
+                    let hadRead = false
                     querySnapshot.docs.forEach(doc => {
                         try {
                             const firebaseData = doc.data();
@@ -195,15 +201,20 @@ const MessageScreen = ({ navigation, route }) => {
                                     avatar: currentConversation?.profile?.avatar
                                 },
                                 readBy: firebaseData.readBy || [],
-                                sent: true,
-                                received: (firebaseData.readBy || []).includes(currentConversation?.profile?.id),
+                                sent: !hadSend,
+                                received: !hadRead && (firebaseData.readBy || []).includes(currentConversation?.profile?.id),
                                 showUserAvatar: true,
                             };
+
+                            hadSend = true
+                            if((firebaseData.readBy || []).includes(currentConversation?.profile?.id)) {
+                                hadRead = true
+                            }
 
                             if (!data.readBy.includes(currentUser?.id)) {
                                 firestore()
                                     .collection('conversations')
-                                    .doc(currentConversation.conversation_id)
+                                    .doc(conversation.conversation_id)
                                     .collection('messages')
                                     .doc(doc.id)
                                     .update({
@@ -214,7 +225,7 @@ const MessageScreen = ({ navigation, route }) => {
                                     .collection('users')
                                     .doc(currentUser?.id)
                                     .collection('readStatus')
-                                    .doc(currentConversation.conversation_id)
+                                    .doc(conversation.conversation_id)
                                     .set({ lastRead: firestore.FieldValue.serverTimestamp() }, { merge: true });
                             }
 
@@ -324,7 +335,7 @@ const MessageScreen = ({ navigation, route }) => {
         const { _id, createdAt, text, user } = messages[0];
         firestore()
             .collection('conversations')
-            .doc(currentConversation.conversation_id)
+            .doc(conversation.conversation_id)
             .collection('messages')
             .add({
                 _id,
@@ -334,14 +345,18 @@ const MessageScreen = ({ navigation, route }) => {
                 readBy: [user._id],
             });
 
-        apiClient.post('matches/last-message', { last_message: text, conversation_id: currentConversation.conversation_id })
+        try {
+            apiClient.post('matches/last-message', { last_message: text, conversation_id: conversation.conversation_id })
             .then((res) => {
                 // console.log({ res: res.data })
             })
             .catch((error) => {
                 console.log({ error })
             })
-    }, [currentConversation.conversation_id]);
+        } catch (error) {
+            
+        }
+    }, [conversation.conversation_id]);
 
     const onDisconnect = async () => {
         await SheetManager.show('confirm-action-sheets', {
@@ -483,6 +498,7 @@ const MessageScreen = ({ navigation, route }) => {
                 DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS)
                 if (res && res.data && res.data.success && res.data.data) {
                     setCurrentConversation(res.data.data)
+                    NavigationService.replace('GetMatchScreen', { match: res.data.data })
                 }
             })
             .catch((error) => {
@@ -509,9 +525,9 @@ const MessageScreen = ({ navigation, route }) => {
         if (currentConversation.status === 'sent') {
             let connectionText = ''
             if(currentConversation.sender?.id === currentUser?.id) {
-                connectionText = `You sent a matching request to ${currentConversation.receiver.full_name} ${dayjs(conversation.sent_date).fromNow()}`
+                connectionText = `You sent a matching request to ${currentConversation?.receiver?.full_name ?? ''} ${dayjs(conversation.sent_date).fromNow()}`
             } else {
-                connectionText = `You received a matching request from ${currentConversation.sender.full_name} ${dayjs(conversation.sent_date).fromNow()}`
+                connectionText = `You received a matching request from ${currentConversation?.sender?.full_name ?? ''} ${dayjs(conversation.sent_date).fromNow()}`
             }
 
             return (
@@ -537,7 +553,7 @@ const MessageScreen = ({ navigation, route }) => {
         if (currentConversation.status === 'accepted') {
             return (
                 <View style={{ width: '100%', padding: 16, alignItems: 'center', justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: '#D2D2D2', gap: 16 }}>
-                    <Text style={{ color: 'black', fontSize: 12, fontWeight: '600', textAlign: 'center' }}>{`🎉 You matched with ${currentConversation?.profile.full_name} ${dayjs(currentConversation.response_date).fromNow()}!\nContinue your conversation below.`}</Text>
+                    <Text style={{ color: 'black', fontSize: 12, fontWeight: '600', textAlign: 'center' }}>{`🎉 You matched with ${currentConversation?.profile?.full_name ?? ''} ${dayjs(currentConversation.response_date).fromNow()}!\nContinue your conversation below.`}</Text>
                     {/* <View style={{ width: '100%', flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center', padding: 8, borderRadius: 10, backgroundColor: '#7B65E8' }}>
                         <Image source={images.category_icon} style={{ width: 16, height: 16 }} contentFit='contain' />
@@ -561,7 +577,7 @@ const MessageScreen = ({ navigation, route }) => {
         return (
             <TouchableOpacity onPress={openProfile} style={{ width: 48, height: 48, borderWidth: 2, borderColor: '#aaaaaa', borderRadius: 24 }}>
                 {/* <Image source={{ uri: currentConversation?.profile?.avatar }} style={{ width: 44, height: 44, borderRadius: 22, }} /> */}
-                <AvatarImage full_name={currentConversation?.profile?.full_name}  style={{ width: 44, height: 44, borderRadius: 22, }} avatar={currentConversation?.profile?.avatar} />
+                <AvatarImage full_name={currentConversation?.profile?.full_name ?? ''}  style={{ width: 44, height: 44, borderRadius: 22, }} avatar={currentConversation?.profile?.avatar} />
             </TouchableOpacity>
         );
     }
@@ -580,7 +596,7 @@ const MessageScreen = ({ navigation, route }) => {
                 <TouchableOpacity onPress={openProfile}>
                     {/* <Image source={{ uri: currentConversation?.profile?.avatar }} style={{ width: 50, height: 50, borderWidth: 2, borderColor: 'white', borderRadius: 25, }} /> */}
                     <AvatarImage 
-                        full_name={currentConversation?.profile?.full_name} 
+                        full_name={currentConversation?.profile?.full_name ?? ''} 
                         avatar={currentConversation?.profile?.avatar} 
                         style={{ width: 50, height: 50, borderWidth: 2, borderColor: 'white', borderRadius: 25, }} />
                 </TouchableOpacity>
@@ -602,6 +618,7 @@ const MessageScreen = ({ navigation, route }) => {
                 renderAvatar={renderAvatar}
                 renderTicks={currentMessage => {
                     const tickedUser = currentMessage.user._id
+                    console.log({currentMessage})
                     return (
                         <View style={{ position: 'absolute', bottom: -20, right: -8 }}>
                             {!!currentMessage.received && tickedUser === currentUser?.id && currentUser?.id && (<Text style={{ color: '#6C6C6C', fontWeight: 'bold', fontSize: 8 }}>Read</Text>)}
@@ -620,7 +637,7 @@ const MessageScreen = ({ navigation, route }) => {
                 renderBubble={renderBubble}
                 user={{
                     _id: currentUser?.id,
-                    name: currentUser?.full_name
+                    name: currentUser?.full_name  ?? ''
                 }}
                 alwaysShowSend
             />

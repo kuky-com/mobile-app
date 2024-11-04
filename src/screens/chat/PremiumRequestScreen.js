@@ -8,7 +8,7 @@ import { getUnit } from '@/utils/utils'
 import dayjs from 'dayjs'
 import { Image, ImageBackground } from 'expo-image'
 import React, { useEffect, useState } from 'react'
-import { DeviceEventEmitter, Dimensions, Linking, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { Alert, DeviceEventEmitter, Dimensions, Linking, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import Purchases from 'react-native-purchases'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Toast from 'react-native-toast-message'
@@ -82,7 +82,7 @@ const PremiumRequestScreen = ({ navigation, route }) => {
 
                 const { customerInfo } = result
 
-                console.log({ response: JSON.stringify(result) })
+                // console.log({ response: JSON.stringify(result) })
 
                 if (customerInfo && customerInfo.entitlements && customerInfo.entitlements.active && customerInfo.entitlements.active['pro']) {
                     if (conversation) {
@@ -90,15 +90,18 @@ const PremiumRequestScreen = ({ navigation, route }) => {
                     }
                     DeviceEventEmitter.emit(constants.REFRESH_PROFILE)
                 } else {
-                    Toast.show({ text1: 'Fail to purchase subscription!', type: 'error' })
+                    // Toast.show({ text1: 'Fail to purchase subscription!', type: 'error' })
+                    Alert.alert('Error', 'Fail to purchase subscription!')
                 }
             } catch (error) {
                 console.log({ error })
                 setLoading(false)
                 if (error && error.message) {
-                    Toast.show({ text1: error.message, type: 'error' })
+                    // Toast.show({ text1: error.message, type: 'error' })
+                    Alert.alert('Error', error.message)
                 } else {
-                    Toast.show({ text1: 'Fail to purchase subscription!', type: 'error' })
+                    Alert.alert('Error', 'Fail to purchase subscription!')
+                    // Toast.show({ text1: 'Fail to purchase subscription!', type: 'error' })
                 }
 
             }
@@ -111,6 +114,10 @@ const PremiumRequestScreen = ({ navigation, route }) => {
 
     const openPolicy = () => {
         Linking.openURL('https://www.kuky.com/privacy-policy')
+    }
+
+    const cancelSubscription = () => {
+        
     }
 
     return (
@@ -180,6 +187,9 @@ const PremiumRequestScreen = ({ navigation, route }) => {
                             }
                         </View>
                     </View>
+                    {customerInfo && customerInfo.latestExpirationDate && dayjs().isBefore(dayjs(customerInfo.latestExpirationDate)) &&
+                        <Text style={{ color: 'white', fontSize: 15, fontWeight: 'bold' }}>{`Expired at: ${dayjs(customerInfo.latestExpirationDate).format('HH:mm DD MMM YYYY')}`}</Text>
+                    }
                     {customerInfo && customerInfo.latestExpirationDate && dayjs().isBefore(dayjs(customerInfo.latestExpirationDate)) ?
                         <ButtonWithLoading
                             text={loading ? 'Processing...' : `Upgrade plan`}
@@ -193,6 +203,9 @@ const PremiumRequestScreen = ({ navigation, route }) => {
                             onPress={onContinue}
                             disabled={planIndex === null}
                         />
+                    }
+                    {false && customerInfo && customerInfo.latestExpirationDate && dayjs().isBefore(dayjs(customerInfo.latestExpirationDate)) &&
+                        <Text onPress={cancelSubscription} style={{ color: '#FF8B8B', fontSize: 12, fontWeight: 'bold' }}>{'Cancel subscription'}</Text>
                     }
                     <Text style={{ fontSize: 12, marginTop: 5, fontWeight: '500', color: '#333333', textAlign: 'center' }}>{`By subscribing, you agree to our `}<Text onPress={openPolicy} style={{ textDecorationLine: 'underline', fontWeight: 'bold' }}>{`Privacy Policy`}</Text>{` and `}<Text onPress={openTerms} style={{ textDecorationLine: 'underline', fontWeight: 'bold' }}>{`Terms of Use`}</Text>{`. Subscriptions auto-renew until cancelled, as described in the Terms. You can cancel the subscription anytime.`}</Text>
                 </View>
