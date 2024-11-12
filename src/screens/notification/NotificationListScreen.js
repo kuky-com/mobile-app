@@ -92,6 +92,10 @@ const NotificationListScreen = ({ navigation }) => {
             navigation.push('MessageScreen', {conversation: {conversation_id: item.match.conversation_id}})
         } else if (item.notification_type === 'new_suggestions') {
             navigation.push('ConnectProfileScreen', { profile: {id: item.suggest_id} });
+        } else if (item.notification_type === 'profile_approved') {
+            navigation.push('ProfileApprovedScreen');
+        }else if (item.notification_type === 'profile_rejected') {
+            navigation.push('ProfileRejectScreen');
         }
     }
 

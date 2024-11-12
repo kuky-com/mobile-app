@@ -10,28 +10,37 @@ export const getUnit = (unit) => {
 }
 
 export const getAuthenScreen = (currentUser, exclude = 'AvatarUpdateScreen') =>{
-    console.log('call this one 11111')
     if (!currentUser?.full_name) {
         return 'NameUpdateScreen'
-    } else if (!currentUser?.birthday) {
-        return 'BirthdayUpdateScreen'
-    } else if (!currentUser?.gender) {
-        return 'GenderUpdateScreen'
-    } else if (!currentUser?.pronouns) {
-        return 'PronounsUpdateScreen'
-    }  else if (!currentUser?.avatar && exclude !== 'AvatarUpdateScreen') {
-        return 'AvatarUpdateScreen'
-    } else if (!currentUser?.purposes || currentUser?.purposes.length === 0) {
-        return 'PurposeUpdateScreen'
-    } else if (!currentUser?.interests || currentUser?.interests.length === 0) {
+    } else if (!currentUser?.video_intro) {
+        return 'OnboardingVideoTutorialScreen'
+    } else if (!currentUser?.purposes || currentUser?.purposes.length === 0 || !currentUser?.interests || currentUser?.interests.length === 0) {
         return 'ReviewProfileScreen'
-    // } else if (!currentUser?.video_intro) {
-    //     return 'OnboardingVideoIntroScreen'
-    // } else if (!currentUser?.video_purpose) {
-    //     return 'OnboardingVideoPurposeScreen'
     } else if (!currentUser?.profile_tag) {
         return 'ProfileTagScreen'
     }
+
+    // if (!currentUser?.full_name) {
+    //     return 'NameUpdateScreen'
+    // } else if (!currentUser?.birthday) {
+    //     return 'BirthdayUpdateScreen'
+    // } else if (!currentUser?.gender) {
+    //     return 'GenderUpdateScreen'
+    // } else if (!currentUser?.pronouns) {
+    //     return 'PronounsUpdateScreen'
+    // }  else if (!currentUser?.avatar && exclude !== 'AvatarUpdateScreen') {
+    //     return 'AvatarUpdateScreen'
+    // } else if (!currentUser?.purposes || currentUser?.purposes.length === 0) {
+    //     return 'PurposeUpdateScreen'
+    // } else if (!currentUser?.interests || currentUser?.interests.length === 0) {
+    //     return 'ReviewProfileScreen'
+    // // } else if (!currentUser?.video_intro) {
+    // //     return 'OnboardingVideoIntroScreen'
+    // // } else if (!currentUser?.video_purpose) {
+    // //     return 'OnboardingVideoPurposeScreen'
+    // } else if (!currentUser?.profile_tag) {
+    //     return 'ProfileTagScreen'
+    // }
 
     return 'Dashboard'
 }

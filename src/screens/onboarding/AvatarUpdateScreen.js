@@ -79,14 +79,18 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
     const onContinue = () => {
         try {
             setLoading(true)
+            console.log({imageUrl})
             apiClient.post('users/update', { avatar: imageUrl })
                 .then((res) => {
                     setLoading(false)
                     if (res && res.data && res.data.success) {
                         setUser(res.data.data)
+                        console.log({user: res.data.data})
                         // NavigationService.reset('PurposeUpdateScreen', { onboarding: true })
-                        NavigationService.reset(getAuthenScreen(res.data.data))
+                        // NavigationService.reset(getAuthenScreen(res.data.data))
                         // Toast.show({ text1: res.data.message, type: 'success' })
+
+                        navigation.goBack()
                     } else {
                         Toast.show({ text1: res.data.message, type: 'error' })
                     }
@@ -102,7 +106,8 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
     }
 
     const onSkip = () => {
-        NavigationService.reset(getAuthenScreen(currentUser))
+        // NavigationService.reset(getAuthenScreen(currentUser))
+        navigation.goBack()
     }
 
     const openPicker = async () => {

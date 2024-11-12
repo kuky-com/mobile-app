@@ -45,7 +45,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import DislikeUpdateScreen from './profile/DislikeUpdateScreen';
 import InterestUpdateScreen from './profile/InterestUpdateScreen';
 import PurposeProfileScreen from './profile/PurposeProfileScreen';
-import { Alert, Platform } from 'react-native';
+import { Alert, AppState, Platform } from 'react-native';
 import Purchases from 'react-native-purchases';
 import AvatarProfileScreen from './profile/AvatarProfileScreen';
 import * as Linking from 'expo-linking';
@@ -53,9 +53,15 @@ import NotificationSettingScreen from './profile/NotificationSettingScreen';
 import InAppReview from 'react-native-in-app-review'
 import MySubscriptionScreen from './profile/MySubscriptionScreen';
 import ReviewMatchScreen from './match/ReviewMatchScreen';
-import OnboardingVideoIntroScreen from './onboarding/OnboardingVideoIntroScreen';
-import OnboardingVideoPurposeScreen from './onboarding/OnboardingVideoPurposeScreen';
+import OnboardingVideoScreen from './onboarding/OnboardingVideoScreen';
 import FirstTimeScreen from './auth/FirstTimeScreen';
+import ProfileApprovedScreen from './profile/ProfileApprovedScreen';
+import ProfileRejectScreen from './profile/ProfileRejectScreen';
+import { useAlert } from '@/components/AlertProvider';
+import { useAppUpdateAlert } from '@/components/AppUpdateAlert';
+import dayjs from 'dayjs';
+import OnboardingVideoTutorialScreen from './onboarding/OnboardingVideoTutorialScreen';
+import VideoProcessingScreen from './onboarding/VideoProcessingScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -76,9 +82,11 @@ const TabNavigator = () => {
 const AppStack = ({ navgation }) => {
     const setDeviceId = useSetAtom(deviceIdAtom)
     const setPushToken = useSetAtom(pushTokenAtom)
-    const currentUser = useAtomValue(userAtom)
+    const [currentUser, setUser] = useAtom(userAtom)
     const url = Linking.useURL();
     const urlHandleRef = useRef(null)
+    const showUpdateAlert = useAppUpdateAlert()
+    const appState = useRef(AppState.currentState);
 
     useEffect(() => {
         if (currentUser && currentUser?.email) {
@@ -93,11 +101,70 @@ const AppStack = ({ navgation }) => {
     }, [currentUser])
 
     useEffect(() => {
+        const checkProfileStatus = async () => {
+            if (currentUser && currentUser.profile_action_date) {
+                try {
+                    const lastCheckTime = await AsyncStorage.getItem('LAST_PROFILE_STATUS_CHECK')
+                    if (!(lastCheckTime && dayjs(lastCheckTime).isAfter(dayjs(currentUser.profile_action_date)))) {
+                        if (currentUser.profile_approved === 'approved') {
+                            NavigationService.push('ProfileApprovedScreen')
+                        } else if (currentUser.profile_approved === 'rejected') {
+                            NavigationService.push('ProfileRejectScreen', { message: `Unfortunately, your account couldn’t be approved at this time due to the following reason: ${currentUser.profile_rejected_reason}` })
+                        }
+                    }
+                    await AsyncStorage.setItem('LAST_PROFILE_STATUS_CHECK', dayjs().format())
+                } catch (error) {
+
+                }
+            }
+
+        }
+
+        checkProfileStatus()
+    }, [currentUser])
+
+    const loadProfile = async () => {
+        const token = await AsyncStorage.getItem('ACCESS_TOKEN')
+        const deviceId = await AsyncStorage.getItem('DEVICE_ID')
+
+        if (token && deviceId) {
+            apiClient('users/user-info')
+                .then((res) => {
+                    console.log({ userInfo111: res.data.data })
+                    if (res && res.data && res.data.success) {
+                        console.log({ userInfo: res.data.data })
+                        setUser(res.data.data)
+                    }
+                })
+                .catch((error) => {
+                    console.log({ error })
+                })
+        }
+    }
+
+    useEffect(() => {
+        const subscription = AppState.addEventListener('change', nextAppState => {
+            if (
+                appState.current && appState.current.match(/inactive|background/) &&
+                nextAppState === 'active'
+            ) {
+                loadProfile()
+            }
+
+            appState.current = nextAppState
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, []);
+
+    useEffect(() => {
         const getVersion = () => {
             apiClient.get('/users/latest-version')
                 .then((res) => {
                     console.log({ res })
-                    if (res && res.data && res.data.success) {
+                    if (res && res.data && res.data.success && res.data.data) {
 
                         let version = null
                         if (Platform.OS === 'android') {
@@ -108,10 +175,9 @@ const AppStack = ({ navgation }) => {
 
                         const appVersion = DeviceInfo.getVersion()
 
-                        console.log({ appVersion, version: res.data.data.version_ios })
                         if (appVersion < version) {
                             if (res.data.data.is_required) {
-                                Alert.alert(`Version ${version}`, res.data.data.description, [
+                                showUpdateAlert(`Version ${version}`, res.data.data.description, res.data.data.is_required, [
                                     {
                                         text: 'Update Now', onPress: () => {
                                             Linking.openURL(Platform.select(
@@ -123,11 +189,8 @@ const AppStack = ({ navgation }) => {
                                     }
                                 ])
                             } else {
-                                if (Math.floor(Math.random() * 3) === 1) {
-                                    Alert.alert(`Version ${version}`, res.data.data.description, [
-                                        {
-                                            text: 'Later'
-                                        },
+                                if (Math.random() < 0.2) {
+                                    showUpdateAlert(`Version ${version}`, res.data.data.description, res.data.data.is_required, [
                                         {
                                             text: 'Update Now', onPress: () => {
                                                 Linking.openURL(Platform.select(
@@ -136,7 +199,11 @@ const AppStack = ({ navgation }) => {
                                                         android: 'https://play.google.com/store/apps/details?id=com.kuky.android'
                                                     }))
                                             },
-                                            
+
+                                        }
+                                    ], [
+                                        {
+                                            text: 'Later'
                                         }
                                     ])
                                 }
@@ -261,6 +328,8 @@ const AppStack = ({ navgation }) => {
         // };
     }, [url, currentUser]);
 
+
+
     useEffect(() => {
         if (Platform.OS === 'ios') {
             PushNotificationIOS.requestPermissions()
@@ -306,6 +375,22 @@ const AppStack = ({ navgation }) => {
     useEffect(() => {
         const unsubscribe = messaging().onMessage(async remoteMessage => {
             //   Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
+            if (remoteMessage) {
+                if (remoteMessage.data && remoteMessage.data.data) {
+                    try {
+                        const notiData = JSON.parse(remoteMessage.data.data)
+                        console.log({ removeNotifcate: notiData })
+
+                        if (notiData.type === 'profile_approved') {
+                            NavigationService.push('ProfileApprovedScreen')
+                        } else if (notiData.type === 'profile_rejected') {
+                            NavigationService.push('ProfileRejectScreen', { message: remoteMessage.notification.body })
+                        }
+                    } catch (error) {
+
+                    }
+                }
+            }
         });
 
         return unsubscribe;
@@ -331,6 +416,10 @@ const AppStack = ({ navgation }) => {
                                             { name: 'MatchesScreen' }
                                         ])
                                     }
+                                } else if (notiData.type === 'profile_approved') {
+                                    NavigationService.push('ProfileApprovedScreen')
+                                } else if (notiData.type === 'profile_rejected') {
+                                    NavigationService.push('ProfileRejectScreen', { message: remoteMessage.notification.body })
                                 } else if (notiData.type === 'new_suggestions' && notiData.suggest) {
                                     NavigationService.push('ConnectProfileScreen', { profile: { id: notiData.suggest?.id } });
                                 } else {
@@ -353,6 +442,10 @@ const AppStack = ({ navgation }) => {
                                         { name: 'MatchesScreen' }
                                     ])
                                 }
+                            } else if (notiData.type === 'profile_approved') {
+                                NavigationService.push('ProfileApprovedScreen')
+                            } else if (notiData.type === 'profile_rejected') {
+                                NavigationService.push('ProfileRejectScreen', { message: remoteMessage.notification.body })
                             } else if (notiData.type === 'new_suggestions' && notiData.suggest) {
                                 NavigationService.push('ConnectProfileScreen', { profile: { id: notiData.suggest?.id } });
                             } else {
@@ -391,6 +484,12 @@ const AppStack = ({ navgation }) => {
                                                 { name: 'NotificationScreen' }
                                             ])
                                         }
+                                    } else if (notiData.type === 'profile_approved') {
+                                        NavigationService.push('ProfileApprovedScreen')
+                                    } else if (notiData.type === 'profile_rejected') {
+                                        NavigationService.push('ProfileRejectScreen', { message: remoteMessage.notification.body })
+                                    } else if (notiData.type === 'new_suggestions' && notiData.suggest) {
+                                        NavigationService.push('ConnectProfileScreen', { profile: { id: notiData.suggest?.id } });
                                     } else {
                                         NavigationService.resetRaw([
                                             { name: 'Dashboard' },
@@ -411,6 +510,12 @@ const AppStack = ({ navgation }) => {
                                             { name: 'NotificationScreen' }
                                         ])
                                     }
+                                } else if (notiData.type === 'profile_approved') {
+                                    NavigationService.push('ProfileApprovedScreen')
+                                } else if (notiData.type === 'profile_rejected') {
+                                    NavigationService.push('ProfileRejectScreen', { message: remoteMessage.notification.body })
+                                } else if (notiData.type === 'new_suggestions' && notiData.suggest) {
+                                    NavigationService.push('ConnectProfileScreen', { profile: { id: notiData.suggest?.id } });
                                 } else {
                                     NavigationService.resetRaw([
                                         { name: 'Dashboard' },
@@ -460,8 +565,8 @@ const AppStack = ({ navgation }) => {
             <Stack.Screen name="ConnectProfileScreen" component={ConnectProfileScreen} />
             <Stack.Screen name="UpdateProfileScreen" component={UpdateProfileScreen} />
             <Stack.Screen name="UpdatePasswordScreen" component={UpdatePasswordScreen} />
-            <Stack.Screen name="OnboardingVideoPurposeScreen" component={OnboardingVideoPurposeScreen} />
-            <Stack.Screen name="OnboardingVideoIntroScreen" component={OnboardingVideoIntroScreen} />
+            <Stack.Screen name="OnboardingVideoTutorialScreen" component={OnboardingVideoTutorialScreen} />
+            <Stack.Screen name="OnboardingVideoScreen" component={OnboardingVideoScreen} />
             <Stack.Screen name="AvatarUpdateScreen" component={AvatarUpdateScreen} />
             <Stack.Screen name="VerificationSuccessScreen" component={VerificationSuccessScreen} />
             <Stack.Screen name="PremiumRequestScreen" component={PremiumRequestScreen} options={{ ...TransitionPresets.ModalSlideFromBottomIOS }} />
@@ -487,6 +592,9 @@ const AppStack = ({ navgation }) => {
             <Stack.Screen name="MySubscriptionScreen" component={MySubscriptionScreen} />
             <Stack.Screen name="ReviewMatchScreen" component={ReviewMatchScreen} />
             <Stack.Screen name="FirstTimeScreen" component={FirstTimeScreen} />
+            <Stack.Screen name="ProfileApprovedScreen" component={ProfileApprovedScreen} />
+            <Stack.Screen name="ProfileRejectScreen" component={ProfileRejectScreen} />
+            <Stack.Screen name="VideoProcessingScreen" component={VideoProcessingScreen} />
         </Stack.Navigator>
     );
 };

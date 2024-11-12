@@ -17,6 +17,7 @@ import SwitchWithText from '@/components/SwitchWithText'
 import apiClient from '@/utils/apiClient'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import ButtonWithLoading from '@/components/ButtonWithLoading'
+import { useAlert } from '@/components/AlertProvider'
 
 const styles = StyleSheet.create({
     container: {
@@ -49,35 +50,34 @@ const styles = StyleSheet.create({
 })
 
 const PurposeUpdateScreen = ({ navigation, route }) => {
-    // const { onboarding } = route.params
+    const { purposes: existPurposes, onUpdated } = route.params
     const insets = useSafeAreaInsets()
     const [tagName, setTagName] = useState('')
-    const [purposes, setPurposes] = useState([]);
+    const [purposes, setPurposes] = useState(existPurposes);
     const [loading, setLoading] = useState(false)
     const inputRef = useRef()
-
-    useEffect(() => {
-        apiClient.get('interests/purposes')
-            .then((res) => {
-                if (res && res.data && res.data.success) {
-                    setPurposes(res.data.data)
-                }
-            })
-            .catch((error) => {
-                console.log({ error })
-                setPurposes([])
-            })
-    }, [])
+    const showAlert = useAlert()
 
     const onContinue = () => {
+        if(loading) return
+
         setLoading(true)
-        const purposeNames = purposes.map((item) => item.name)
+        const purposeNames = purposes.map((item) => capitalize(item.name))
         apiClient.post('interests/update-purposes', { purposes: purposeNames })
             .then((res) => {
                 setLoading(false)
                 if (res && res.data && res.data.success) {
-                    NavigationService.reset('ReviewProfileScreen')
-                    // Toast.show({ text1: res.data.message, type: 'success' })
+                    if (res.data.data && res.data.data.length < purposeNames.length) {
+                        const newPurposes = res.data.data.map((item) => ({ name: item.purpose.name }))
+                        setPurposes(newPurposes)
+
+                        showAlert('', `Oops! Some words doesn't look like an English word. Please try again.`, [{ text: 'Ok' }])
+                    } else {
+                        if (onUpdated) {
+                            onUpdated(purposes)
+                            navigation.goBack()
+                        }
+                    }
                 } else {
                     Toast.show({ text1: res.data.message, type: 'error' })
                 }
@@ -97,10 +97,10 @@ const PurposeUpdateScreen = ({ navigation, route }) => {
 
     const onAddTag = () => {
         if (tagName.length > 3) {
-            setPurposes((old) => ([{name: tagName}, ...old]))
+            setPurposes((old) => ([{ name: tagName }, ...old]))
             setTagName('')
             setTimeout(() => {
-                if(inputRef.current) {
+                if (inputRef.current) {
                     inputRef.current.focus()
                 }
             }, 200);
@@ -116,8 +116,8 @@ const PurposeUpdateScreen = ({ navigation, route }) => {
                 <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black', lineHeight: 20 }}>This will be your <Text style={{ color: '#5E30C1' }}>{` main profile tag `}</Text> and will help us connect you with others who share similar experiences.</Text>
                 <KeyboardAwareScrollView style={{ flex: 1, width: '100%' }} showsVerticalScrollIndicator={false}>
                     <View style={{ flex: 1, width: '100%', paddingHorizontal: 8, paddingVertical: 24, gap: 16, alignItems: 'flex-start', justifyContent: 'flex-start' }}>
-                        <Text style={{fontSize: 16, color: 'black'}}>Your purpose</Text>
-                        <View style={{ width: '100%', paddingHorizontal: 16, borderWidth: 2, borderColor: '#726E70', borderRadius: 15, height: 54, alignItems: 'center' }}>
+                        <Text style={{ fontSize: 16, color: 'black' }}>Your purpose</Text>
+                        <View style={{ flexDirection: 'row', width: '100%', paddingHorizontal: 16, paddingRight: 8, borderWidth: 2, borderColor: '#726E70', borderRadius: 15, height: 54, alignItems: 'center' }}>
                             <TextInput
                                 ref={inputRef}
                                 style={{ flex: 1, width: '100%', fontWeight: '600', fontSize: 18, color: 'black' }}
@@ -128,13 +128,17 @@ const PurposeUpdateScreen = ({ navigation, route }) => {
                                 onChangeText={setTagName}
                                 onEndEditing={onAddTag}
                             />
+                            <TouchableOpacity onPress={onAddTag} style={{ height: 34, borderRadius: 17, alignItems: 'center', flexDirection: 'row', gap: 10, width: 34, justifyContent: 'center', backgroundColor: '#FFAB48' }}>
+                                <Image style={{ width: 16, height: 16 }} source={images.add_tag} contentFit='contain' />
+                                {/* <Text style={{ fontWeight: 'bold', color: 'black', fontSize: 14 }}>Add tag</Text> */}
+                            </TouchableOpacity>
                         </View>
-                        <View style={{ width: '100%', alignItems: 'flex-end' }}>
+                        {/* <View style={{ width: '100%', alignItems: 'flex-end' }}>
                             <TouchableOpacity onPress={onAddTag} style={{ height: 34, borderRadius: 17, alignItems: 'center', flexDirection: 'row', gap: 10, paddingHorizontal: 16, backgroundColor: '#FFAB48' }}>
                                 <Image style={{ width: 16, height: 16 }} source={images.add_tag} contentFit='contain' />
                                 <Text style={{ fontWeight: 'bold', color: 'black', fontSize: 14 }}>Add tag</Text>
                             </TouchableOpacity>
-                        </View>
+                        </View> */}
                         <View style={{ width: '100%', gap: 5 }}>
                             {
                                 purposes.map((item, index) => (
@@ -150,7 +154,7 @@ const PurposeUpdateScreen = ({ navigation, route }) => {
                     </View>
                 </KeyboardAwareScrollView>
             </View>
-            <ButtonWithLoading 
+            <ButtonWithLoading
                 text={'Continue'}
                 onPress={onContinue}
                 disabled={purposes.length === 0}

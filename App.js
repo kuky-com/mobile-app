@@ -20,6 +20,8 @@ import * as Linking from 'expo-linking';
 import Smartlook from 'react-native-smartlook-analytics'
 import { AEMReporterIOS, AppEventsLogger, Settings } from 'react-native-fbsdk-next';
 import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
+import { AlertProvider } from '@/components/AlertProvider';
+import { AppUpdateAlertProvider } from '@/components/AppUpdateAlert';
 
 Smartlook.instance.preferences.setProjectKey(
   '6bebfbc50c0aedc486a2766bc51c24d0d2b4a13f'
@@ -113,20 +115,24 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <SheetProvider>
-        <NavigationContainer
-          ref={navigationRef}
-          linking={linking}
-          onReady={() => {
-            isReadyRef.current = true;
-          }}>
-          <StatusBar translucent style='dark' />
-          <Suspense>
-            <Provider store={storeAtom}>
-              <MainApp />
-            </Provider>
-          </Suspense>
-          <Toast config={toastConfig} />
-        </NavigationContainer>
+        <AppUpdateAlertProvider>
+          <AlertProvider>
+            <NavigationContainer
+              ref={navigationRef}
+              linking={linking}
+              onReady={() => {
+                isReadyRef.current = true;
+              }}>
+              <StatusBar translucent style='dark' />
+              <Suspense>
+                <Provider store={storeAtom}>
+                  <MainApp />
+                </Provider>
+              </Suspense>
+              <Toast config={toastConfig} />
+            </NavigationContainer>
+          </AlertProvider>
+        </AppUpdateAlertProvider>
       </SheetProvider>
     </SafeAreaProvider>
   );

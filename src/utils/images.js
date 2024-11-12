@@ -47,6 +47,11 @@ const eye_hide_icon = require('../assets/images/eye_hide_icon.png')
 const eye_show_icon = require('../assets/images/eye_show_icon.png')
 const star_fill = require('../assets/images/star_fill.png')
 const star_empty = require('../assets/images/star_empty.png')
+const same_target_icon = require('../assets/images/same_target_icon.png')
+const play_button = require('../assets/images/play_button.png')
+const pause_icon = require('../assets/images/pause_icon.png')
+const play_icon = require('../assets/images/play_icon.png')
+const processing = require('../assets/animations/processing.gif')
 
 export default {
     logo_text,
@@ -99,5 +104,10 @@ export default {
     eye_hide_icon,
     eye_show_icon,
     star_fill,
-    star_empty
+    star_empty,
+    same_target_icon,
+    play_button,
+    pause_icon,
+    play_icon,
+    processing
 }

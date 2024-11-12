@@ -1,10 +1,13 @@
+import { useAlert } from '@/components/AlertProvider'
 import Text from '@/components/Text'
+import apiClient from '@/utils/apiClient'
 import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
+import { capitalize } from '@/utils/utils'
 import { Image } from 'expo-image'
 import { StatusBar } from 'expo-status-bar'
 import React, { useRef, useState } from 'react'
-import { Keyboard, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Keyboard, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Toast from 'react-native-toast-message'
@@ -26,6 +29,8 @@ const InterestSelectScreen = ({ navigation, route }) => {
     const [keyword, setKeyword] = useState('')
     const [tags, setTags] = useState(likes)
     const inputRef = useRef()
+    const [loading, setLoading] = useState(false)
+    const showAlert = useAlert()
 
     const onAddNewTag = () => {
         Keyboard.dismiss()
@@ -52,10 +57,35 @@ const InterestSelectScreen = ({ navigation, route }) => {
     }
 
     const onSave = () => {
-        if (onUpdated) {
-            onUpdated(tags)
-        }
-        navigation.goBack()
+        if(loading) return
+
+        setLoading(true)
+        const tagsNames = tags.map((item) => capitalize(item.name))
+        apiClient.post('interests/update-likes', { likes: tagsNames })
+            .then((res) => {
+                console.log({res})
+                setLoading(false)
+                if (res && res.data && res.data.success) {
+                    if (res.data.data && res.data.data.length < tagsNames.length) {
+                        const newTags = res.data.data.map((item) => ({ name: item.interest.name }))
+                        setTags(newTags)
+
+                        showAlert('', `Oops! Some words doesn't look like an English word. Please try again.`, [{ text: 'Ok' }])
+                    } else {
+                        if (onUpdated) {
+                            onUpdated(tags)
+                            navigation.goBack()
+                        }
+                    }
+                } else {
+                    Toast.show({ text1: res.data.message, type: 'error' })
+                }
+            })
+            .catch((error) => {
+                console.log({ error })
+                Toast.show({ text1: error, type: 'error' })
+                setLoading(false)
+            })
     }
 
     return (
@@ -113,8 +143,9 @@ const InterestSelectScreen = ({ navigation, route }) => {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={{ flex: 1, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FF8B8B' }}>
                     <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Discard</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={onSave} disabled={tags.length === 0} style={{ flex: 1, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: tags.length === 0 ? '#9A9A9A' : '#333333', }}>
+                <TouchableOpacity onPress={onSave} disabled={tags.length === 0} style={{ flex: 1, flexDirection: 'row', gap: 8, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: tags.length === 0 ? '#9A9A9A' : '#333333', }}>
                     <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Save</Text>
+                    {loading && <ActivityIndicator />}
                 </TouchableOpacity>
             </View>
         </View>

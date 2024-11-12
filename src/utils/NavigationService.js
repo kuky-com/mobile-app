@@ -40,7 +40,7 @@ function reset(name, params) {
 function resetRaw(routes) {
   navigationRef.current?.dispatch(
     CommonActions.reset({
-      index: 0,
+      index: routes.length - 1,
       key: null,
       routes: routes,
     }),

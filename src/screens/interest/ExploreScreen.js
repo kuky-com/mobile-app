@@ -1,7 +1,7 @@
 import { Header } from '@/components/Header';
 import Text from '@/components/Text';
 import React, { useEffect, useState } from 'react';
-import { View, Image, FlatList, StyleSheet, Dimensions, DeviceEventEmitter, Platform } from 'react-native';
+import { View, Image, FlatList, StyleSheet, Dimensions, DeviceEventEmitter, Platform, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import DynamicLikeItem from '@/components/DynamicLikeItem';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,8 +11,10 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder'
 import constants from '@/utils/constants';
 import { useAtom } from 'jotai';
 import { notiCounterAtom } from '@/actions/global';
+import colors from '@/utils/colors';
 
 const ITEM_WIDTH = Platform.isPad ? Dimensions.get('screen').width / 4 - 20 : Dimensions.get('screen').width / 2 - 24;
+const PAGE_SIZE = 8
 
 const ExploreScreen = ({ navigation }) => {
     const insets = useSafeAreaInsets()
@@ -20,6 +22,9 @@ const ExploreScreen = ({ navigation }) => {
     const [notSuggestions, setNotSuggestions] = useState([])
     const [isFetching, setFetching] = useState(false)
     const [notiCounter, setNotiCounter] = useAtom(notiCounterAtom)
+    const [page, setPage] = useState(1)
+    const [loadingMore, setLoadingMore] = useState(false)
+    const [canLoadMore, setCanLoadMore] = useState(true)
 
     useEffect(() => {
         onRefresh()
@@ -35,27 +40,68 @@ const ExploreScreen = ({ navigation }) => {
         };
     }, [])
 
-    const onRefresh = () => {
-        setFetching(true)
-        apiClient.get('matches/best-matches')
-            .then((res) => {
-                setFetching(false)
-                console.log({ res: res.data })
-                if (res && res.data && res.data.success) {
-                    setSuggestions(res.data.data)
+    useEffect(() => {
+        if (page === 1) {
+            if (!isFetching) {
+                setFetching(true)
+                apiClient.post('matches/best-matches', { page: 1, limit: PAGE_SIZE })
+                    .then((res) => {
+                        setFetching(false)
+                        console.log({ res: res.data })
+                        if (res && res.data && res.data.success) {
+                            setSuggestions(res.data.data)
 
-                    if (res.data.data.length < 20) {
-                        onLoadNotSuggestion()
-                    }
-                } else {
-                    setSuggestions([])
-                }
-            })
-            .catch((error) => {
-                setFetching(false)
-                console.log({ error })
-                setSuggestions([])
-            })
+                            if (res.data.data.length < PAGE_SIZE) {
+                                onLoadNotSuggestion()
+                                setCanLoadMore(false)
+                            }
+                        } else {
+                            setSuggestions([])
+                            setCanLoadMore(false)
+                        }
+                    })
+                    .catch((error) => {
+                        setFetching(false)
+                        console.log({ error })
+                        setSuggestions([])
+                        setCanLoadMore(false)
+                    })
+            }
+        } else if (page > 1) {
+            if (!isFetching && !loadingMore && canLoadMore) {
+                setLoadingMore(true)
+                apiClient.post('matches/best-matches', { page: page, limit: PAGE_SIZE })
+                    .then((res) => {
+                        setLoadingMore(false)
+                        console.log({ res: res.data })
+                        if (res && res.data && res.data.success) {
+                            setSuggestions((old) => [...old, ...res.data.data])
+
+                            if (res.data.data.length < PAGE_SIZE) {
+                                onLoadNotSuggestion()
+                                setCanLoadMore(false)
+                            }
+                        } else {
+                            setCanLoadMore(false)
+                        }
+                    })
+                    .catch((error) => {
+                        setLoadingMore(false)
+                        console.log({ error })
+                        setCanLoadMore(false)
+                    })
+            }
+
+        }
+    }, [page])
+
+    const onRefresh = () => {
+        setPage(0)
+        setTimeout(() => {
+            setPage(1)
+            setCanLoadMore(true)
+            setLoadingMore(false)
+        }, 500);
     }
 
     const onLoadNotSuggestion = () => {
@@ -72,6 +118,12 @@ const ExploreScreen = ({ navigation }) => {
                 console.log({ error })
                 setNotSuggestions([])
             })
+    }
+
+    const onLoadMore = () => {
+        if (!loadingMore && canLoadMore) {
+            setPage(old => old + 1)
+        }
     }
 
 
@@ -103,7 +155,7 @@ const ExploreScreen = ({ navigation }) => {
             )
         }
         return (
-            <DynamicLikeItem onPress={() => openProfile(item)} item={item} itemWidth={ITEM_WIDTH} />
+            <DynamicLikeItem key={`profile-${item.id}`} onPress={() => openProfile(item)} item={item} itemWidth={ITEM_WIDTH} />
         );
     };
 
@@ -120,13 +172,20 @@ const ExploreScreen = ({ navigation }) => {
     }
 
     const renderFooter = () => {
+        if (loadingMore) {
+            return (
+                <View style={{ marginBottom: insets.bottom + 80, width: '100%', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+                    <ActivityIndicator size='small' color={colors.mainColor} />
+                </View>
+            )
+        }
         if (notSuggestions.length > 0) {
             return (
-                <View style={{marginBottom: insets.bottom + 80 }}>
-                    <Text style={{padding: 16, fontSize: 12, color: '#aaaaaa', fontWeight: 'bold', textAlign: "center"}}>It looks like we’ve shown you all the best matches for now. But don’t worry, here are some other interesting users you might want to check out!</Text>
-                    <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
+                <View style={{ marginBottom: insets.bottom + 80 }}>
+                    <Text style={{ padding: 16, fontSize: 12, color: '#aaaaaa', fontWeight: 'bold', textAlign: "center" }}>It looks like we’ve shown you all the best matches for now. But don’t worry, here are some other interesting users you might want to check out!</Text>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
                         {notSuggestions.map((item) => {
-                            return(
+                            return (
                                 <DynamicLikeItem key={`notsuggestion-${item.id}`} onPress={() => openProfile(item)} item={item} itemWidth={ITEM_WIDTH} />
                             )
                         })}
@@ -157,6 +216,7 @@ const ExploreScreen = ({ navigation }) => {
                 ListFooterComponent={renderFooter}
                 showsVerticalScrollIndicator={false}
                 ListHeaderComponent={renderHeader}
+                onEndReached={onLoadMore}
                 onRefresh={onRefresh}
                 refreshing={false}
                 ListEmptyComponent={() => {

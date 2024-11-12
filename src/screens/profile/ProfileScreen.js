@@ -10,13 +10,14 @@ import dayjs from 'dayjs'
 import { Image } from 'expo-image'
 import { StatusBar } from 'expo-status-bar'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { DeviceEventEmitter, Dimensions, Linking, Platform, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import Purchases from 'react-native-purchases'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Toast from 'react-native-toast-message'
 import Share from 'react-native-share'
+import { ResizeMode, Video } from 'expo-av'
 
 const styles = StyleSheet.create({
     container: {
@@ -50,6 +51,9 @@ const ProfileScreen = ({ navigation }) => {
 
     const [currentUser, setCurrentUser] = useAtom(userAtom)
     const [expiredDate, setExpiredDate] = useState(null)
+
+    const [playing, setPlaying] = useState(false)
+    const videoRef = useRef(null)
 
     // const getSubscriptionInfo = async () => {
     //     try {
@@ -153,11 +157,22 @@ const ProfileScreen = ({ navigation }) => {
     }
 
     const onShare = () => {
-        Share.open({url: Platform.OS === 'ios' ? 'https://apps.apple.com/au/app/kuky/id6711341485' : 'https://play.google.com/store/apps/details?id=com.kuky.android',})
+        Share.open({ url: Platform.OS === 'ios' ? 'https://apps.apple.com/au/app/kuky/id6711341485' : 'https://play.google.com/store/apps/details?id=com.kuky.android', })
             .then(() => { })
             .catch((error) => {
-                console.log({error})
-             })
+                console.log({ error })
+            })
+    }
+    const playVideo = () => {
+        if (videoRef && videoRef) {
+            videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: 0 })
+        }
+    }
+
+    const pauseVideo = () => {
+        if (videoRef && videoRef) {
+            videoRef.current.setStatusAsync({ shouldPlay: false })
+        }
     }
 
     return (
@@ -216,7 +231,7 @@ const ProfileScreen = ({ navigation }) => {
                                     <Text style={{ color: '#E8FF58', fontSize: 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>
                                 </View>
                             </View>
-                            <View style={{ justifyContent: 'space-between', width: Math.min(Dimensions.get('screen').width - 32, 600), height: Math.min(Dimensions.get('screen').width - 32, 600), borderRadius: 20, overflow: 'hidden' }}>
+                            <View style={{ justifyContent: 'space-between', width: Math.min(Dimensions.get('screen').width - 32, 600), height: Math.min(Dimensions.get('screen').width + 60, 750), borderRadius: 20, overflow: 'hidden' }}>
                                 <AvatarImage avatar={currentUser?.avatar} full_name={currentUser?.full_name} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} />
                                 <TouchableOpacity onPress={openEditAvatar} style={{ position: 'absolute', top: 16, right: 16, width: 30, height: 30, alignItems: 'center', justifyContent: 'center', borderRadius: 15, backgroundColor: colors.mainColor, borderWidth: 1, borderColor: '#E8FF58' }}>
                                     <Image source={images.edit_icon} style={{ width: 15, height: 15, tintColor: '#E8FF58' }} />
@@ -346,8 +361,37 @@ const ProfileScreen = ({ navigation }) => {
                                     <Text style={{ color: '#E8FF58', fontSize: 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>
                                 </View>
                             </View>
-                            <View style={{ justifyContent: 'space-between', width: Math.min(Dimensions.get('screen').width - 32, 600), height: Math.min(Dimensions.get('screen').width - 32, 600), borderRadius: 20, overflow: 'hidden' }}>
-                                <AvatarImage avatar={currentUser?.avatar} full_name={currentUser?.full_name} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} />
+                            <View style={{ justifyContent: 'flex-end', width: Math.min(Dimensions.get('screen').width - 32, 600), height: Math.min(Dimensions.get('screen').width + 60, 750), borderRadius: 20, overflow: 'hidden' }}>
+                                {!playing && <AvatarImage avatar={currentUser?.avatar} full_name={currentUser?.full_name} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} />}
+                                {
+                                    currentUser?.video_intro &&
+                                    <Video
+                                        style={{ display: playing ? 'flex' : 'none', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 10 }}
+                                        ref={videoRef}
+                                        source={{ uri: currentUser?.video_intro }}
+                                        resizeMode={ResizeMode.COVER}
+                                        onPlaybackStatusUpdate={status => {
+                                            console.log({ status, url: currentUser?.video_intro })
+                                            setPlaying(status.isPlaying)
+                                        }}
+                                    />
+                                }
+                                {currentUser?.video_intro &&
+                                    <View style={{ alignItems: 'center', gap: 3, marginBottom: 16 }}>
+                                        {!playing &&
+                                            <TouchableOpacity onPress={playVideo} style={{ alignItems: 'center', justifyContent: 'center' }}>
+                                                <Image source={images.play_icon} style={{ width: 80, height: 80 }} contentFit='contain' />
+                                            </TouchableOpacity>
+                                        }
+                                        {playing &&
+                                            <TouchableOpacity onPress={pauseVideo} style={{ width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center' }}>
+                                                <View style={{ position: 'absolute', top: 20, right: 20, bottom: 20, left: 20, backgroundColor: '#E8FF58' }} />
+                                                <Image source={images.pause_icon} style={{ tintColor: '#7B65E8', width: 80, height: 80, borderRadius: 40, }} contentFit='contain' />
+                                            </TouchableOpacity>
+                                        }
+                                        <Text style={{ color: '#949494', fontSize: 10, fontWeight: 'bold' }}>Watch video</Text>
+                                    </View>
+                                }
                             </View>
                             <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
                                 <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'flex-start' }}>
@@ -372,23 +416,23 @@ const ProfileScreen = ({ navigation }) => {
                                 </View>
                             </View>
                             <View>
-                            <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
+                                <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
                                     <Text style={{ color: 'black', fontSize: 16, fontWeight: 'bold' }}>Your purposes</Text>
                                 </View>
-                            <View style={{ backgroundColor: '#E9E5FF', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
-                                
-                                <View style={{ paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16 }}>
-                                    {
-                                        purposes.map((item) => {
-                                            return (
-                                                <TouchableOpacity key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#725ED4' }}>
-                                                    <Text style={{ fontSize: 14, color: '#E8FF58', fontWeight: '700' }}>{item.name}</Text>
-                                                </TouchableOpacity>
-                                            )
-                                        })
-                                    }
+                                <View style={{ backgroundColor: '#E9E5FF', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
+
+                                    <View style={{ paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16 }}>
+                                        {
+                                            purposes.map((item) => {
+                                                return (
+                                                    <TouchableOpacity key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#725ED4' }}>
+                                                        <Text style={{ fontSize: 14, color: '#E8FF58', fontWeight: '700' }}>{item.name}</Text>
+                                                    </TouchableOpacity>
+                                                )
+                                            })
+                                        }
+                                    </View>
                                 </View>
-                            </View>
                             </View>
                             <View>
                                 <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>

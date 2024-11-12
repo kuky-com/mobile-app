@@ -1,4 +1,5 @@
 import { tokenAtom, userAtom } from '@/actions/global'
+import { useAppUpdateAlert } from '@/components/AppUpdateAlert'
 import ButtonWithLoading from '@/components/ButtonWithLoading'
 import Text from '@/components/Text'
 import apiClient from '@/utils/apiClient'
@@ -9,7 +10,7 @@ import { Image } from 'expo-image'
 import { StatusBar } from 'expo-status-bar'
 import { useSetAtom } from 'jotai'
 import React, { useState } from 'react'
-import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { Linking, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { getBuildNumber, getVersion } from 'react-native-device-info'
 import Purchases from 'react-native-purchases'
@@ -37,6 +38,7 @@ const SettingScreen = ({ navigation }) => {
     const setToken = useSetAtom(tokenAtom)
     const setUser = useSetAtom(userAtom)
     const [loading, setLoading] = useState(false)
+    const showUpdateAlert = useAppUpdateAlert()
 
     const onSupport = () => {
         Linking.openURL('https://www.kuky.com/')
@@ -200,6 +202,23 @@ const SettingScreen = ({ navigation }) => {
         navigation.navigate('NotificationSettingScreen')
     }
 
+    const getVersionInfo = () => {
+        apiClient.post('/users/version-info', Platform.select({ ios: { version_ios: getVersion() }, android: { version_android: getVersion() } }))
+            .then((res) => {
+                console.log({ res })
+                if (res && res.data && res.data.success && res.data.data) {
+                    showUpdateAlert(`Version ${getVersion()}`, res.data.data.description, false, [
+                        {
+                            text: 'Ok'
+                        }
+                    ])
+                }
+            })
+            .catch((error) => {
+                console.log({ error })
+            })
+    }
+
     return (
         <View style={styles.container}>
             <StatusBar translucent style='dark' />
@@ -246,15 +265,15 @@ const SettingScreen = ({ navigation }) => {
                             <Image source={images.next_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
                         </TouchableOpacity>
 
-                        <Text style={{ fontSize: 13, color: '#aaaaaa', fontWeight: 'bold', width: '100%', textAlign: 'center' }}>{`Version: ${getVersion()} (Build ${getBuildNumber()})`}</Text>
+                        <Text style={{ fontSize: 13, color: '#aaaaaa', fontWeight: 'bold', width: '100%', textAlign: 'center', lineHeight: 20 }}>{`Version: ${getVersion()} (Build ${getBuildNumber()})\n`}
+                            <Text style={{ color: '#5E30C1', textDecorationLine: 'underline' }} onPress={getVersionInfo}>{`What's new?`}</Text>
+                        </Text>
 
                         <ButtonWithLoading
                             text='Logout'
                             onPress={onLogout}
                             loading={loading}
                         />
-
-                        
 
                         <ButtonWithLoading
                             text='Deactivate my account'

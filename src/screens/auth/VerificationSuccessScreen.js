@@ -19,7 +19,7 @@ const VerificationSuccessScreen = ({ navigation }) => {
     const insets = useSafeAreaInsets()
 
     const onContinue = () => {
-        NavigationService.reset('BirthdayUpdateScreen')
+        NavigationService.reset('OnboardingVideoTutorialScreen')
     }
 
     return (

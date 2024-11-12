@@ -1,5 +1,7 @@
 import { userAtom } from '@/actions/global'
+import { useAlert } from '@/components/AlertProvider'
 import AvatarImage from '@/components/AvatarImage'
+import ButtonWithLoading from '@/components/ButtonWithLoading'
 import { Header } from '@/components/Header'
 import Text from '@/components/Text'
 import apiClient from '@/utils/apiClient'
@@ -7,10 +9,11 @@ import constants from '@/utils/constants'
 import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import dayjs from 'dayjs'
+import { ResizeMode, Video } from 'expo-av'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useAtom } from 'jotai'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Alert, DeviceEventEmitter, Dimensions, Platform, RefreshControl, ScrollView, StyleSheet, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { AEMReporterIOS, AppEventsLogger } from 'react-native-fbsdk-next'
@@ -50,6 +53,11 @@ const ConnectProfileScreen = ({ navigation, route }) => {
     const [currentProfile, setCurrentProfile] = useState(profile)
     const [matchInfo, setMatchInfo] = useState(null)
     const currentUser = useAtom(userAtom)
+    const showAlert = useAlert()
+    const [currentUserInterests, setCurrentUserInterests] = useState([])
+    const [playing, setPlaying] = useState(false)
+
+    const videoRef = useRef(null)
 
     const onRefresh = () => {
         try {
@@ -61,7 +69,15 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                         console.log({ data: res.data.data })
                         if (res.data.data.blocked) {
                             setCurrentProfile({ full_name: profile.full_name })
-                            Alert.alert('Not found', 'User profile is not available!', [
+                            // Alert.alert('Not found', 'User profile is not available!', [
+                            //     {
+                            //         text: 'Ok', onPress: () => {
+                            //             navigation.goBack()
+                            //         }
+                            //     }
+                            // ])
+
+                            showAlert('Not found', 'User profile is not available!', [
                                 {
                                     text: 'Ok', onPress: () => {
                                         navigation.goBack()
@@ -69,7 +85,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                                 }
                             ])
                         } else {
-                            console.log({friendProfile: res.data.data.user})
+                            console.log({ friendProfile: res.data.data.user })
                             setCurrentProfile(res.data.data.user)
                             setMatchInfo(res.data.data.match)
                         }
@@ -78,6 +94,17 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                 .catch((error) => {
                     console.log({ error })
                     setLoading(false)
+                })
+
+            apiClient.get('interests/all-interests')
+                .then((res) => {
+                    if (res && res.data && res.data.success) {
+                        console.log({ interesstjlfkajd: res.data.data })
+                        setCurrentUserInterests(res.data.data)
+                    }
+                })
+                .catch((error) => {
+                    console.log({ error })
                 })
         } catch (error) {
             setLoading(false)
@@ -88,15 +115,15 @@ const ConnectProfileScreen = ({ navigation, route }) => {
         onRefresh()
 
         try {
-            AppEventsLogger.logEvent('open_profile', {user_id: currentUser?.id, profile_id: profile.id})
-            AEMReporterIOS.logAEMEvent('open_profile', 2, '', {user_id: currentUser?.id, profile_id: profile.id})
+            AppEventsLogger.logEvent('open_profile', { user_id: currentUser?.id, profile_id: profile.id })
+            AEMReporterIOS.logAEMEvent('open_profile', 2, '', { user_id: currentUser?.id, profile_id: profile.id })
 
             const properties = new Properties();
             properties.putString("user_id", currentUser?.id.toString());
             properties.putString("profile_id", profile.id.toString());
             Smartlook.instance.analytics.trackEvent('open_profile', properties)
         } catch (error) {
-            
+
         }
     }, [])
 
@@ -123,7 +150,12 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                             autoHide: true,
                         });
                     } else if (res && res.data && !res.data.success) {
-                        Alert.alert('Pending profile approved', res.data.message)
+                        showAlert('Your account is almost ready!', 'While we complete the approval, feel free to browse and get familiar with other profiles. You’ll be connecting soon!', [
+                            {
+                                text: 'Keep Exploring', onPress: () => {
+                                }
+                            }
+                        ])
                     } else {
                         navigation.goBack()
                         navigation.navigate('MatchesScreen')
@@ -224,6 +256,45 @@ const ConnectProfileScreen = ({ navigation, route }) => {
         }
     }
 
+    let sameInterests = []
+    let sameDislikes = []
+    let userDislikes = []
+    let userInterests = []
+
+    try {
+        (currentProfile?.interests ?? []).forEach(element => {
+            const filterItems = (currentUserInterests ?? []).filter((item) => element.id === item.interest_id && element.user_interests.interest_type === item.interest_type)
+            if (filterItems && filterItems.length > 0) {
+                if (element.user_interests.interest_type === 'like') {
+                    sameInterests.push(element)
+                } else {
+                    sameDislikes.push(element)
+                }
+            }
+        });
+    } catch (error) {
+        console.log({ error })
+    }
+
+    try {
+        userInterests = (currentProfile?.interests ?? []).filter((item) => item.user_interests.interest_type === 'like')
+        userDislikes = (currentProfile?.interests ?? []).filter((item) => item.user_interests.interest_type === 'dislike')
+    } catch (error) {
+
+    }
+
+    const playVideo = () => {
+        if (videoRef && videoRef) {
+            videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: 0 })
+        }
+    }
+
+    const pauseVideo = () => {
+        if (videoRef && videoRef) {
+            videoRef.current.setStatusAsync({ shouldPlay: false })
+        }
+    }
+
     return (
         <View style={[styles.container]}>
             <Header
@@ -244,7 +315,20 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                 <View style={{ flex: 1, width: Platform.isPad ? 600 : '100%', alignSelf: 'center', padding: 16, gap: 16, paddingBottom: insets.bottom + 16 }}>
                     <View style={{ width: '100%', height: Math.min(700, Dimensions.get('screen').height - insets.top - insets.bottom - 220, (Dimensions.get('screen').width - 32) * 1.4), borderWidth: 8, borderColor: 'white', borderRadius: 15 }}>
                         {/* <Image source={{ uri: currentProfile?.avatar }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 10 }} contentFit='cover' /> */}
-                        <AvatarImage avatar={currentProfile?.avatar} full_name={currentProfile?.full_name} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 10 }}/>
+                        {!playing && <AvatarImage avatar={currentProfile?.avatar} full_name={currentProfile?.full_name} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 10 }} />}
+                        {
+                            currentProfile?.video_intro &&
+                            <Video
+                                style={{ display: playing ? 'flex' : 'none', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 10 }}
+                                ref={videoRef}
+                                source={{ uri: currentProfile?.video_intro }}
+                                resizeMode={ResizeMode.COVER}
+                                onPlaybackStatusUpdate={status => {
+                                    console.log({ status, url: currentProfile?.video_intro })
+                                    setPlaying(status.isPlaying)
+                                }}
+                            />
+                        }
                         <LinearGradient
                             colors={['transparent', 'rgba(0,0,0,0.79)']}
                             style={styles.nameBackground}
@@ -267,22 +351,40 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                                         ))
                                     }
                                 </View> */}
-                                {showAcceptReject && !matchInfo &&
-                                    <View style={{ marginTop: 32, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 9 }}>
+
+                                <View style={{ marginTop: 32, width: '100%', flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', paddingHorizontal: 9 }}>
+                                    {showAcceptReject && !matchInfo && <View style={{ alignItems: 'center', gap: 13 }}>
+                                        <TouchableOpacity disabled={loading} onPress={rejectAction} style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: '#6C6C6C', alignItems: 'center', justifyContent: 'center' }}>
+                                            <Image source={images.close_icon} style={{ width: 26, height: 26, tintColor: '#E8FF58' }} contentFit='contain' />
+                                        </TouchableOpacity>
+                                        <Text style={{ color: '#949494', fontSize: 10, fontWeight: 'bold' }}>Pass</Text>
+                                    </View>
+                                    }
+                                    {currentProfile?.video_intro &&
                                         <View style={{ alignItems: 'center', gap: 13 }}>
-                                            <TouchableOpacity disabled={loading} onPress={rejectAction} style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: '#6C6C6C', alignItems: 'center', justifyContent: 'center' }}>
-                                                <Image source={images.close_icon} style={{ width: 26, height: 26, tintColor: '#E8FF58' }} contentFit='contain' />
-                                            </TouchableOpacity>
-                                            <Text style={{ color: '#949494', fontSize: 14, fontWeight: 'bold' }}>Pass</Text>
+                                            {!playing &&
+                                                <TouchableOpacity onPress={playVideo} style={{ alignItems: 'center', justifyContent: 'center' }}>
+                                                    <Image source={images.play_icon} style={{ width: 80, height: 80 }} contentFit='contain' />
+                                                </TouchableOpacity>
+                                            }
+                                            {playing &&
+                                                <TouchableOpacity onPress={pauseVideo} style={{ width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <View style={{ position: 'absolute', top: 20, right: 20, bottom: 20, left: 20, backgroundColor: '#E8FF58' }} />
+                                                    <Image source={images.pause_icon} style={{ tintColor: '#7B65E8', width: 80, height: 80, borderRadius: 40, }} contentFit='contain' />
+                                                </TouchableOpacity>
+                                            }
+                                            <Text style={{ color: '#949494', fontSize: 10, fontWeight: 'bold' }}>Watch video</Text>
                                         </View>
+                                    }
+                                    {showAcceptReject && !matchInfo &&
                                         <View style={{ alignItems: 'center', gap: 13 }}>
                                             <TouchableOpacity disabled={loading} onPress={likeAction} style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: '#6C6C6C', alignItems: 'center', justifyContent: 'center' }}>
                                                 <Image source={images.like_icon} style={{ width: 26, height: 26, tintColor: '#E8FF58' }} contentFit='contain' />
                                             </TouchableOpacity>
-                                            <Text style={{ color: '#949494', fontSize: 14, fontWeight: 'bold' }}>Connect</Text>
+                                            <Text style={{ color: '#949494', fontSize: 10, fontWeight: 'bold' }}>Connect</Text>
                                         </View>
-                                    </View>
-                                }
+                                    }
+                                </View>
                             </View>
                         </View>
                     </View>
@@ -312,60 +414,113 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                         </View>
                     </View>
 
-                    <View style={{ backgroundColor: '#725ED4', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
-                        <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
-                            <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>Purposes</Text>
-                        </View>
-                        <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} />
-                        <View style={{ paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16 }}>
-                            {
-                                (currentProfile?.purposes ?? []).map((item) => {
-                                    return (
-                                        <TouchableOpacity key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F2F0FF' }}>
-                                            <Text style={{ fontSize: 14, color: 'black', fontWeight: '700' }}>{item.name}</Text>
-                                        </TouchableOpacity>
-                                    )
-                                })
+                    {
+                        sameDislikes.length > 0 || sameInterests.length > 0 &&
+                        <View style={{ backgroundColor: '#725ED4', width: '100%', borderRadius: 10, padding: 16, gap: 16, alignItems: 'center', justifyContent: 'center' }}>
+                            <Image source={images.same_target_icon} style={{ width: 30, height: 30, }} contentFit='contain' />
+                            <Text style={{ fontSize: 14, color: 'white', fontWeight: 'bold' }}>{sameInterests.length > 0 ? 'See What You Both Like!' : 'See What You Both Dislike!'}</Text>
+                            <View style={{ width: '100%', flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                                {
+                                    sameInterests.map((item) => {
+                                        return (
+                                            <View key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E9E5FF' }}>
+                                                <Text style={{ fontSize: 14, color: '#000000', fontWeight: '700' }}>{item.name}</Text>
+                                            </View>
+                                        )
+                                    })
+                                }
+                                {
+                                    sameInterests.length === 0 && sameDislikes.map((item) => {
+                                        return (
+                                            <View key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FF8B8B' }}>
+                                                <Text style={{ fontSize: 14, color: 'black', fontWeight: '700' }}>{item.name}</Text>
+                                            </View>
+                                        )
+                                    })
+                                }
+                            </View>
+                            <View style={{ width: '100%', height: 1, backgroundColor: '#FFFFFF', opacity: 0.4 }} />
+                            <Text style={{ color: 'white', fontSize: 14, fontWeight: 'bold' }}>{sameInterests.length > 0 ? `Discuss your shared love for it` : `Discuss your shared experience with it`}</Text>
+                            {showAcceptReject && !matchInfo &&
+                                <ButtonWithLoading
+                                    text='Connect'
+                                    onPress={likeAction}
+                                    loading={loading}
+                                />
                             }
                         </View>
-                    </View>
-                    <View style={{ backgroundColor: '#725ED4', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
-                        <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
-                            <Image source={images.interest_icon} style={{ width: 18, height: 18, tintColor: 'white' }} contentFit='contain' />
-                            <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>Interests and hobbies</Text>
+                    }
+
+                    {(currentProfile?.purposes ?? []).length > 0 &&
+                        <View style={{ width: '100%' }}>
+                            <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
+                                <Image source={images.interest_icon} style={{ width: 16, height: 16, tintColor: 'black' }} contentFit='contain' />
+                                <Text style={{ color: 'black', fontSize: 14, fontWeight: 'bold' }}>Journeys & Purposes</Text>
+                            </View>
+                            {/* <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} /> */}
+                            <View style={{ borderRadius: 20, backgroundColor: '#E9E5FF', borderColor: '#F5F5F5', paddingVertical: 24, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16 }}>
+                                {
+                                    (currentProfile?.purposes ?? []).map((item) => {
+                                        return (
+                                            <TouchableOpacity key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#725ED4' }}>
+                                                <Text style={{ fontSize: 14, color: '#E8FF58', fontWeight: '700' }}>{item.name}</Text>
+                                            </TouchableOpacity>
+                                        )
+                                    })
+                                }
+                            </View>
                         </View>
-                        <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} />
-                        <View style={{ paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16 }}>
-                            {
-                                (currentProfile?.interests ?? []).filter(item => item?.user_interests?.interest_type === 'like').map((item) => {
-                                    return (
-                                        <View key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F2F0FF' }}>
-                                            <Image style={{ width: 22, height: 22 }} contentFit='contain' source={images.seen_icon} />
-                                            <Text style={{ fontSize: 14, color: 'black', fontWeight: '700' }}>{item.name}</Text>
-                                        </View>
-                                    )
-                                })
-                            }
+                    }
+                    {userInterests.length > 0 &&
+                        <View style={{ width: '100%' }}>
+                            <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
+                                <Image source={images.interest_icon} style={{ width: 16, height: 16, tintColor: 'black' }} contentFit='contain' />
+                                <Text style={{ color: 'black', fontSize: 14, fontWeight: 'bold' }}>Interest and hobbies</Text>
+                            </View>
+                            {/* <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} /> */}
+                            <View style={{ borderRadius: 20, backgroundColor: '#E9E5FF', borderColor: '#F5F5F5', paddingVertical: 24, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16 }}>
+                                {
+                                    userInterests.map((item) => {
+                                        return (
+                                            <View key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#725ED4' }}>
+                                                {/* <Image style={{ width: 22, height: 22 }} contentFit='contain' source={images.seen_icon} /> */}
+                                                <Text style={{ fontSize: 14, color: '#E8FF58', fontWeight: '700' }}>{item.name}</Text>
+                                            </View>
+                                        )
+                                    })
+                                }
+                            </View>
                         </View>
-                    </View>
-                    <View style={{ backgroundColor: '#725ED4', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
-                        <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
-                            <Image source={images.dislike_icon} style={{ width: 18, height: 18, tintColor: 'white' }} contentFit='contain' />
-                            <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>Dislike</Text>
+                    }
+
+                    {userDislikes.length > 0 &&
+                        <View style={{ width: '100%', borderRadius: 10 }}>
+                            <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
+                                <Image source={images.dislike_icon} style={{ width: 16, height: 16, tintColor: 'black' }} contentFit='contain' />
+                                <Text style={{ color: 'black', fontSize: 14, fontWeight: 'bold' }}>Dislike</Text>
+                            </View>
+                            <View style={{ backgroundColor: '#E9E5FF', borderColor: '#F5F5F5', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 24, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                                {
+                                    userDislikes.map((item) => {
+                                        return (
+                                            <View key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FF8B8B' }}>
+                                                {/* <Image style={{ width: 22, height: 22 }} contentFit='contain' source={images.seen_icon} /> */}
+                                                <Text style={{ fontSize: 14, color: 'black', fontWeight: '700' }}>{item.name}</Text>
+                                            </View>
+                                        )
+                                    })
+                                }
+                            </View>
                         </View>
-                        <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} />
-                        <View style={{ paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16 }}>
-                            {
-                                (currentProfile?.interests ?? []).filter(item => item?.user_interests?.interest_type === 'dislike').map((item) => {
-                                    return (
-                                        <View key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FF8B8B' }}>
-                                            <Image style={{ width: 22, height: 22 }} contentFit='contain' source={images.seen_icon} />
-                                            <Text style={{ fontSize: 14, color: 'black', fontWeight: '700' }}>{item.name}</Text>
-                                        </View>
-                                    )
-                                })
-                            }
-                        </View>
+                    }
+
+                    <View style={{ width: '100%', marginVertical: 16, height: 2, backgroundColor: '#D2D2D2', borderRadius: 1 }} />
+
+                    <View style={{
+                        width: '100%', padding: 10, alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        <Text onPress={onBlock} style={{ color: '#CB3729', fontSize: 18, fontWeight: 'bold' }}>Block</Text>
                     </View>
                 </View>
             </ScrollView>

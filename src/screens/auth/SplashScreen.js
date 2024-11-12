@@ -89,7 +89,7 @@ const SplashScreen = ({ navigation }) => {
             } else {
                 setTimeout(() => {
                     NavigationService.reset('FirstTimeScreen')
-                }, 2500);
+                }, 4000);
             }
         }
 

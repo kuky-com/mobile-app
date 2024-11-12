@@ -19,6 +19,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { useSetAtom } from 'jotai'
 import { userAtom } from '@/actions/global'
 import constants from '@/utils/constants'
+import { useAlert } from '@/components/AlertProvider'
 
 const styles = StyleSheet.create({
     container: {
@@ -58,6 +59,7 @@ const PurposeProfileScreen = ({ navigation, route }) => {
     const [loading, setLoading] = useState(false)
     const inputRef = useRef()
     const setCurrentUser = useSetAtom(userAtom)
+    const showAlert = useAlert()
 
     useEffect(() => {
         apiClient.get('interests/purposes')
@@ -76,11 +78,20 @@ const PurposeProfileScreen = ({ navigation, route }) => {
         try {
             Keyboard.dismiss()
             setLoading(true)
-            const purposeNames = tags.map((item) => item.name)
+            const purposeNames = tags.map((item) => capitalize(item.name))
             apiClient.post('interests/update-purposes', { purposes: purposeNames })
                 .then((res) => {
                     if (res && res.data && res.data.success) {
-                        Toast.show({ text1: 'Your purposes has been updated!', type: 'success' })
+                        if(res.data.data && res.data.data.length < purposeNames.length) {
+                            const newPurposes = res.data.data.map((item) => ({name: item.purpose.name}))
+                            setTags(newPurposes)
+                            // Toast.show({text2: `Oops! That doesn't look like an English word. Please try again.`, type: 'error'})
+                            showAlert('', `Oops! That doesn't look like an English word. Please try again.`, [{text: 'Ok'}])
+                            setLoading(false)
+                            return
+                        } else {
+                            Toast.show({ text1: 'Your purposes has been updated!', type: 'success' })
+                        }
 
                         apiClient.get('interests/profile-tag')
                             .then((res) => {
@@ -142,7 +153,7 @@ const PurposeProfileScreen = ({ navigation, route }) => {
                 <KeyboardAwareScrollView style={{ flex: 1, width: '100%' }} showsVerticalScrollIndicator={false}>
                     <View style={{ flex: 1, width: '100%', paddingHorizontal: 8, paddingVertical: 24, gap: 16, alignItems: 'flex-start', justifyContent: 'flex-start' }}>
                         <Text style={{ fontSize: 16, color: 'black' }}>Your purpose</Text>
-                        <View style={{ width: '100%', paddingHorizontal: 16, borderWidth: 2, borderColor: '#726E70', borderRadius: 15, height: 54, alignItems: 'center' }}>
+                        <View style={{ flexDirection: 'row', width: '100%', paddingHorizontal: 16, paddingRight: 8, borderWidth: 2, borderColor: '#726E70', borderRadius: 15, height: 54, alignItems: 'center' }}>
                             <TextInput
                                 ref={inputRef}
                                 style={{ flex: 1, width: '100%', fontWeight: '600', fontSize: 18, color: 'black' }}
@@ -153,13 +164,17 @@ const PurposeProfileScreen = ({ navigation, route }) => {
                                 onChangeText={setTagName}
                                 onEndEditing={onAddTag}
                             />
+                            <TouchableOpacity onPress={onAddTag} style={{ height: 34, borderRadius: 17, alignItems: 'center', flexDirection: 'row', gap: 10, width: 34, justifyContent: 'center', backgroundColor: '#FFAB48' }}>
+                                <Image style={{ width: 16, height: 16 }} source={images.add_tag} contentFit='contain' />
+                                {/* <Text style={{ fontWeight: 'bold', color: 'black', fontSize: 14 }}>Add tag</Text> */}
+                            </TouchableOpacity>
                         </View>
-                        <View style={{ width: '100%', alignItems: 'flex-end' }}>
+                        {/* <View style={{ width: '100%', alignItems: 'flex-end' }}>
                             <TouchableOpacity onPress={onAddTag} style={{ height: 34, borderRadius: 17, alignItems: 'center', flexDirection: 'row', gap: 10, paddingHorizontal: 16, backgroundColor: '#FFAB48' }}>
                                 <Image style={{ width: 16, height: 16 }} source={images.add_tag} contentFit='contain' />
                                 <Text style={{ fontWeight: 'bold', color: 'black', fontSize: 14 }}>Add tag</Text>
                             </TouchableOpacity>
-                        </View>
+                        </View> */}
                         <View style={{ width: '100%', gap: 5 }}>
                             {
                                 tags.map((item, index) => (
@@ -179,7 +194,7 @@ const PurposeProfileScreen = ({ navigation, route }) => {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={{ flex: 1, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FF8B8B' }}>
                     <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Discard</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={onSave} disabled={tags.length === 0} style={{ flex: 1, flexDirection: 'row', gap: 5, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: tags.length === 0 ? '#9A9A9A' : '#333333', }}>
+                <TouchableOpacity onPress={onSave} disabled={tags.length === 0 || loading} style={{ flex: 1, flexDirection: 'row', gap: 5, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: tags.length === 0 ? '#9A9A9A' : '#333333', }}>
                     <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Save</Text>
                     {loading && <ActivityIndicator color='white' size='small' />}
                 </TouchableOpacity>

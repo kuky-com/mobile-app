@@ -1,9 +1,11 @@
 import { userAtom } from '@/actions/global'
+import { useAlert } from '@/components/AlertProvider'
 import Text from '@/components/Text'
 import apiClient from '@/utils/apiClient'
 import constants from '@/utils/constants'
 import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
+import { capitalize } from '@/utils/utils'
 import { Image } from 'expo-image'
 import { StatusBar } from 'expo-status-bar'
 import { useAtom } from 'jotai'
@@ -32,6 +34,7 @@ const DislikeUpdateScreen = ({ navigation, route }) => {
     const inputRef = useRef()
     const [currentUser, setCurrentUser] = useAtom(userAtom)
     const [loading, setLoading] = useState(false)
+    const showAlert = useAlert()
 
     const onAddNewTag = () => {
         Keyboard.dismiss()
@@ -61,12 +64,21 @@ const DislikeUpdateScreen = ({ navigation, route }) => {
         try {
             Keyboard.dismiss()
             setLoading(true)
-            const dislikeNames = tags.map((item) => item.name)
+            const dislikeNames = tags.map((item) => capitalize(item.name))
 
             const res = await apiClient.post('interests/update-dislikes', { dislikes: dislikeNames })
 
             if (res && res.data && res.data.success) {
-                Toast.show({ text1: 'Your dislike information has been updated!', type: 'success' })
+                if (res.data.data && res.data.data.length < dislikeNames.length) {
+                    // Toast.show({text2: `Oops! That doesn't look like an English word. Please try again.`, type: 'error'})
+                    const newTags = res.data.data.map((item) => ({ name: item.interest.name }))
+                    setTags(newTags)
+                    showAlert('', `Oops! That doesn't look like an English word. Please try again.`, [{ text: 'Ok' }])
+                    setLoading(false)
+                    return
+                } else {
+                    Toast.show({ text1: 'Your interest information has been updated!', type: 'success' })
+                }
 
                 apiClient.get('interests/profile-tag')
                     .then((res) => {
@@ -150,7 +162,7 @@ const DislikeUpdateScreen = ({ navigation, route }) => {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={{ flex: 1, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FF8B8B' }}>
                     <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Discard</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={onSave} disabled={tags.length === 0} style={{ gap: 5, flexDirection: 'row', flex: 1, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: tags.length === 0 ? '#9A9A9A' : '#333333', }}>
+                <TouchableOpacity onPress={onSave} disabled={loading} style={{ gap: 5, flexDirection: 'row', flex: 1, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: loading ? '#9A9A9A' : '#333333', }}>
                     <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Save</Text>
                     {loading && <ActivityIndicator size='small' color='white' />}
                 </TouchableOpacity>

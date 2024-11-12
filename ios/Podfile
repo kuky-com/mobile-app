@@ -28,7 +28,7 @@ self.define_singleton_method(use_autolinking_method_symbol) do |*args|
   end
 end
 
-platform :ios, podfile_properties['ios.deploymentTarget'] || '13.4'
+platform :ios, podfile_properties['ios.deploymentTarget'] || '15.4'
 install! 'cocoapods',
   :deterministic_uuids => false
 use_frameworks! :linkage => :static
@@ -38,6 +38,9 @@ prepare_react_native_project!
 
 target 'Kuky' do
   use_expo_modules!
+
+  pod 'ffmpeg-kit-react-native', :subspecs => ['full'], :podspec => '../node_modules/ffmpeg-kit-react-native/ffmpeg-kit-react-native.podspec'
+  
   config = use_native_modules!
 
   use_frameworks! :linkage => podfile_properties['ios.useFrameworks'].to_sym if podfile_properties['ios.useFrameworks']

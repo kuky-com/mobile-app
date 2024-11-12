@@ -1,9 +1,11 @@
 import { userAtom } from '@/actions/global'
+import { useAlert } from '@/components/AlertProvider'
 import Text from '@/components/Text'
 import apiClient from '@/utils/apiClient'
 import constants from '@/utils/constants'
 import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
+import { capitalize } from '@/utils/utils'
 import { Image } from 'expo-image'
 import { StatusBar } from 'expo-status-bar'
 import { useAtom } from 'jotai'
@@ -28,10 +30,11 @@ const InterestUpdateScreen = ({ navigation, route }) => {
     const { likes, onUpdated } = route.params
     const insets = useSafeAreaInsets()
     const [keyword, setKeyword] = useState('')
-    const [tags, setTags] = useState(likes.map((item) => ({name: item.name})))
+    const [tags, setTags] = useState(likes.map((item) => ({ name: item.name })))
     const inputRef = useRef()
     const [currentUser, setCurrentUser] = useAtom(userAtom)
     const [loading, setLoading] = useState(false)
+    const showAlert = useAlert()
 
     const onAddNewTag = () => {
         Keyboard.dismiss()
@@ -47,7 +50,7 @@ const InterestUpdateScreen = ({ navigation, route }) => {
                 }, 100);
             }
         } else {
-            Toast.show({text1: 'Your interest should be at least 2 characters long. Please try again!', type: 'error'})
+            Toast.show({ text1: 'Your interest should be at least 2 characters long. Please try again!', type: 'error' })
         }
     }
 
@@ -61,12 +64,21 @@ const InterestUpdateScreen = ({ navigation, route }) => {
         try {
             Keyboard.dismiss()
             setLoading(true)
-            const likeNames = tags.map((item) => item.name)
+            const likeNames = tags.map((item) => capitalize(item.name))
 
             const res = await apiClient.post('interests/update-likes', { likes: likeNames })
 
             if (res && res.data && res.data.success) {
-                Toast.show({ text1: 'Your interest information has been updated!', type: 'success' })
+                if (res.data.data && res.data.data.length < likeNames.length) {
+                    // Toast.show({text2: `Oops! That doesn't look like an English word. Please try again.`, type: 'error'})
+                    const newTags = res.data.data.map((item) => ({ name: item.interest.name }))
+                    setTags(newTags)
+                    showAlert('', `Oops! That doesn't look like an English word. Please try again.`, [{ text: 'Ok' }])
+                    setLoading(false)
+                    return
+                } else {
+                    Toast.show({ text1: 'Your interest information has been updated!', type: 'success' })
+                }
 
                 apiClient.get('interests/profile-tag')
                     .then((res) => {
@@ -106,7 +118,7 @@ const InterestUpdateScreen = ({ navigation, route }) => {
                 </TouchableOpacity>
             }
             <KeyboardAwareScrollView style={{ flex: 1, width: '100%' }}>
-                <View style={{ flex: 1, width: Platform.isPad ? 600 : '100%', alignSelf: 'center', gap: 24  }}>
+                <View style={{ flex: 1, width: Platform.isPad ? 600 : '100%', alignSelf: 'center', gap: 24 }}>
                     <View style={{ justifyContent: 'center', alignItems: 'center', gap: 8 }}>
                         <Image source={images.interest_icon} style={{ width: 20, height: 20 }} contentFit='contain' />
                         <Text style={{ color: '#E8FF58', fontSize: 18, fontWeight: '600', textAlign: 'center' }}>Interests and hobbies</Text>
@@ -126,9 +138,9 @@ const InterestUpdateScreen = ({ navigation, route }) => {
                             ref={inputRef}
                             autoFocus
                         />
-                            <TouchableOpacity onPress={onAddNewTag} style={{ width: 30, height: 30, alignItems: 'center', justifyContent: 'center' }}>
-                                <Image source={images.plus_icon} style={{ width: 20, height: 20, tintColor: '#725ED4' }} contentFit='contain' />
-                            </TouchableOpacity>
+                        <TouchableOpacity onPress={onAddNewTag} style={{ width: 30, height: 30, alignItems: 'center', justifyContent: 'center' }}>
+                            <Image source={images.plus_icon} style={{ width: 20, height: 20, tintColor: '#725ED4' }} contentFit='contain' />
+                        </TouchableOpacity>
                     </View>
                     <View style={{ flex: 1, width: '100%', justifyContent: 'flex-start', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16, flexDirection: 'row' }}>
                         {
@@ -151,7 +163,7 @@ const InterestUpdateScreen = ({ navigation, route }) => {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={{ flex: 1, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FF8B8B' }}>
                     <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Discard</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={onSave} disabled={tags.length === 0} style={{ flex: 1, gap: 5, flexDirection: 'row', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: tags.length === 0 ? '#9A9A9A' : '#333333', }}>
+                <TouchableOpacity onPress={onSave} disabled={tags.length === 0 || loading} style={{ flex: 1, gap: 5, flexDirection: 'row', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: tags.length === 0 ? '#9A9A9A' : '#333333', }}>
                     <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Save</Text>
                     {loading && <ActivityIndicator size='small' color='white' />}
                 </TouchableOpacity>

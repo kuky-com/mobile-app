@@ -18,6 +18,7 @@ import Toast from 'react-native-toast-message'
 import Purchases from 'react-native-purchases'
 import NavigationService from '@/utils/NavigationService'
 import AvatarImage from '@/components/AvatarImage'
+import { useAlert } from '@/components/AlertProvider'
 
 const styles = StyleSheet.create({
     container: {
@@ -112,6 +113,7 @@ const MessageScreen = ({ navigation, route }) => {
     const [currentConversation, setCurrentConversation] = useState(conversation)
     const appState = useRef(AppState.currentState);
     const [loading, setLoading] = useState(false)
+    const showAlert = useAlert()
 
     const loadSubscriptionInfo = async () => {
         try {
@@ -136,8 +138,6 @@ const MessageScreen = ({ navigation, route }) => {
         loadSubscriptionInfo()
     }, [])
 
-
-
     useEffect(() => {
         const subscription = AppState.addEventListener('change', nextAppState => {
             if (
@@ -156,7 +156,20 @@ const MessageScreen = ({ navigation, route }) => {
     }, []);
 
     useEffect(() => {
+        if(!currentUser?.profile_approved) {
+            showAlert('Your account is almost ready!', 'While we complete the approval, feel free to browse and get familiar with other profiles. You’ll be connecting soon!', [
+                {
+                    text: 'Keep Exploring', onPress: () => {
+                        navigation.goBack()
+                    }
+                }
+            ], () => {
+                navigation.goBack()
+            })
+        }
+    }, [currentUser])
 
+    useEffect(() => {
         if (!conversation.profile) {
             setLoading(true)
             apiClient.post('matches/conversation', { conversation_id: conversation.conversation_id })
