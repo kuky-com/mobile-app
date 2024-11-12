@@ -62,6 +62,7 @@ import { useAppUpdateAlert } from '@/components/AppUpdateAlert';
 import dayjs from 'dayjs';
 import OnboardingVideoTutorialScreen from './onboarding/OnboardingVideoTutorialScreen';
 import VideoProcessingScreen from './onboarding/VideoProcessingScreen';
+import VideoUpdateScreen from './profile/VideoUpdateScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -595,6 +596,7 @@ const AppStack = ({ navgation }) => {
             <Stack.Screen name="ProfileApprovedScreen" component={ProfileApprovedScreen} />
             <Stack.Screen name="ProfileRejectScreen" component={ProfileRejectScreen} />
             <Stack.Screen name="VideoProcessingScreen" component={VideoProcessingScreen} />
+            <Stack.Screen name="VideoUpdateScreen" component={VideoUpdateScreen} />
         </Stack.Navigator>
     );
 };

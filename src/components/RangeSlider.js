@@ -1,8 +1,8 @@
-import React, {useState} from 'react';
-import {View, PanResponder, Dimensions, StyleSheet} from 'react-native';
+import React, { useState } from 'react';
+import { View, PanResponder, Dimensions, StyleSheet } from 'react-native';
 import Text from './Text';
 
-const RangeSlider = ({low, high, min, max, onChangeValue}) => {
+const RangeSlider = ({ low, high, min, max, onChangeValue }) => {
   const trackWidth = Dimensions.get('screen').width - 64;
   const normalizeMax = Number.isNaN(max) ? 0 : max;
   const [showLowTooltip, setShowLowTooltip] = useState(false);
@@ -22,7 +22,7 @@ const RangeSlider = ({low, high, min, max, onChangeValue}) => {
       );
 
       if (onChangeValue) {
-        onChangeValue(newLowValue, high);
+        onChangeValue(Math.min(newLowValue, high - 1), high);
       }
     },
     onPanResponderRelease: () => setShowLowTooltip(false),
@@ -42,7 +42,7 @@ const RangeSlider = ({low, high, min, max, onChangeValue}) => {
       );
 
       if (onChangeValue) {
-        onChangeValue(low, newHighValue);
+        onChangeValue(low, Math.max(newHighValue, low + 1));
       }
     },
     onPanResponderRelease: () => setShowHighTooltip(false),
@@ -53,12 +53,12 @@ const RangeSlider = ({low, high, min, max, onChangeValue}) => {
       <View style={styles.sliderContainer}>
         <View style={styles.track}>
           <View
-            style={[styles.trackSegment, {backgroundColor: 'transparent', flex: low}]}
+            style={[styles.trackSegment, { backgroundColor: 'transparent', flex: low }]}
           />
           <View
             style={[
               styles.trackSegment,
-              {backgroundColor: '#C0C0C0', flex: Math.max(high - low, 0)},
+              { backgroundColor: '#C0C0C0', flex: Math.max(high - low, 0) },
             ]}
           />
           <View
@@ -87,17 +87,27 @@ const RangeSlider = ({low, high, min, max, onChangeValue}) => {
         )}
         <View
           style={[
-            styles.thumb,
             {
+              position: 'absolute',
+              width: thumbWidth + 12,
+              justifyContent: 'center', alignItems: 'center',
               left: `${(low / (normalizeMax - min)) * 100}%`,
               marginLeft: -2,
               zIndex: low < max ? 2 : 5,
-              borderTopLeftRadius: 3,
-              borderBottomLeftRadius: 3
+              
             },
           ]}
           {...panResponderLow.panHandlers}
-        />
+        >
+          <View style={[
+            {
+              borderTopLeftRadius: 3,
+              borderBottomLeftRadius: 3,
+              backgroundColor: '#333333', width: thumbWidth, height: thumbHeight,
+              marginLeft: -10
+            },
+          ]} />
+        </View>
         {showHighTooltip && (
           <View
             style={[
@@ -108,30 +118,37 @@ const RangeSlider = ({low, high, min, max, onChangeValue}) => {
               },
             ]}>
             <Text style={styles.tooltipText}>
-            {`00:${high.toString().padStart(2, '0')}`}
+              {`00:${high.toString().padStart(2, '0')}`}
             </Text>
           </View>
         )}
         <View
-          style={[
-            styles.thumb,
-            {
-              left: `${(high / (normalizeMax - min)) * 100}%`,
-              marginLeft: -thumbWidth + 1,
-              zIndex: low < max ? 5 : 2,
-              borderTopRightRadius: 3,
-              borderBottomRightRadius: 3
-            },
-          ]}
+          style={{
+            left: `${(high / (normalizeMax - min)) * 100}%`,
+            marginLeft: -thumbWidth,
+            zIndex: low < max ? 5 : 2,
+            position: 'absolute',
+            width: thumbWidth + 12,
+            justifyContent: 'center', alignItems: 'center'
+          }}
           {...panResponderHigh.panHandlers}
-        />
+        >
+          <View style={[
+            {
+              borderTopRightRadius: 3,
+              borderBottomRightRadius: 3,
+              backgroundColor: '#333333', width: thumbWidth, height: thumbHeight,
+              marginRight: 10
+            },
+          ]} />
+        </View>
       </View>
     </View>
   );
 };
 
 export const thumbWidth = 12;
-export const thumbHeight = 30;
+export const thumbHeight = 40;
 
 const styles = StyleSheet.create({
   container: {
@@ -142,7 +159,7 @@ const styles = StyleSheet.create({
   sliderContainer: {
     width: '85%',
     position: 'relative',
-    height: 32, borderWidth: 1, borderColor: '#333333',
+    height: thumbHeight + 4, borderWidth: 2, borderColor: '#333333',
     borderRadius: 5
   },
   track: {

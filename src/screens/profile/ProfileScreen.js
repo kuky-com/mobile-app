@@ -55,21 +55,6 @@ const ProfileScreen = ({ navigation }) => {
     const [playing, setPlaying] = useState(false)
     const videoRef = useRef(null)
 
-    // const getSubscriptionInfo = async () => {
-    //     try {
-    //         const customerInfo = await Purchases.getCustomerInfo();
-    //         console.log({ customerInfo })
-    //         if (customerInfo && customerInfo.latestExpirationDate && dayjs().isBefore(dayjs(customerInfo.latestExpirationDate))) {
-    //             setExpiredDate(dayjs(customerInfo.latestExpirationDate).format('DD MMM YYYY'))
-    //         } else {
-    //             setExpiredDate(null)
-    //         }
-    //     } catch (e) {
-    //         console.log({ e })
-    //         setExpiredDate(null)
-    //     }
-    // }
-
     useEffect(() => {
         onRefresh()
     }, [])
@@ -175,6 +160,10 @@ const ProfileScreen = ({ navigation }) => {
         }
     }
 
+    const openEditVideo = () => {
+        navigation.push('VideoUpdateScreen')
+    }
+
     return (
         <View style={styles.container}>
             <StatusBar translucent style='dark' />
@@ -227,15 +216,63 @@ const ProfileScreen = ({ navigation }) => {
                                     </TouchableOpacity>
                                     <Text style={{ fontSize: 24, color: 'black', fontWeight: 'bold', flex: 1 }}>{`${currentUser?.full_name}`}</Text>
                                 </View>
-                                <View style={{ backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
-                                    <Text style={{ color: '#E8FF58', fontSize: 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>
+                                <View style={{ maxWidth: '50%', backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
+                                    <Text style={{ color: '#E8FF58', textAlign: 'center', fontSize: (currentUser?.tag?.name ?? '').length > 20 ? 12 : 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>
                                 </View>
                             </View>
-                            <View style={{ justifyContent: 'space-between', width: Math.min(Dimensions.get('screen').width - 32, 600), height: Math.min(Dimensions.get('screen').width + 60, 750), borderRadius: 20, overflow: 'hidden' }}>
-                                <AvatarImage avatar={currentUser?.avatar} full_name={currentUser?.full_name} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} />
-                                <TouchableOpacity onPress={openEditAvatar} style={{ position: 'absolute', top: 16, right: 16, width: 30, height: 30, alignItems: 'center', justifyContent: 'center', borderRadius: 15, backgroundColor: colors.mainColor, borderWidth: 1, borderColor: '#E8FF58' }}>
-                                    <Image source={images.edit_icon} style={{ width: 15, height: 15, tintColor: '#E8FF58' }} />
-                                </TouchableOpacity>
+                            <View style={{ backgroundColor: '#725ED4', paddingHorizontal: 24, paddingVertical: 8, justifyContent: 'space-between', width: Math.min(Dimensions.get('screen').width - 32, 600), height: Math.min(Dimensions.get('screen').width + 60, 750), borderRadius: 20, overflow: 'hidden' }}>
+                                <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
+                                    <Image source={images.update_video} style={{ width: 18, height: 18, tintColor: 'white' }} contentFit='contain' />
+                                    <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>Update my video</Text>
+                                </View>
+                                <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} />
+                                <View style={{  flex: 1, marginTop: 16, marginBottom: 8, alignItems: 'center', justifyContent: 'center' }}>
+                                    {
+                                        currentUser?.video_intro &&
+                                        <Video
+                                            style={{ borderWidth: 2, borderColor: '#CDB8E2', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }}
+                                            ref={videoRef}
+                                            source={{ uri: currentUser?.video_intro }}
+                                            resizeMode={ResizeMode.COVER}
+                                            onPlaybackStatusUpdate={status => {
+                                                setPlaying(status.isPlaying)
+                                            }}
+                                            positionMillis={500}
+                                        />
+                                    }
+                                    <TouchableOpacity onPress={openEditVideo} style={{ position: 'absolute', top: 16, right: 16, width: 30, height: 30, alignItems: 'center', justifyContent: 'center', borderRadius: 15, backgroundColor: colors.mainColor, borderWidth: 1, borderColor: '#E8FF58' }}>
+                                        <Image source={images.edit_icon} style={{ width: 15, height: 15, tintColor: '#E8FF58' }} />
+                                    </TouchableOpacity>
+                                    {
+                                        !playing && currentUser?.video_intro &&
+                                        <TouchableOpacity onPress={playVideo} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
+                                            <Image source={images.play_button} style={{ width: 40, height: 40 }} />
+                                        </TouchableOpacity>
+                                    }
+                                    {
+                                        playing && currentUser?.video_intro &&
+                                        <TouchableOpacity onPress={pauseVideo} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
+                                            <View style={{ backgroundColor: '#725ED4', position: 'absolute', top: 10, left: 10, right: 10, bottom: 10 }} />
+                                            <Image source={images.pause_icon} style={{ width: 40, height: 40 }} />
+                                        </TouchableOpacity>
+                                    }
+                                    {
+                                        !currentUser?.video_intro &&
+                                        <Text style={{ color: 'white', fontSize: 14, fontWeight: 'bold' }}>No profile video.</Text>
+                                    }
+                                </View>
+                            </View>
+                            <View style={{ backgroundColor: '#725ED4', paddingHorizontal: 24, paddingVertical: 8, justifyContent: 'space-between', width: Math.min(Dimensions.get('screen').width - 32, 600), height: Math.min(Dimensions.get('screen').width + 60, 750), borderRadius: 20, overflow: 'hidden' }}>
+                                <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
+                                    <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>Profile picture</Text>
+                                </View>
+                                <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} />
+                                <View style={{ flex: 1, marginTop: 16, marginBottom: 8 }}>
+                                    <AvatarImage avatar={currentUser?.avatar} full_name={currentUser?.full_name} style={{ borderWidth: 2, borderColor: '#CDB8E2', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} />
+                                    <TouchableOpacity onPress={openEditAvatar} style={{ position: 'absolute', top: 16, right: 16, width: 30, height: 30, alignItems: 'center', justifyContent: 'center', borderRadius: 15, backgroundColor: colors.mainColor, borderWidth: 1, borderColor: '#E8FF58' }}>
+                                        <Image source={images.edit_icon} style={{ width: 15, height: 15, tintColor: '#E8FF58' }} />
+                                    </TouchableOpacity>
+                                </View>
                             </View>
                             <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
                                 <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'flex-start' }}>
@@ -357,16 +394,16 @@ const ProfileScreen = ({ navigation }) => {
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1 }}>
                                     <Text style={{ fontSize: 24, color: 'black', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text>
                                 </View>
-                                <View style={{ backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
-                                    <Text style={{ color: '#E8FF58', fontSize: 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>
+                                <View style={{ maxWidth: '50%', backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
+                                    <Text style={{ color: '#E8FF58', textAlign: 'center', fontSize: (currentUser?.tag?.name ?? '').length > 20 ? 12 : 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>
                                 </View>
                             </View>
                             <View style={{ justifyContent: 'flex-end', width: Math.min(Dimensions.get('screen').width - 32, 600), height: Math.min(Dimensions.get('screen').width + 60, 750), borderRadius: 20, overflow: 'hidden' }}>
-                                {!playing && <AvatarImage avatar={currentUser?.avatar} full_name={currentUser?.full_name} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} />}
+                                {!playing && <AvatarImage avatar={currentUser?.avatar} full_name={currentUser?.full_name} style={{ borderWidth: 2, borderColor: '#CDB8E2', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} />}
                                 {
                                     currentUser?.video_intro &&
                                     <Video
-                                        style={{ display: playing ? 'flex' : 'none', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 10 }}
+                                        style={{ borderWidth: 2, borderColor: '#CDB8E2', display: playing ? 'flex' : 'none', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 10 }}
                                         ref={videoRef}
                                         source={{ uri: currentUser?.video_intro }}
                                         resizeMode={ResizeMode.COVER}

@@ -336,7 +336,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                         <View style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
                             <View style={{ width: '100%', alignItems: 'flex-end', padding: 16 }}>
                                 <View style={styles.tagContainer}>
-                                    <Text style={styles.tagText}>{currentProfile?.tag?.name}</Text>
+                                    <Text style={[styles.tagText, {fontSize: (currentProfile?.tag?.name ?? '').length > 20 ? 13 : 15}]}>{currentProfile?.tag?.name}</Text>
                                 </View>
                             </View>
                             <View style={{ flex: 1, width: '100%', justifyContent: 'flex-end', paddingBottom: 25, paddingHorizontal: 16, gap: 16 }}>

@@ -66,16 +66,18 @@ const styles = StyleSheet.create({
     tagContainer: {
         backgroundColor: '#7B65E8',
         position: 'absolute',
-        height: 22, borderRadius: 11,
+        paddingVertical: 5, borderRadius: 11,
         justifyContent: 'center',
         paddingHorizontal: 10,
         top: 8,
-        right: 3
+        right: 3,
+        maxWidth: '80%'
     },
     tagText: {
         color: '#E8FF58',
         fontSize: 8,
         fontWeight: 'bold',
+        textAlign: 'center'
     },
     name: {
         fontWeight: 'bold',

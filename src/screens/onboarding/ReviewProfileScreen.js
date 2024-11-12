@@ -118,7 +118,13 @@ const ReviewProfileScreen = ({ navigation, route }) => {
     const continueProfile = async () => {
         try {
             setLoading(true)
-            apiClient.post('users/update', { birthday, location, full_name: fullName, video_intro: userInfo.video_intro })
+
+            let videoUrl = null
+            if (userInfo && userInfo.videoIntro && userInfo.videoIntro.https) {
+                videoUrl = userInfo.videoIntro.https
+            }
+
+            apiClient.post('users/update', { birthday, location, full_name: fullName, video_intro: videoUrl })
                 .then((res) => {
                     setLoading(false)
                     if (res && res.data && res.data.success) {

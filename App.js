@@ -22,6 +22,9 @@ import { AEMReporterIOS, AppEventsLogger, Settings } from 'react-native-fbsdk-ne
 import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
 import { AlertProvider } from '@/components/AlertProvider';
 import { AppUpdateAlertProvider } from '@/components/AppUpdateAlert';
+import { Amplify } from 'aws-amplify';
+import amplifyconfig from './src/amplifyconfiguration.json';
+Amplify.configure(amplifyconfig);
 
 Smartlook.instance.preferences.setProjectKey(
   '6bebfbc50c0aedc486a2766bc51c24d0d2b4a13f'

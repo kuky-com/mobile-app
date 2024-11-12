@@ -52,6 +52,9 @@ const play_button = require('../assets/images/play_button.png')
 const pause_icon = require('../assets/images/pause_icon.png')
 const play_icon = require('../assets/images/play_icon.png')
 const processing = require('../assets/animations/processing.gif')
+const camera_icon = require('../assets/images/camera_icon.png')
+const video_thumb = require('../assets/images/video_thumb.png')
+const update_video = require('../assets/images/update_video.png')
 
 export default {
     logo_text,
@@ -109,5 +112,8 @@ export default {
     play_button,
     pause_icon,
     play_icon,
-    processing
+    processing,
+    camera_icon,
+    video_thumb,
+    update_video
 }

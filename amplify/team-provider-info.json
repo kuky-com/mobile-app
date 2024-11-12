@@ -1,0 +1,26 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-kuky-dev-949c7-authRole",
+      "UnauthRoleArn": "arn:aws:iam::608961235058:role/amplify-kuky-dev-949c7-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::608961235058:role/amplify-kuky-dev-949c7-authRole",
+      "Region": "ap-southeast-1",
+      "DeploymentBucketName": "amplify-kuky-dev-949c7-deployment",
+      "UnauthRoleName": "amplify-kuky-dev-949c7-unauthRole",
+      "StackName": "amplify-kuky-dev-949c7",
+      "StackId": "arn:aws:cloudformation:ap-southeast-1:608961235058:stack/amplify-kuky-dev-949c7/8c7ef460-a0e5-11ef-ad9f-0a86e2d7701b",
+      "AmplifyAppId": "d3qa965xkr3vxv"
+    },
+    "categories": {
+      "auth": {
+        "kukydd36feee": {}
+      },
+      "storage": {
+        "kukyed686ad5": {
+          "bucketName": "kuky-video",
+          "region": "ap-southeast-1"
+        }
+      }
+    }
+  }
+}
