@@ -117,7 +117,7 @@ const EmailVerificationScreen = ({ navigation, route }) => {
 
                         </View>
 
-                        <View style={{ flexDirection: 'row' }}>
+                        <View style={{ flexDirection: 'row', }}>
                             <View style={{ flex: 1, gap: 16 }}>
                                 <Text style={{ color: '#726E70', fontSize: 15, width: '100%', flex: 1 }}>{`Did't get a code? `}
                                     <Text onPress={onResend} style={{ color: '#5E30C1' }}>Resend</Text>

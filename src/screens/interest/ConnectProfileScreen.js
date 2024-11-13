@@ -453,7 +453,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
 
                     {(currentProfile?.purposes ?? []).length > 0 &&
                         <View style={{ width: '100%' }}>
-                            <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
+                            <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12, alignItems: 'center' }}>
                                 <Image source={images.interest_icon} style={{ width: 16, height: 16, tintColor: 'black' }} contentFit='contain' />
                                 <Text style={{ color: 'black', fontSize: 14, fontWeight: 'bold' }}>Journeys & Purposes</Text>
                             </View>
@@ -473,7 +473,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                     }
                     {userInterests.length > 0 &&
                         <View style={{ width: '100%' }}>
-                            <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
+                            <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12, alignItems: 'center' }}>
                                 <Image source={images.interest_icon} style={{ width: 16, height: 16, tintColor: 'black' }} contentFit='contain' />
                                 <Text style={{ color: 'black', fontSize: 14, fontWeight: 'bold' }}>Interest and hobbies</Text>
                             </View>
@@ -495,7 +495,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
 
                     {userDislikes.length > 0 &&
                         <View style={{ width: '100%', borderRadius: 10 }}>
-                            <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
+                            <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12, alignItems: 'center' }}>
                                 <Image source={images.dislike_icon} style={{ width: 16, height: 16, tintColor: 'black' }} contentFit='contain' />
                                 <Text style={{ color: 'black', fontSize: 14, fontWeight: 'bold' }}>Dislike</Text>
                             </View>

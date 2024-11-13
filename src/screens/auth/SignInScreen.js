@@ -221,7 +221,7 @@ const SignInScreen = ({ navigation }) => {
                                 keyboardType='email-address'
                             />
                         </View>
-                        <View style={{ flexDirection: 'row', width: '100%', paddingHorizontal: 24, paddingVertical: 16, borderRadius: 15, borderWidth: 2, borderColor: '#726E70' }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', paddingHorizontal: 24, paddingVertical: 16, borderRadius: 15, borderWidth: 2, borderColor: '#726E70' }}>
                             <TextInput
                                 placeholder='Password'
                                 placeholderTextColor='#AAAAAA'
