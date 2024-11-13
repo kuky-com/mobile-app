@@ -3,7 +3,7 @@ import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import React, { useEffect, useState } from 'react'
-import { Dimensions, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
+import { Dimensions, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
@@ -14,10 +14,9 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: 'white',
-        paddingHorizontal: 16,
         alignItems: 'flex-start',
         justifyContent: 'center',
-        gap: 24
+        gap: 24, paddingHorizontal: 24
     },
     imageContainer: {
         backgroundColor: '#ECECEC', borderRadius: 20, alignItems: 'center',
@@ -49,7 +48,7 @@ const OnboardingVideoTutorialScreen = ({ navigation, route }) => {
     }
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 16 }]}>
+        <View style={[styles.container, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 16 }]}>
             <StatusBar translucent style='dark' />
             {/* {
                 !onboarding &&
@@ -57,28 +56,31 @@ const OnboardingVideoTutorialScreen = ({ navigation, route }) => {
                     <Image source={images.back_icon_no_border} style={{ width: 25, height: 25 }} contentFit='contain' />
                 </TouchableOpacity>
             } */}
-            <View style={{ flex: 1, gap: 16, width: Platform.isPad ? 600 : '100%', alignSelf: 'center' }}>
+            <View style={{ flex: 1, gap: 24, width: Platform.isPad ? 600 : '100%', alignSelf: 'center' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                    <Image source={images.logo_with_text} style={{ width: 120, height: 40 }} contentFit='contain' />
+                    <Image source={images.logo_with_text} style={{ width: 100, height: 40 }} contentFit='contain' />
                     <View style={{ height: 40, borderRadius: 20, backgroundColor: '#CDB8E2', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10 }}>
                         <Text style={{ fontSize: 16, color: 'black', fontWeight: '500' }}>Video recording</Text>
                     </View>
                 </View>
-                <Text style={{ fontSize: 48, fontWeight: 'bold', color: 'black' }}>{`Now it’s time to record your video!`}</Text>
-                <View style={{flex: 1, gap: 32}}>
-                <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start' }}>
-                    <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: '#A74FFF' }} />
-                    <Text style={{ fontSize: 16, fontWeight: '500', color: 'black' }}>{`Remember to be yourself and have fun`}</Text>
-                </View>
-                <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start' }}>
-                    <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: '#A74FFF' }} />
-                    <Text style={{ fontSize: 16, fontWeight: '500', color: 'black' }}>{`Tell us your purpose & who you’d like to connect with`}</Text>
-                </View>
-                <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start' }}>
-                    <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: '#A74FFF' }} />
-                    <Text style={{ fontSize: 16, fontWeight: '500', color: 'black' }}>{`Our AI will take care of the matching for you`}</Text>
-                </View>
-                </View>
+                <ScrollView style={{ flex: 1, width: '100%' }} showsVerticalScrollIndicator={false}>
+                    <View style={{ flex: 1, gap: 32, width: '100%' }}>
+                        <Text style={{ fontSize: 48, fontWeight: 'bold', color: 'black' }}>{`Now it’s time to record your video!`}</Text>
+
+                        <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start', width: '100%' }}>
+                            <View style={{ marginTop: 4, width: 16, height: 16, borderRadius: 8, backgroundColor: '#A74FFF' }} />
+                            <Text style={{ flex: 1, lineHeight: 22, fontSize: 16, fontWeight: '500', color: 'black' }}>{`Remember to be yourself and have fun`}</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start', width: '100%' }}>
+                            <View style={{ marginTop: 4, width: 16, height: 16, borderRadius: 8, backgroundColor: '#A74FFF' }} />
+                            <Text style={{ flex: 1, lineHeight: 22, fontSize: 16, fontWeight: '500', color: 'black' }}>{`Tell us your purpose & who you’d like to connect with`}</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start', width: '100%' }}>
+                            <View style={{ marginTop: 4, width: 16, height: 16, borderRadius: 8, backgroundColor: '#A74FFF' }} />
+                            <Text style={{ flex: 1, lineHeight: 22, fontSize: 16, fontWeight: '500', color: 'black' }}>{`Our AI will take care of the matching for you`}</Text>
+                        </View>
+                    </View>
+                </ScrollView>
             </View>
             <TouchableOpacity onPress={onContinue} style={{ width: Platform.isPad ? 600 : '100%', alignSelf: 'center', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333', }}>
                 <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>{'Continue'}</Text>

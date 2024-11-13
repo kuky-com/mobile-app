@@ -3,7 +3,7 @@ import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import React, { useEffect, useRef, useState } from 'react'
-import { Dimensions, Platform, StyleSheet, TextInput, TouchableOpacity, View, } from 'react-native'
+import { Dimensions, Platform, StyleSheet, TouchableOpacity, View, } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
 import dayjs from 'dayjs'
@@ -15,6 +15,7 @@ import { useAlert } from '@/components/AlertProvider'
 import { uploadData, getUrl, } from 'aws-amplify/storage'
 import * as FileSystem from 'expo-file-system'
 import { FFmpegKit } from 'ffmpeg-kit-react-native'
+import CustomVideo from '@/components/CustomVideo'
 
 const VideoProcessingScreen = ({ navigation, route }) => {
     const insets = useSafeAreaInsets()
@@ -147,7 +148,7 @@ const VideoProcessingScreen = ({ navigation, route }) => {
     return (
         <View style={{ flex: 1, width: '100%' }}>
             <StatusBar translucent style='dark' />
-            <Video
+            <CustomVideo
                 style={{
                     width: '100%',
                     height: '100%',

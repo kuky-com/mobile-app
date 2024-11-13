@@ -3,7 +3,7 @@ import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import React, { useEffect, useRef, useState } from 'react'
-import { Dimensions, Platform, ScrollView, StyleSheet, Switch, TextInput, TouchableOpacity, View } from 'react-native'
+import { Dimensions, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ImagePicker from 'react-native-image-crop-picker'
@@ -18,6 +18,7 @@ import apiClient from '@/utils/apiClient'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import ButtonWithLoading from '@/components/ButtonWithLoading'
 import { useAlert } from '@/components/AlertProvider'
+import TextInput from '@/components/TextInput'
 
 const styles = StyleSheet.create({
     container: {

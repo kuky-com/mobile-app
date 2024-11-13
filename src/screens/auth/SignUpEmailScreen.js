@@ -4,7 +4,7 @@ import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import React, { useEffect, useState } from 'react'
-import { Alert, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
+import { Alert, Platform, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import Toast from 'react-native-toast-message'
 import { appleAuth } from '@invertase/react-native-apple-authentication'
@@ -18,6 +18,7 @@ import { getAuthenScreen } from '@/utils/utils'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import ButtonWithLoading from '@/components/ButtonWithLoading'
 import { FontAwesome5 } from '@expo/vector-icons'
+import TextInput from '@/components/TextInput'
 
 const styles = StyleSheet.create({
     container: {

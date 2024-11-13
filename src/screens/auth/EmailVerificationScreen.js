@@ -10,7 +10,7 @@ import axios from 'axios'
 import { Image } from 'expo-image'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import React, { useEffect, useState } from 'react'
-import { ActivityIndicator, Keyboard, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Keyboard, Platform, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import Toast from 'react-native-toast-message'
 

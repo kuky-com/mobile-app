@@ -4,7 +4,6 @@ import {
     Dimensions,
     StyleSheet,
     ScrollView,
-    TextInput,
     TouchableOpacity,
     View,
 } from 'react-native';
@@ -14,6 +13,7 @@ import ActionSheet, {
 } from 'react-native-actions-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Text from '../Text';
+import TextInput from '../TextInput';
 
 const styles = StyleSheet.create({
     container: {

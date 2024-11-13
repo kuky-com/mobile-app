@@ -12,25 +12,8 @@ const itemWidth = Dimensions.get('screen').width * 0.5 - 24
 const DynamicLikeItem = ({ itemWidth, item, onPress }) => {
     const [itemHeight, setItemHeight] = useState(Math.round(itemWidth * 1024 / 800));
 
-    // const onImageLoad = (id, width, height) => {
-    //     const aspectRatio = width / height;
-    //     const newHeight = itemWidth / aspectRatio;
-
-    //     setItemHeight(newHeight)
-    // };
-
-
     return (
         <TouchableOpacity onPress={() => onPress && onPress()} style={[styles.cardContainer, {width: itemWidth, height: itemHeight}]}>
-            {/* <Image
-                source={{ uri: item?.avatar }}
-                style={[styles.image, { height: itemHeight }]}
-                // onLoad={(event) => {
-                //     const { width, height } = event.nativeEvent.source;
-                //     onImageLoad(item.id, width, height);
-                // }}
-                contentFit='cover'
-            /> */}
             <AvatarImage 
                 avatar={item?.avatar}
                 full_name={item?.full_name}
@@ -45,7 +28,9 @@ const DynamicLikeItem = ({ itemWidth, item, onPress }) => {
                     colors={['transparent', 'rgba(0,0,0,0.79)']}
                     style={styles.nameBackground}
                 />
-                <Text style={styles.name}>{`${item.full_name}, ${dayjs().diff(dayjs(item.birthday, 'MM-DD-YYYY'), 'years')}`}</Text>
+                {item.birthday && item.birthday.includes('-') && <Text style={styles.name}>{`${item.full_name}, ${dayjs().diff(dayjs(item.birthday, 'MM-DD-YYYY'), 'years')}`}</Text>}
+                {item.birthday && item.birthday.includes('/') && <Text style={styles.name}>{`${item.full_name}, ${dayjs().diff(dayjs(item.birthday, 'DD/MM/YYYY'), 'years')}`}</Text>}
+                {!item.birthday && <Text style={styles.name}>{`${item.full_name}`}</Text>}
             </View>
         </TouchableOpacity>
     );

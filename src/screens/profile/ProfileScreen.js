@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Toast from 'react-native-toast-message'
 import Share from 'react-native-share'
 import { ResizeMode, Video } from 'expo-av'
+import CustomVideo from '@/components/CustomVideo'
 
 const styles = StyleSheet.create({
     container: {
@@ -149,13 +150,13 @@ const ProfileScreen = ({ navigation }) => {
             })
     }
     const playVideo = () => {
-        if (videoRef && videoRef) {
+        if (videoRef && videoRef.current) {
             videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: 0 })
         }
     }
 
     const pauseVideo = () => {
-        if (videoRef && videoRef) {
+        if (videoRef && videoRef.current) {
             videoRef.current.setStatusAsync({ shouldPlay: false })
         }
     }
@@ -229,7 +230,7 @@ const ProfileScreen = ({ navigation }) => {
                                 <View style={{  flex: 1, marginTop: 16, marginBottom: 8, alignItems: 'center', justifyContent: 'center' }}>
                                     {
                                         currentUser?.video_intro &&
-                                        <Video
+                                        <CustomVideo
                                             style={{ borderWidth: 2, borderColor: '#CDB8E2', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }}
                                             ref={videoRef}
                                             source={{ uri: currentUser?.video_intro }}
@@ -237,7 +238,6 @@ const ProfileScreen = ({ navigation }) => {
                                             onPlaybackStatusUpdate={status => {
                                                 setPlaying(status.isPlaying)
                                             }}
-                                            positionMillis={500}
                                         />
                                     }
                                     <TouchableOpacity onPress={openEditVideo} style={{ position: 'absolute', top: 16, right: 16, width: 30, height: 30, alignItems: 'center', justifyContent: 'center', borderRadius: 15, backgroundColor: colors.mainColor, borderWidth: 1, borderColor: '#E8FF58' }}>
@@ -279,7 +279,8 @@ const ProfileScreen = ({ navigation }) => {
                                     <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
                                         <Image source={images.birthday_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
                                     </View>
-                                    <Text style={{ fontSize: 14, color: 'black' }}>{`${dayjs().diff(dayjs(currentUser?.birthday, 'MM-DD-YYYY'), 'years')} yrs`}</Text>
+                                    {currentUser?.birthday && currentUser?.birthday.includes('/') && <Text style={{ fontSize: 14, color: 'black' }}>{`${dayjs().diff(dayjs(currentUser?.birthday, 'DD/MM/YYYY'), 'years')} yrs`}</Text>}
+                                    {currentUser?.birthday && currentUser?.birthday.includes('-') && <Text style={{ fontSize: 14, color: 'black' }}>{`${dayjs().diff(dayjs(currentUser?.birthday, 'MM-DD-YYYY'), 'years')} yrs`}</Text>}
                                 </View>
 
                                 <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'center' }}>
@@ -402,7 +403,7 @@ const ProfileScreen = ({ navigation }) => {
                                 {!playing && <AvatarImage avatar={currentUser?.avatar} full_name={currentUser?.full_name} style={{ borderWidth: 2, borderColor: '#CDB8E2', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} />}
                                 {
                                     currentUser?.video_intro &&
-                                    <Video
+                                    <CustomVideo
                                         style={{ borderWidth: 2, borderColor: '#CDB8E2', display: playing ? 'flex' : 'none', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 10 }}
                                         ref={videoRef}
                                         source={{ uri: currentUser?.video_intro }}
@@ -435,7 +436,8 @@ const ProfileScreen = ({ navigation }) => {
                                     <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
                                         <Image source={images.birthday_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
                                     </View>
-                                    <Text style={{ fontSize: 14, color: 'black' }}>{`${dayjs().diff(dayjs(currentUser?.birthday, 'MM-DD-YYYY'), 'years')} yrs`}</Text>
+                                    {currentUser?.birthday && currentUser?.birthday.includes('/') && <Text style={{ fontSize: 14, color: 'black' }}>{`${dayjs().diff(dayjs(currentUser?.birthday, 'DD/MM/YYYY'), 'years')} yrs`}</Text>}
+                                    {currentUser?.birthday && currentUser?.birthday.includes('-') && <Text style={{ fontSize: 14, color: 'black' }}>{`${dayjs().diff(dayjs(currentUser?.birthday, 'MM-DD-YYYY'), 'years')} yrs`}</Text>}
                                 </View>
 
                                 <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'center' }}>

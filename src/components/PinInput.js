@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
-import { View, TextInput, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import TextInput from "./TextInput";
 
 const styles = StyleSheet.create({
   container: {

@@ -3,7 +3,7 @@ import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, Dimensions, Linking, Platform, StyleSheet, TextInput, TouchableOpacity, View, } from 'react-native'
+import { ActivityIndicator, Dimensions, Linking, Platform, StyleSheet, TouchableOpacity, View, } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ImagePicker from 'react-native-image-crop-picker'
@@ -18,6 +18,7 @@ import * as FileSystem from 'expo-file-system'
 import { FFmpegKit } from 'ffmpeg-kit-react-native'
 import ButtonWithLoading from '@/components/ButtonWithLoading'
 import Slider from '@react-native-community/slider'
+import CustomVideo from '@/components/CustomVideo'
 
 const styles = StyleSheet.create({
     container: {
@@ -266,7 +267,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
                             </View>
                         }
                         {videoUrl &&
-                            <Video
+                            <CustomVideo
                                 style={{
                                     width: '100%',
                                     height: '100%',
@@ -337,7 +338,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
                                 />
                                 <View style={{ flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
                                     <View style={{ height: 22, borderRadius: 11, paddingHorizontal: 5, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' }}>
-                                        <Text style={{ fontSize: 11, color: 'black', fontWeight: '600' }}>{`00:00`}</Text>
+                                        <Text style={{ fontSize: 11, color: 'black', fontWeight: '600' }}>{`00:${timer.toString().padStart(2, '0')}`}</Text>
                                     </View>
                                     <View style={{ height: 22, borderRadius: 11, paddingHorizontal: 5, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' }}>
                                         <Text style={{ fontSize: 11, color: 'black', fontWeight: '600' }}>{`00:${MAX_DURATION}`}</Text>
@@ -384,7 +385,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
                 </View>
             </View>
             {
-                ((permission && !permission.granted) || ((audioPermission && !audioPermission.granted))) &&
+                ((permission && !permission.granted) || (audioPermission && !audioPermission.granted)) &&
                 <View style={[StyleSheet.absoluteFill, {
                     alignItems: 'center',
                     justifyContent: 'center',

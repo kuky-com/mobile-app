@@ -3,7 +3,7 @@ import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import React, { useEffect, useState } from 'react'
-import { ActivityIndicator, DeviceEventEmitter, Dimensions, Platform, ScrollView, StyleSheet, Switch, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, DeviceEventEmitter, Dimensions, Platform, ScrollView, StyleSheet, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ImagePicker from 'react-native-image-crop-picker'
@@ -128,8 +128,11 @@ const ProfileTagScreen = ({ navigation, route }) => {
                             colors={['transparent', 'rgba(0,0,0,0.79)']}
                             style={styles.nameBackground}
                         />
-                        <Text style={styles.name}>{`${currentUser?.full_name}, ${dayjs().diff(dayjs(currentUser?.birthday, 'MM-DD-YYYY'), 'years')}`}</Text>
+                        {/* <Text style={styles.name}>{`${currentUser?.full_name}, ${dayjs().diff(dayjs(currentUser?.birthday, 'DD/MM/YYYY'), 'years')}`}</Text> */}
 
+                        {currentUser?.birthday && currentUser?.birthday.includes('-') && <Text style={styles.name}>{`${currentUser?.full_name}, ${dayjs().diff(dayjs(currentUser?.birthday, 'MM-DD-YYYY'), 'years')}`}</Text>}
+                        {currentUser?.birthday && currentUser?.birthday.includes('/') && <Text style={styles.name}>{`${currentUser?.full_name}, ${dayjs().diff(dayjs(currentUser?.birthday, 'DD/MM/YYYY'), 'years')}`}</Text>}
+                        {!currentUser?.birthday && <Text style={styles.name}>{`${currentUser?.full_name}`}</Text>}
                     </View>
                 </View>
                 <View style={{ width: Platform.isPad ? 600 : '100%', alignSelf: 'center', flexDirection: 'row', justifyContent: 'center' }}>

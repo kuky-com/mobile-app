@@ -3,14 +3,14 @@ import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, Dimensions, Linking, Platform, StyleSheet, TextInput, TouchableOpacity, View, } from 'react-native'
+import { ActivityIndicator, Dimensions, Linking, Platform, StyleSheet, TouchableOpacity, View, } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ImagePicker from 'react-native-image-crop-picker'
 import { StatusBar } from 'expo-status-bar'
 import dayjs from 'dayjs'
 import Toast from 'react-native-toast-message'
-import { CameraView, useCameraPermissions } from 'expo-camera'
+import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera'
 import LottieView from 'lottie-react-native';
 import { ResizeMode, Video } from 'expo-av'
 import RangeSlider from '@/components/RangeSlider'
@@ -22,6 +22,7 @@ import apiClient from '@/utils/apiClient'
 import { uploadData } from 'aws-amplify/storage'
 import { useAtom } from 'jotai'
 import { userAtom } from '@/actions/global'
+import CustomVideo from '@/components/CustomVideo'
 
 const styles = StyleSheet.create({
     container: {
@@ -55,6 +56,7 @@ const VideoUpdateScreen = ({ navigation, route }) => {
     const [videoUrl, setVideoUrl] = useState(null)
     const [loading, setLoading] = useState(true)
     const [permission, requestPermission] = useCameraPermissions();
+    const [audioPermission, requestAudioPermission] = useMicrophonePermissions();
     const [recording, setRecording] = useState(false)
     const cameraRef = useRef(null);
     const videoRef = useRef(null);
@@ -211,6 +213,11 @@ const VideoUpdateScreen = ({ navigation, route }) => {
             if (!res.canAskAgain && !res.granted) {
                 Linking.openSettings()
             }
+
+            const audioRes = await requestAudioPermission()
+            if (!audioRes.canAskAgain && !audioRes.granted) {
+                Linking.openSettings()
+            }
             console.log({ res })
         } catch (error) {
             console.log({ error })
@@ -228,7 +235,7 @@ const VideoUpdateScreen = ({ navigation, route }) => {
         return (
             <View style={{ flex: 1, width: '100%' }}>
                 <StatusBar translucent style='dark' />
-                {videoUrl && <Video
+                {videoUrl && <CustomVideo
                     style={{
                         width: '100%',
                         height: '100%',
@@ -263,7 +270,7 @@ const VideoUpdateScreen = ({ navigation, route }) => {
         <View style={{ flex: 1, width: '100%' }}>
             <StatusBar translucent style='dark' />
             {
-                !videoUrl &&
+                !videoUrl && permission && permission.granted && audioPermission && audioPermission.granted &&
                 <CameraView onCameraReady={() => setLoading(false)} style={StyleSheet.absoluteFill} facing='front' ref={cameraRef} mode='video'>
                 </CameraView>
             }
@@ -322,7 +329,7 @@ const VideoUpdateScreen = ({ navigation, route }) => {
                             </View>
                         }
                         {videoUrl &&
-                            <Video
+                            <CustomVideo
                                 style={{
                                     width: '100%',
                                     height: '100%',
@@ -393,7 +400,7 @@ const VideoUpdateScreen = ({ navigation, route }) => {
                                 />
                                 <View style={{ flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
                                     <View style={{ height: 22, borderRadius: 11, paddingHorizontal: 5, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' }}>
-                                        <Text style={{ fontSize: 11, color: 'black', fontWeight: '600' }}>{`00:00`}</Text>
+                                        <Text style={{ fontSize: 11, color: 'black', fontWeight: '600' }}>{`00:${timer.toString().padStart(2, '0')}`}</Text>
                                     </View>
                                     <View style={{ height: 22, borderRadius: 11, paddingHorizontal: 5, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' }}>
                                         <Text style={{ fontSize: 11, color: 'black', fontWeight: '600' }}>{`00:${MAX_DURATION}`}</Text>
@@ -440,7 +447,7 @@ const VideoUpdateScreen = ({ navigation, route }) => {
                 </View>
             </View>
             {
-                (permission && !permission.granted) &&
+                ((permission && !permission.granted) || (audioPermission && !audioPermission.granted)) &&
                 <View style={[StyleSheet.absoluteFill, {
                     alignItems: 'center',
                     justifyContent: 'center',

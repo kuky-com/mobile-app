@@ -2,6 +2,7 @@ import { userAtom } from '@/actions/global'
 import { useAlert } from '@/components/AlertProvider'
 import AvatarImage from '@/components/AvatarImage'
 import ButtonWithLoading from '@/components/ButtonWithLoading'
+import CustomVideo from '@/components/CustomVideo'
 import { Header } from '@/components/Header'
 import Text from '@/components/Text'
 import apiClient from '@/utils/apiClient'
@@ -318,7 +319,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                         {!playing && <AvatarImage avatar={currentProfile?.avatar} full_name={currentProfile?.full_name} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 10 }} />}
                         {
                             currentProfile?.video_intro &&
-                            <Video
+                            <CustomVideo
                                 style={{ display: playing ? 'flex' : 'none', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 10 }}
                                 ref={videoRef}
                                 source={{ uri: currentProfile?.video_intro }}
@@ -394,7 +395,8 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                             <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
                                 <Image source={images.birthday_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
                             </View>
-                            <Text style={{ fontSize: 14, fontWeight: '600', color: 'black' }}>{`${dayjs().diff(dayjs(currentProfile.birthday, 'MM-DD-YYYY'), 'years')} yrs`}</Text>
+                            {currentProfile?.birthday && currentProfile?.birthday.includes('/') && <Text style={{ fontSize: 14, color: 'black' }}>{`${dayjs().diff(dayjs(currentProfile?.birthday, 'DD/MM/YYYY'), 'years')} yrs`}</Text>}
+                            {currentProfile?.birthday && currentProfile?.birthday.includes('-') && <Text style={{ fontSize: 14, color: 'black' }}>{`${dayjs().diff(dayjs(currentProfile?.birthday, 'MM-DD-YYYY'), 'years')} yrs`}</Text>}
                         </View>
 
                         {

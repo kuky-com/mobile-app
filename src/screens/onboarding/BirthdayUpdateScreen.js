@@ -3,7 +3,7 @@ import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import React, { useEffect, useRef, useState } from 'react'
-import { Dimensions, Keyboard, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
+import { Dimensions, Keyboard, Platform, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ImagePicker from 'react-native-image-crop-picker'
@@ -17,6 +17,7 @@ import apiClient from '@/utils/apiClient'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import ButtonWithLoading from '@/components/ButtonWithLoading'
 import { getAuthenScreen } from '@/utils/utils'
+import TextInput from '@/components/TextInput'
 
 const styles = StyleSheet.create({
     container: {
@@ -59,7 +60,7 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
 
     const [loading, setLoading] = useState('')
 
-    const dayInputRef = useRef(null);
+    const monthInputRef = useRef(null);
     const yearInputRef = useRef(null);
 
     const handleMonthChange = (text) => {
@@ -68,7 +69,7 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
             if (text.length === 2) {
                 const monthNumber = parseInt(text, 10);
                 if (monthNumber >= 1 && monthNumber <= 12) {
-                    dayInputRef.current.focus()
+                    yearInputRef.current.focus()
                 } else {
                     setMonth('')
                 }
@@ -82,7 +83,7 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
             if (text.length === 2) {
                 const dayNumber = parseInt(text, 10);
                 if (dayNumber >= 1 && dayNumber <= 31) {
-                    yearInputRef.current.focus()
+                    monthInputRef.current.focus()
                 } else {
                     setDay('')
                 }
@@ -109,11 +110,11 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
         try {
             Keyboard.dismiss()
 
-            const date = dayjs(`${month}-${day}-${year}`, 'MM-DD-YYYY')
+            const date = dayjs(`${month}-${day}-${year}`, 'DD/MM/YYYY')
             if (date.isValid()) {
                 setLoading(true)
 
-                apiClient.post('users/update', { birthday: `${month}-${day}-${year}` })
+                apiClient.post('users/update', { birthday: `${day}/${month}/${year}` })
                     .then((res) => {
                         setLoading(false)
                         if (res && res.data && res.data.success) {
@@ -149,9 +150,9 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
                         <View style={styles.inputContainer}>
                             <TextInput
                                 style={styles.input}
-                                placeholder="MM"
-                                value={month}
-                                onChangeText={handleMonthChange}
+                                placeholder="DD"
+                                value={day}
+                                onChangeText={handleDayChange}
                                 keyboardType="numeric"
                                 maxLength={2}
                                 autoFocus={true}
@@ -160,11 +161,11 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
                         </View>
                         <View style={styles.inputContainer}>
                             <TextInput
-                                ref={dayInputRef}
+                                ref={monthInputRef}
                                 style={styles.input}
-                                placeholder="DD"
-                                value={day}
-                                onChangeText={handleDayChange}
+                                placeholder="MM"
+                                value={month}
+                                onChangeText={handleMonthChange}
                                 keyboardType="numeric"
                                 maxLength={2}
                                 underlineColorAndroid='#00000000'

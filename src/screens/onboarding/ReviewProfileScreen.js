@@ -3,6 +3,7 @@ import { useAlert } from '@/components/AlertProvider'
 import AvatarImage from '@/components/AvatarImage'
 import ButtonWithLoading from '@/components/ButtonWithLoading'
 import Text from '@/components/Text'
+import TextInput from '@/components/TextInput'
 import apiClient from '@/utils/apiClient'
 import colors from '@/utils/colors'
 import images from '@/utils/images'
@@ -12,7 +13,6 @@ import { Image, ImageBackground } from 'expo-image'
 import { useAtomValue } from 'jotai'
 import React, { useEffect, useRef, useState } from 'react'
 import { Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
-import { TextInput } from 'react-native-gesture-handler'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Toast from 'react-native-toast-message'
@@ -237,7 +237,7 @@ const ReviewProfileScreen = ({ navigation, route }) => {
             <KeyboardAwareScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, paddingHorizontal: 16, width: Platform.isPad ? 600 : '100%', alignSelf: 'center' }}>
                 <View style={{ flex: 1, gap: 16, width: '100%' }}>
                     <View style={{ width: '100%', height: 53, borderRadius: 20, backgroundColor: 'white', alignItems: 'center', flexDirection: 'row', paddingHorizontal: 16 }}>
-                        <Text style={{ width: 90, fontSize: 14, color: 'black' }}>Name</Text>
+                        <Text style={{ width: 110, fontSize: 14, color: 'black' }}>Name</Text>
                         <TextInput
                             style={{ flex: 1, fontFamily: 'Comfortaa-Bold', fontSize: 14, color: 'black', fontWeight: 'bold', paddingVertical: 5, paddingHorizontal: 8 }}
                             underlineColorAndroid={'#00000000'}
@@ -249,19 +249,19 @@ const ReviewProfileScreen = ({ navigation, route }) => {
                         />
                     </View>
                     <View style={{ width: '100%', height: 53, borderRadius: 20, backgroundColor: 'white', alignItems: 'center', flexDirection: 'row', paddingHorizontal: 16 }}>
-                        <Text style={{ width: 90, fontSize: 14, color: 'black' }}>Birthday</Text>
+                        <Text style={{ width: 110, fontSize: 14, color: 'black' }}>Date of Birth</Text>
                         <TextInput
                             style={{ flex: 1, fontFamily: 'Comfortaa-Bold', fontSize: 14, color: 'black', fontWeight: 'bold', paddingVertical: 5, paddingHorizontal: 8 }}
                             underlineColorAndroid={'#00000000'}
                             value={birthday}
                             onChangeText={handleBirthdayChange}
-                            placeholder='MM-DD-YYYY'
+                            placeholder='DD/MM/YYYY'
                             placeholderTextColor='#777777'
                             ref={birthdayInputRef}
                         />
                     </View>
                     <View style={{ width: '100%', height: 53, borderRadius: 20, backgroundColor: 'white', alignItems: 'center', flexDirection: 'row', paddingHorizontal: 16 }}>
-                        <Text style={{ width: 90, fontSize: 14, color: 'black' }}>Location</Text>
+                        <Text style={{ width: 110, fontSize: 14, color: 'black' }}>Location</Text>
                         <TextInput
                             style={{ flex: 1, fontFamily: 'Comfortaa-Bold', fontSize: 14, color: 'black', fontWeight: 'bold', paddingVertical: 5, paddingHorizontal: 8 }}
                             underlineColorAndroid={'#00000000'}
