@@ -402,7 +402,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                                 <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
                                     <Image source={images.gender_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
                                 </View>
-                                <Text style={{ fontSize: 14, fontWeight: '600', color: 'black' }}>{`${currentProfile.pronouns.split('/ ')[0]}`}</Text>
+                                <Text style={{ fontSize: 14, fontWeight: '600', color: 'black' }}>{`${(currentProfile?.pronouns ?? '').split('/ ')[0]}`}</Text>
                             </View>
                         }
 

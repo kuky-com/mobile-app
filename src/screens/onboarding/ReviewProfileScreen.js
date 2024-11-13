@@ -239,7 +239,7 @@ const ReviewProfileScreen = ({ navigation, route }) => {
                     <View style={{ width: '100%', height: 53, borderRadius: 20, backgroundColor: 'white', alignItems: 'center', flexDirection: 'row', paddingHorizontal: 16 }}>
                         <Text style={{ width: 90, fontSize: 14, color: 'black' }}>Name</Text>
                         <TextInput
-                            style={{ flex: 1, fontSize: 14, color: 'black', fontWeight: 'bold' }}
+                            style={{ flex: 1, fontFamily: 'Comfortaa-Bold', fontSize: 14, color: 'black', fontWeight: 'bold', paddingVertical: 5, paddingHorizontal: 8 }}
                             underlineColorAndroid={'#00000000'}
                             value={fullName}
                             onChangeText={setFullName}
@@ -251,11 +251,11 @@ const ReviewProfileScreen = ({ navigation, route }) => {
                     <View style={{ width: '100%', height: 53, borderRadius: 20, backgroundColor: 'white', alignItems: 'center', flexDirection: 'row', paddingHorizontal: 16 }}>
                         <Text style={{ width: 90, fontSize: 14, color: 'black' }}>Birthday</Text>
                         <TextInput
-                            style={{ flex: 1, fontSize: 14, color: 'black', fontWeight: 'bold' }}
+                            style={{ flex: 1, fontFamily: 'Comfortaa-Bold', fontSize: 14, color: 'black', fontWeight: 'bold', paddingVertical: 5, paddingHorizontal: 8 }}
                             underlineColorAndroid={'#00000000'}
                             value={birthday}
                             onChangeText={handleBirthdayChange}
-                            placeholder='Your birthday'
+                            placeholder='MM-DD-YYYY'
                             placeholderTextColor='#777777'
                             ref={birthdayInputRef}
                         />
@@ -263,7 +263,7 @@ const ReviewProfileScreen = ({ navigation, route }) => {
                     <View style={{ width: '100%', height: 53, borderRadius: 20, backgroundColor: 'white', alignItems: 'center', flexDirection: 'row', paddingHorizontal: 16 }}>
                         <Text style={{ width: 90, fontSize: 14, color: 'black' }}>Location</Text>
                         <TextInput
-                            style={{ flex: 1, fontSize: 14, color: 'black', fontWeight: 'bold' }}
+                            style={{ flex: 1, fontFamily: 'Comfortaa-Bold', fontSize: 14, color: 'black', fontWeight: 'bold', paddingVertical: 5, paddingHorizontal: 8 }}
                             underlineColorAndroid={'#00000000'}
                             value={location}
                             onChangeText={setLocation}
@@ -273,7 +273,7 @@ const ReviewProfileScreen = ({ navigation, route }) => {
                         />
                     </View>
                     <View style={{ backgroundColor: '#725ED4', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
-                        <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
+                        <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12, alignItems: 'center' }}>
                             <Image source={images.interest_icon} style={{ width: 18, height: 18, tintColor: 'white' }} contentFit='contain' />
                             <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>Your Journey/Purpose</Text>
                         </View>
@@ -298,9 +298,9 @@ const ReviewProfileScreen = ({ navigation, route }) => {
                         </View>
                     </View>
                     <View style={{ backgroundColor: '#725ED4', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
-                        <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
+                        <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12, alignItems: 'center' }}>
                             <Image source={images.interest_icon} style={{ width: 18, height: 18, tintColor: 'white' }} contentFit='contain' />
-                            <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>Interests and hobbies</Text>
+                            <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', }}>Interests and hobbies</Text>
                         </View>
                         <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} />
                         <View style={{ paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16 }}>
@@ -323,7 +323,7 @@ const ReviewProfileScreen = ({ navigation, route }) => {
                         </View>
                     </View>
                     <View style={{ backgroundColor: '#725ED4', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
-                        <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
+                        <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12, alignItems: 'center' }}>
                             <Image source={images.dislike_icon} style={{ width: 18, height: 18, tintColor: 'white' }} contentFit='contain' />
                             <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>Dislike</Text>
                         </View>

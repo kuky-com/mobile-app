@@ -365,10 +365,10 @@ const VideoUpdateScreen = ({ navigation, route }) => {
                                         onChangeValue={handleValueChange}
                                     />
                                     <View style={{ marginTop: 25, paddingHorizontal: 24, flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <View style={{ height: 16, borderRadius: 8, paddingHorizontal: 5, backgroundColor: 'white', justifyContent: 'center' }}>
+                                        <View style={{ height: 22, borderRadius: 11, paddingHorizontal: 5, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' }}>
                                             <Text style={{ fontSize: 11, color: 'black', fontWeight: '600' }}>{`00:${startPosition.toString().padStart(2, '0')}`}</Text>
                                         </View>
-                                        <View style={{ height: 16, borderRadius: 8, paddingHorizontal: 5, backgroundColor: 'white', justifyContent: 'center' }}>
+                                        <View style={{ height: 22, borderRadius: 11, paddingHorizontal: 5, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' }}>
                                             <Text style={{ fontSize: 11, color: 'black', fontWeight: '600' }}>{`00:${endPosition.toString().padStart(2, '0')}`}</Text>
                                         </View>
                                     </View>
@@ -390,10 +390,10 @@ const VideoUpdateScreen = ({ navigation, route }) => {
                                     value={timer}
                                 />
                                 <View style={{ flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
-                                    <View style={{ height: 16, borderRadius: 8, paddingHorizontal: 5, backgroundColor: 'white', justifyContent: 'center' }}>
+                                    <View style={{ height: 22, borderRadius: 11, paddingHorizontal: 5, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' }}>
                                         <Text style={{ fontSize: 11, color: 'black', fontWeight: '600' }}>{`00:00`}</Text>
                                     </View>
-                                    <View style={{ height: 16, borderRadius: 8, paddingHorizontal: 5, backgroundColor: 'white', justifyContent: 'center' }}>
+                                    <View style={{ height: 22, borderRadius: 11, paddingHorizontal: 5, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' }}>
                                         <Text style={{ fontSize: 11, color: 'black', fontWeight: '600' }}>{`00:30`}</Text>
                                     </View>
                                 </View>
@@ -410,7 +410,7 @@ const VideoUpdateScreen = ({ navigation, route }) => {
                 </View>
                 <View style={{ flex: 1, paddingTop: 24, paddingBottom: insets.bottom + 16, width: '100%', backgroundColor: '#e5e5e5', paddingHorizontal: 16, alignItems: 'center', gap: 16 }}>
                     <Text style={{ fontSize: 14, fontWeight: '500', color: 'black' }}>Now, introduce yourself and tell us why you’re excited to connect with others on Kuky!</Text>
-                    {!recording && !videoUrl &&
+                    {!recording && !loading && !videoUrl &&
                         <TouchableOpacity onPress={startRecording} style={{ width: Platform.isPad ? 600 : '100%', alignSelf: 'center', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333', }}>
                             <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>{'Start recording'}</Text>
                         </TouchableOpacity>

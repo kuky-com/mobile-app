@@ -286,7 +286,7 @@ const ProfileScreen = ({ navigation }) => {
                                     <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
                                         <Image source={images.gender_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
                                     </View>
-                                    <Text style={{ fontSize: 14, color: 'black' }}>{`${currentUser?.pronouns.split('/ ')[0]}`}</Text>
+                                    <Text style={{ fontSize: 14, color: 'black' }}>{`${(currentUser?.pronouns ?? '').split('/ ')[0]}`}</Text>
                                 </View>
 
                                 <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'flex-end' }}>
@@ -442,7 +442,7 @@ const ProfileScreen = ({ navigation }) => {
                                     <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
                                         <Image source={images.gender_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
                                     </View>
-                                    <Text style={{ fontSize: 14, color: 'black' }}>{`${currentUser?.pronouns.split('/ ')[0]}`}</Text>
+                                    <Text style={{ fontSize: 14, color: 'black' }}>{`${(currentUser?.pronouns ?? '').split('/ ')[0]}`}</Text>
                                 </View>
 
                                 <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'flex-end' }}>

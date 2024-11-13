@@ -31,7 +31,7 @@ const Text = ({ style, ...props }) => {
         }
     }
 
-    return <RNText style={[{ fontFamily }, style]} {...props} />;
+    return <RNText style={[{ fontFamily, textAlignVertical: 'center' }, style]} {...props} />;
 };
 
 export default Text;

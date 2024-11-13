@@ -10,7 +10,7 @@ import ImagePicker from 'react-native-image-crop-picker'
 import { StatusBar } from 'expo-status-bar'
 import dayjs from 'dayjs'
 import Toast from 'react-native-toast-message'
-import { CameraView, useCameraPermissions } from 'expo-camera'
+import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera'
 import LottieView from 'lottie-react-native';
 import { ResizeMode, Video } from 'expo-av'
 import RangeSlider from '@/components/RangeSlider'
@@ -49,6 +49,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
     const [videoUrl, setVideoUrl] = useState(null)
     const [loading, setLoading] = useState(true)
     const [permission, requestPermission] = useCameraPermissions();
+    const [audioPermission, requestAudioPermission] = useMicrophonePermissions();
     const [recording, setRecording] = useState(false)
     const cameraRef = useRef(null);
     const videoRef = useRef(null);
@@ -77,6 +78,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
                 }, 1000);
 
                 const videoData = await cameraRef.current.recordAsync({ maxDuration: 30 })
+                console.log({videoData})
                 setVideoUrl(videoData)
                 setRecording(false)
 
@@ -185,6 +187,11 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
                 Linking.openSettings()
             }
 
+            const audioRes = await requestAudioPermission()
+            if (!audioRes.canAskAgain && !audioRes.granted) {
+                Linking.openSettings()
+            }
+
             if(res.granted && videoRef && videoRef.current) {
                 videoRef.current.resumePreview()
             }
@@ -201,13 +208,11 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
         }
     }
 
-    console.log({permission})
-
     return (
         <View style={{ flex: 1, width: '100%' }}>
             <StatusBar translucent style='dark' />
             {
-                !videoUrl && permission && permission.granted &&
+                !videoUrl && permission && permission.granted && audioPermission && audioPermission.granted &&
                 <CameraView
                     onCameraReady={() => setLoading(false)}
                     style={StyleSheet.absoluteFill}
@@ -316,10 +321,10 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
                                         onChangeValue={handleValueChange}
                                     />
                                     <View style={{ marginTop: 25, paddingHorizontal: 24, flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <View style={{ height: 16, borderRadius: 8, paddingHorizontal: 5, backgroundColor: 'white', justifyContent: 'center' }}>
+                                        <View style={{ height: 22, borderRadius: 11, paddingHorizontal: 5, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' }}>
                                             <Text style={{ fontSize: 11, color: 'black', fontWeight: '600' }}>{`00:${startPosition.toString().padStart(2, '0')}`}</Text>
                                         </View>
-                                        <View style={{ height: 16, borderRadius: 8, paddingHorizontal: 5, backgroundColor: 'white', justifyContent: 'center' }}>
+                                        <View style={{ height: 22, borderRadius: 11, paddingHorizontal: 5, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' }}>
                                             <Text style={{ fontSize: 11, color: 'black', fontWeight: '600' }}>{`00:${endPosition.toString().padStart(2, '0')}`}</Text>
                                         </View>
                                     </View>
@@ -341,10 +346,10 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
                                     value={timer}
                                 />
                                 <View style={{ flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
-                                    <View style={{ height: 16, borderRadius: 8, paddingHorizontal: 5, backgroundColor: 'white', justifyContent: 'center' }}>
+                                    <View style={{ height: 22, borderRadius: 11, paddingHorizontal: 5, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' }}>
                                         <Text style={{ fontSize: 11, color: 'black', fontWeight: '600' }}>{`00:00`}</Text>
                                     </View>
-                                    <View style={{ height: 16, borderRadius: 8, paddingHorizontal: 5, backgroundColor: 'white', justifyContent: 'center' }}>
+                                    <View style={{ height: 22, borderRadius: 11, paddingHorizontal: 5, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' }}>
                                         <Text style={{ fontSize: 11, color: 'black', fontWeight: '600' }}>{`00:30`}</Text>
                                     </View>
                                 </View>
@@ -361,7 +366,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
                 </View>
                 <View style={{ flex: 1, paddingTop: 24, paddingBottom: insets.bottom + 16, width: '100%', backgroundColor: '#e5e5e5', paddingHorizontal: 16, alignItems: 'center', gap: 16 }}>
                     <Text style={{ fontSize: 14, fontWeight: '500', color: 'black' }}>Now, introduce yourself and tell us why you’re excited to connect with others on Kuky!</Text>
-                    {!recording && !videoUrl &&
+                    {!recording && !loading && !videoUrl &&
                         <TouchableOpacity onPress={startRecording} style={{ width: Platform.isPad ? 600 : '100%', alignSelf: 'center', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333', }}>
                             <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>{'Start recording'}</Text>
                         </TouchableOpacity>
@@ -389,7 +394,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
                 </View>
             </View>
             {
-                (permission && !permission.granted) &&
+                ((permission && !permission.granted) || ((audioPermission && !audioPermission.granted))) &&
                 <View style={[StyleSheet.absoluteFill, {
                     alignItems: 'center',
                     justifyContent: 'center',
