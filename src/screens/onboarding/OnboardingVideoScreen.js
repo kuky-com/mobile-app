@@ -44,6 +44,8 @@ const styles = StyleSheet.create({
     }
 })
 
+const MAX_DURATION = 60
+
 const OnboardingVideoScreen = ({ navigation, route }) => {
     const insets = useSafeAreaInsets()
     const [videoUrl, setVideoUrl] = useState(null)
@@ -77,23 +79,11 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
                     setTimer(1)
                 }, 1000);
 
-                const videoData = await cameraRef.current.recordAsync({ maxDuration: 30 })
+                const videoData = await cameraRef.current.recordAsync({ maxDuration: MAX_DURATION })
                 console.log({videoData})
                 setVideoUrl(videoData)
                 setRecording(false)
 
-                // timerRef.current = setInterval(async () => {
-                //     if ((timer + 1) > 30 || !recording) {
-                //         if (timerRef && timerRef.current) {
-                //             clearInterval(timerRef.current)
-                //             timerRef.current = null
-                //         }
-                //         await stopRecording()
-                //         return
-                //     }
-                //     console.log({ timer })
-                //     setTimer((old) => (old + 1))
-                // }, 1000);
             } catch (error) {
                 console.log({ errorRecording: error })
             }
@@ -102,7 +92,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
 
     useEffect(() => {
         const updateTimer = async () => {
-            if ((timer + 1) > 30) {
+            if ((timer + 1) > MAX_DURATION) {
                 await stopRecording()
                 return
             }
@@ -229,7 +219,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
                     </View>
                     {/* <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'black' }}>{`Video 1`}</Text> */}
                     <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'black' }}>{`Tell us about yourself !`}</Text>
-                    <Text style={{ fontSize: 14, fontWeight: '500', color: 'black' }}>{`You have 30 seconds`}</Text>
+                    <Text style={{ fontSize: 14, fontWeight: '500', color: 'black' }}>{`You have ${MAX_DURATION} seconds`}</Text>
                 </View>
                 <View style={{
                     width: '100%',
@@ -338,7 +328,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
                                 <Slider
                                     style={{ width: '100%' }}
                                     minimumValue={0}
-                                    maximumValue={30}
+                                    maximumValue={MAX_DURATION}
                                     step={1}
                                     thumbImage={images.video_thumb}
                                     maximumTrackTintColor='#333333'
@@ -350,7 +340,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
                                         <Text style={{ fontSize: 11, color: 'black', fontWeight: '600' }}>{`00:00`}</Text>
                                     </View>
                                     <View style={{ height: 22, borderRadius: 11, paddingHorizontal: 5, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' }}>
-                                        <Text style={{ fontSize: 11, color: 'black', fontWeight: '600' }}>{`00:30`}</Text>
+                                        <Text style={{ fontSize: 11, color: 'black', fontWeight: '600' }}>{`00:${MAX_DURATION}`}</Text>
                                     </View>
                                 </View>
                             </View>

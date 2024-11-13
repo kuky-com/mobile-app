@@ -333,10 +333,10 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                             colors={['transparent', 'rgba(0,0,0,0.79)']}
                             style={styles.nameBackground}
                         />
-                        <View style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
+                        {!playing && <View style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
                             <View style={{ width: '100%', alignItems: 'flex-end', padding: 16 }}>
                                 <View style={styles.tagContainer}>
-                                    <Text style={[styles.tagText, {fontSize: (currentProfile?.tag?.name ?? '').length > 20 ? 13 : 15}]}>{currentProfile?.tag?.name}</Text>
+                                    <Text style={[styles.tagText, { fontSize: (currentProfile?.tag?.name ?? '').length > 20 ? 13 : 15 }]}>{currentProfile?.tag?.name}</Text>
                                 </View>
                             </View>
                             <View style={{ flex: 1, width: '100%', justifyContent: 'flex-end', paddingBottom: 25, paddingHorizontal: 16, gap: 16 }}>
@@ -387,6 +387,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                                 </View>
                             </View>
                         </View>
+                        }
                     </View>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', paddingHorizontal: 8 }}>
                         <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center', justifyContent: 'flex-start' }}>
