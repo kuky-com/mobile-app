@@ -23,7 +23,7 @@ import { AlertProvider } from "@/components/AlertProvider";
 import { AppUpdateAlertProvider } from "@/components/AppUpdateAlert";
 import { Amplify } from "aws-amplify";
 import amplifyconfig from "./src/amplifyconfiguration.json";
-import { useQueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 Amplify.configure(amplifyconfig);
 
 Smartlook.instance.preferences.setProjectKey("6bebfbc50c0aedc486a2766bc51c24d0d2b4a13f");
@@ -37,7 +37,7 @@ var customParseFormat = require("dayjs/plugin/customParseFormat");
 dayjs.extend(relativeTime);
 dayjs.extend(customParseFormat);
 
-const queryClient = useQueryClient();
+const queryClient = new QueryClient();
 
 {
   /* <BaseToast
@@ -218,12 +218,3 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
