@@ -1,27 +1,27 @@
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const apiClient = axios.create({
-  // baseURL: 'http://192.168.1.71:8001/api',
+  baseURL: "http://192.168.61.237:8001/api",
   // baseURL: 'https://api.kuky.com/api',
-  baseURL: 'https://api-test.kuky.com/api',
-  timeout: 20000,                
+  //baseURL: 'https://api-test.kuky.com/api',
+  timeout: 20000,
 });
 
 apiClient.interceptors.request.use(
   async (config) => {
-    const token = await AsyncStorage.getItem('ACCESS_TOKEN')
-    const deviceId = await AsyncStorage.getItem('DEVICE_ID')
-    console.log({token, deviceId})
+    const token = await AsyncStorage.getItem("ACCESS_TOKEN");
+    const deviceId = await AsyncStorage.getItem("DEVICE_ID");
+    console.log({ token, deviceId });
     if (token && deviceId) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-      config.headers['Device-Id'] = `${deviceId}`;
+      config.headers["Authorization"] = `Bearer ${token}`;
+      config.headers["Device-Id"] = `${deviceId}`;
     }
 
-    return config
+    return config;
   },
   (error) => {
-    return Promise.reject(error)
+    return Promise.reject(error);
   }
 );
 
