@@ -51,14 +51,14 @@ const OnboardingCompleteScreen = ({ navigation }) => {
         <View style={styles.container}>
             {
                 animation &&
-                <View style={{ alignItems: 'center', justifyContent: 'center', paddingBottom: Dimensions.get('screen').width * 0.2 }}>
+                <View style={{ alignItems: 'center', justifyContent: 'center', gap: 16 }}>
                     <LottieView
-                        style={{ width: Dimensions.get('screen').width, height: Dimensions.get('screen').width + 120 }}
+                        style={{ width: Dimensions.get('screen').width, height: Dimensions.get('screen').width }}
                         autoPlay
                         source={require('../../assets/animations/complete.json')}
                         resizeMode='cover'
                     />
-                    <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white', marginTop: -(Dimensions.get('screen').width * 0.3) }}>Your profile is all set up.</Text>
+                    <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white' }}>Your profile is all set up.</Text>
                 </View>
             }
             {

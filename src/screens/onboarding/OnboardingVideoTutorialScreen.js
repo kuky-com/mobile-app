@@ -9,6 +9,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
 import dayjs from 'dayjs'
 import LoadingView from '@/components/LoadingView'
+import { useAtomValue } from 'jotai'
+import { userAtom } from '@/actions/global'
 
 const styles = StyleSheet.create({
     container: {
@@ -37,6 +39,7 @@ const styles = StyleSheet.create({
 
 const OnboardingVideoTutorialScreen = ({ navigation, route }) => {
     const insets = useSafeAreaInsets()
+    const currentUser = useAtomValue(userAtom)
 
     const onContinue = () => {
         NavigationService.reset('OnboardingVideoScreen')
@@ -44,7 +47,11 @@ const OnboardingVideoTutorialScreen = ({ navigation, route }) => {
     }
 
     const onSkip = () => {
-        NavigationService.reset('ReviewProfileScreen')
+        if(currentUser?.profile_tag) {
+            NavigationService.reset('Dashboard')
+        } else {
+            NavigationService.reset('ReviewProfileScreen')
+        }
     }
 
     return (
