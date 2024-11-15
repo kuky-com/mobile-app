@@ -1,3 +1,4 @@
+import "./global.css";
 import { StatusBar } from "expo-status-bar";
 import { Dimensions, StyleSheet, View } from "react-native";
 import { useFonts } from "expo-font";
