@@ -203,9 +203,9 @@ const ReviewProfileScreen = ({ navigation, route }) => {
         let cleanedText = text.replace(/[^0-9]/g, '');
 
         if (cleanedText.length >= 5) {
-            cleanedText = cleanedText.replace(/(\d{2})(\d{2})(\d{0,4})/, '$1-$2-$3');
+            cleanedText = cleanedText.replace(/(\d{2})(\d{2})(\d{0,4})/, '$1/$2/$3');
         } else if (cleanedText.length >= 3) {
-            cleanedText = cleanedText.replace(/(\d{2})(\d{0,2})/, '$1-$2');
+            cleanedText = cleanedText.replace(/(\d{2})(\d{0,2})/, '$1/$2');
         }
 
         setBirthday(cleanedText);
@@ -246,6 +246,7 @@ const ReviewProfileScreen = ({ navigation, route }) => {
                             placeholder='Your fullname'
                             placeholderTextColor='#777777'
                             ref={nameInputRef}
+                            onEndEditing={() => birthdayInputRef.current && birthdayInputRef.current.focus()}
                         />
                     </View>
                     <View style={{ width: '100%', height: 53, borderRadius: 20, backgroundColor: 'white', alignItems: 'center', flexDirection: 'row', paddingHorizontal: 16 }}>
