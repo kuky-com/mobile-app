@@ -15,8 +15,8 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAtom } from "jotai";
 import React, { useEffect, useRef, useState } from "react";
+import { SectionCard } from "@/components/SectionCard";
 import {
-  Alert,
   DeviceEventEmitter,
   Dimensions,
   Platform,
@@ -32,6 +32,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Properties } from "react-native-smartlook-analytics";
 import Smartlook from "react-native-smartlook-analytics";
 import Toast from "react-native-toast-message";
+import Feather from "@expo/vector-icons/Feather";
+import colors from "../../utils/colors";
+import { Rating } from "@/components/Rating";
 
 const styles = StyleSheet.create({
   container: {
@@ -81,22 +84,14 @@ const ConnectProfileScreen = ({ navigation, route }) => {
         .then((res) => {
           setLoading(false);
           if (res && res.data && res.data.success) {
-            console.log({ data: res.data.data });
             if (res.data.data.blocked) {
               setCurrentProfile({ full_name: profile.full_name });
-              // Alert.alert('Not found', 'User profile is not available!', [
-              //     {
-              //         text: 'Ok', onPress: () => {
-              //             navigation.goBack()
-              //         }
-              //     }
-              // ])
 
               showAlert("Not found", "User profile is not available!", [
                 {
                   text: "Ok",
                   onPress: () => {
-                    navigation.goBack();
+                    NavigationService.goBack();
                   },
                 },
               ]);
@@ -347,9 +342,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
       />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={onRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={onRefresh} />}
         style={{ flex: 1, width: "100%" }}
       >
         <View
@@ -367,10 +360,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
               width: "100%",
               height: Math.min(
                 700,
-                Dimensions.get("screen").height -
-                  insets.top -
-                  insets.bottom -
-                  220,
+                Dimensions.get("screen").height - insets.top - insets.bottom - 220,
                 (Dimensions.get("screen").width - 32) * 1.4,
               ),
               borderWidth: 8,
@@ -426,18 +416,13 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                   justifyContent: "space-between",
                 }}
               >
-                <View
-                  style={{ width: "100%", alignItems: "flex-end", padding: 16 }}
-                >
+                <View style={{ width: "100%", alignItems: "flex-end", padding: 16 }}>
                   <View style={styles.tagContainer}>
                     <Text
                       style={[
                         styles.tagText,
                         {
-                          fontSize:
-                            (currentProfile?.tag?.name ?? "").length > 20
-                              ? 13
-                              : 15,
+                          fontSize: (currentProfile?.tag?.name ?? "").length > 20 ? 13 : 15,
                         },
                       ]}
                     >
@@ -455,9 +440,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                     gap: 16,
                   }}
                 >
-                  <Text
-                    style={{ fontSize: 32, color: "white", fontWeight: "bold" }}
-                  >
+                  <Text style={{ fontSize: 32, color: "white", fontWeight: "bold" }}>
                     {currentProfile.full_name}
                   </Text>
                   {/* <View style={{ width: '100%', flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -652,18 +635,16 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                   contentFit="contain"
                 />
               </View>
-              {currentProfile?.birthday &&
-                currentProfile?.birthday.includes("/") && (
-                  <Text
-                    style={{ fontSize: 14, color: "black" }}
-                  >{`${dayjs().diff(dayjs(currentProfile?.birthday, "DD/MM/YYYY"), "years")} yrs`}</Text>
-                )}
-              {currentProfile?.birthday &&
-                currentProfile?.birthday.includes("-") && (
-                  <Text
-                    style={{ fontSize: 14, color: "black" }}
-                  >{`${dayjs().diff(dayjs(currentProfile?.birthday, "MM-DD-YYYY"), "years")} yrs`}</Text>
-                )}
+              {currentProfile?.birthday && currentProfile?.birthday.includes("/") && (
+                <Text
+                  style={{ fontSize: 14, color: "black" }}
+                >{`${dayjs().diff(dayjs(currentProfile?.birthday, "DD/MM/YYYY"), "years")} yrs`}</Text>
+              )}
+              {currentProfile?.birthday && currentProfile?.birthday.includes("-") && (
+                <Text
+                  style={{ fontSize: 14, color: "black" }}
+                >{`${dayjs().diff(dayjs(currentProfile?.birthday, "MM-DD-YYYY"), "years")} yrs`}</Text>
+              )}
             </View>
 
             {currentProfile.publicPronouns && (
@@ -730,6 +711,43 @@ const ConnectProfileScreen = ({ navigation, route }) => {
               >{`${currentProfile.location ?? ""}`}</Text>
             </View>
           </View>
+          {/** Ratings card */}
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("ReviewsScreen", {
+                profileId: currentProfile?.id,
+                avatar: currentProfile?.avatar,
+                matchInfo,
+                full_name: currentProfile?.full_name,
+              })
+            }
+          >
+            <SectionCard className="bg-purple2/50">
+              <View className="flex flex-row justify-between grow items-center">
+                <Rating
+                  disabled={true}
+                  rating={Number.parseFloat(currentProfile?.avgRating || 5) || 5}
+                />
+                <View className="flex flex-row items-center">
+                  <Text
+                    style={{
+                      fontWeight: "600",
+                      fontSize: 15,
+                      textVerticalAlign: "auto",
+                      marginBottom: 4,
+                    }}
+                  >
+                    {currentProfile?.reviewsCount && currentProfile?.reviewsCount !== 0
+                      ? `${currentProfile?.reviewsCount} Review${
+                          currentProfile.reviewsCount !== 1 ? "s" : ""
+                        }`
+                      : "No reviews yet"}
+                  </Text>
+                  <Feather name="chevron-right" size={28} color={colors.primary} />
+                </View>
+              </View>
+            </SectionCard>
+          </TouchableOpacity>
 
           {sameDislikes.length > 0 ||
             (sameInterests.length > 0 && (
@@ -749,9 +767,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                   style={{ width: 30, height: 30 }}
                   contentFit="contain"
                 />
-                <Text
-                  style={{ fontSize: 14, color: "white", fontWeight: "bold" }}
-                >
+                <Text style={{ fontSize: 14, color: "white", fontWeight: "bold" }}>
                   {sameInterests.length > 0
                     ? "See What You Both Like!"
                     : "See What You Both Dislike!"}
@@ -829,19 +845,13 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                     opacity: 0.4,
                   }}
                 />
-                <Text
-                  style={{ color: "white", fontSize: 14, fontWeight: "bold" }}
-                >
+                <Text style={{ color: "white", fontSize: 14, fontWeight: "bold" }}>
                   {sameInterests.length > 0
                     ? `Discuss your shared love for it`
                     : `Discuss your shared experience with it`}
                 </Text>
                 {showAcceptReject && !matchInfo && (
-                  <ButtonWithLoading
-                    text="Connect"
-                    onPress={likeAction}
-                    loading={loading}
-                  />
+                  <ButtonWithLoading text="Connect" onPress={likeAction} loading={loading} />
                 )}
               </View>
             ))}
@@ -861,14 +871,12 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                   style={{ width: 16, height: 16, tintColor: "black" }}
                   contentFit="contain"
                 />
-                <Text
-                  style={{ color: "black", fontSize: 14, fontWeight: "bold" }}
-                >
+                <Text style={{ color: "black", fontSize: 14, fontWeight: "bold" }}>
                   Journeys & Purposes
                 </Text>
               </View>
               {/* <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} /> */}
-              <View
+              <SectionCard
                 style={{
                   borderRadius: 20,
                   backgroundColor: "#E9E5FF",
@@ -908,7 +916,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                     </TouchableOpacity>
                   );
                 })}
-              </View>
+              </SectionCard>
             </View>
           )}
           {userInterests.length > 0 && (
@@ -926,26 +934,12 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                   style={{ width: 16, height: 16, tintColor: "black" }}
                   contentFit="contain"
                 />
-                <Text
-                  style={{ color: "black", fontSize: 14, fontWeight: "bold" }}
-                >
+                <Text style={{ color: "black", fontSize: 14, fontWeight: "bold" }}>
                   Interest and hobbies
                 </Text>
               </View>
               {/* <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} /> */}
-              <View
-                style={{
-                  borderRadius: 20,
-                  backgroundColor: "#E9E5FF",
-                  borderColor: "#F5F5F5",
-                  paddingVertical: 24,
-                  flexWrap: "wrap",
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 10,
-                  paddingHorizontal: 16,
-                }}
-              >
+              <SectionCard>
                 {userInterests.map((item) => {
                   return (
                     <View
@@ -974,7 +968,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                     </View>
                   );
                 })}
-              </View>
+              </SectionCard>
             </View>
           )}
 
@@ -993,11 +987,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                   style={{ width: 16, height: 16, tintColor: "black" }}
                   contentFit="contain"
                 />
-                <Text
-                  style={{ color: "black", fontSize: 14, fontWeight: "bold" }}
-                >
-                  Dislike
-                </Text>
+                <Text style={{ color: "black", fontSize: 14, fontWeight: "bold" }}>Dislike</Text>
               </View>
               <View
                 style={{
@@ -1062,10 +1052,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
               justifyContent: "center",
             }}
           >
-            <Text
-              onPress={onBlock}
-              style={{ color: "#CB3729", fontSize: 18, fontWeight: "bold" }}
-            >
+            <Text onPress={onBlock} style={{ color: "#CB3729", fontSize: 18, fontWeight: "bold" }}>
               Block
             </Text>
           </View>
