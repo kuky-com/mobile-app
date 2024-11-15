@@ -1,6 +1,21 @@
+import { forwardRef, useImperativeHandle, useRef } from 'react';
 import { TextInput as RNTextInput } from 'react-native';
 
-const TextInput = ({ style, ...props }) => {
+const TextInput = forwardRef(({ style, ...props }, ref) => {
+    const localInputRef = useRef();
+
+    useImperativeHandle(ref, () => ({
+        focus: () => {
+            localInputRef.current.focus();
+        },
+        clear: () => {
+            localInputRef.current.clear();
+        },
+        setValue: (value) => {
+            localInputRef.current.setNativeProps({ text: value });
+        }
+    }));
+
     let fontFamily = 'Comfortaa-Regular';
     if (style && style.fontWeight) {
         switch (style.fontWeight) {
@@ -31,7 +46,10 @@ const TextInput = ({ style, ...props }) => {
         }
     }
 
-    return <RNTextInput style={[{ fontFamily }, style]} {...props} />;
-};
+    return <RNTextInput
+        ref={localInputRef}
+        style={[{ fontFamily }, style]} {...props}
+    />;
+});
 
 export default TextInput;
