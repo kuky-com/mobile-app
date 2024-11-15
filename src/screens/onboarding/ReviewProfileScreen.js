@@ -9,10 +9,10 @@ import colors from "@/utils/colors";
 import images from "@/utils/images";
 import NavigationService from "@/utils/NavigationService";
 import axios from "axios";
-import { Image } from "expo-image";
+import { Image, ImageBackground } from "expo-image";
 import { useAtomValue } from "jotai";
 import React, { useEffect, useRef, useState } from "react";
-import { Platform, ScrollView, StyleSheet, TouchableOpacity, View, Keyboard } from "react-native";
+import { Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
@@ -213,21 +213,20 @@ const ReviewProfileScreen = ({ navigation, route }) => {
   const handleBirthdayChange = (text) => {
     let cleanedText = text.replace(/[^0-9]/g, "");
 
+    if (cleanedText.length >= 5) {
+      cleanedText = cleanedText.replace(/(\d{2})(\d{2})(\d{0,4})/, "$1/$2/$3");
+    } else if (cleanedText.length >= 3) {
+      cleanedText = cleanedText.replace(/(\d{2})(\d{0,2})/, "$1/$2");
+    }
 
-        if (cleanedText.length >= 5) {
-            cleanedText = cleanedText.replace(/(\d{2})(\d{2})(\d{0,4})/, '$1/$2/$3');
-        } else if (cleanedText.length >= 3) {
-            cleanedText = cleanedText.replace(/(\d{2})(\d{0,2})/, '$1/$2');
-        }
-
-    
     setBirthday(cleanedText);
 
     if (cleanedText.length === 10) {
       if (locationInputRef.current) {
         locationInputRef.current.focus();
       } else {
-        Keyboard.dismiss();
+        // TODO: KEYBOARD IS NOT DEFINED!
+        //Keyboard.dismiss();
       }
     }
   };
@@ -340,6 +339,7 @@ const ReviewProfileScreen = ({ navigation, route }) => {
               placeholder="Your fullname"
               placeholderTextColor="#777777"
               ref={nameInputRef}
+              onEndEditing={() => birthdayInputRef.current && birthdayInputRef.current.focus()}
             />
           </View>
           <View
@@ -422,60 +422,42 @@ const ReviewProfileScreen = ({ navigation, route }) => {
                 Your Journey/Purpose
               </Text>
             </View>
-
-            <KeyboardAwareScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, paddingHorizontal: 16, width: Platform.isPad ? 600 : '100%', alignSelf: 'center' }}>
-                <View style={{ flex: 1, gap: 16, width: '100%' }}>
-                    <View style={{ width: '100%', height: 53, borderRadius: 20, backgroundColor: 'white', alignItems: 'center', flexDirection: 'row', paddingHorizontal: 16 }}>
-                        <Text style={{ width: 110, fontSize: 14, color: 'black' }}>Name</Text>
-                        <TextInput
-                            style={{ flex: 1, fontFamily: 'Comfortaa-Bold', fontSize: 14, color: 'black', fontWeight: 'bold', paddingVertical: 5, paddingHorizontal: 8 }}
-                            underlineColorAndroid={'#00000000'}
-                            value={fullName}
-                            onChangeText={setFullName}
-                            placeholder='Your fullname'
-                            placeholderTextColor='#777777'
-                            ref={nameInputRef}
-                            onEndEditing={() => birthdayInputRef.current && birthdayInputRef.current.focus()}
-                        />
-                    </View>
-                    <View style={{ width: '100%', height: 53, borderRadius: 20, backgroundColor: 'white', alignItems: 'center', flexDirection: 'row', paddingHorizontal: 16 }}>
-                        <Text style={{ width: 110, fontSize: 14, color: 'black' }}>Date of Birth</Text>
-                        <TextInput
-                            style={{ flex: 1, fontFamily: 'Comfortaa-Bold', fontSize: 14, color: 'black', fontWeight: 'bold', paddingVertical: 5, paddingHorizontal: 8 }}
-                            underlineColorAndroid={'#00000000'}
-                            value={birthday}
-                            onChangeText={handleBirthdayChange}
-                            placeholder='DD/MM/YYYY'
-                            placeholderTextColor='#777777'
-                            ref={birthdayInputRef}
-                        />
-                    </View>
-                    <View style={{ width: '100%', height: 53, borderRadius: 20, backgroundColor: 'white', alignItems: 'center', flexDirection: 'row', paddingHorizontal: 16 }}>
-                        <Text style={{ width: 110, fontSize: 14, color: 'black' }}>Location</Text>
-                        <TextInput
-                            style={{ flex: 1, fontFamily: 'Comfortaa-Bold', fontSize: 14, color: 'black', fontWeight: 'bold', paddingVertical: 5, paddingHorizontal: 8 }}
-                            underlineColorAndroid={'#00000000'}
-                            value={location}
-                            onChangeText={setLocation}
-                            placeholder='Your location'
-                            placeholderTextColor='#777777'
-                            ref={locationInputRef}
-                        />
-                    </View>
-                    <View style={{ backgroundColor: '#725ED4', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
-                        <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12, alignItems: 'center' }}>
-                            <Image source={images.interest_icon} style={{ width: 18, height: 18, tintColor: 'white' }} contentFit='contain' />
-                            <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>Your Journey/Purpose</Text>
-                        </View>
-                        <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} />
-                        <View style={{ paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16 }}>
-                            {
-                                purposes.map((item, index) => {
-                                    return (
-                                        <TouchableOpacity key={`purpose-${item.name}-${index}`} style={{ flexDirection: 'row', gap: 5, paddingLeft: 8, paddingRight: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F2F0FF' }}>
-                                            <Image style={{ width: 18, height: 18 }} contentFit='contain' source={images.seen_icon} />
-                                            <Text style={{ fontSize: 14, color: 'black', fontWeight: '700' }}>{item.name}</Text>
-                                            {/* <TouchableOpacity onPress={() => removePurpose(index)} style={{ position: 'absolute', top: 0, right: 0, backgroundColor: '#E8FF58', borderWidth: 1, borderColor: '#333333', width: 16, height: 16, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ width: "100%", backgroundColor: "#9889E1", height: 1 }} />
+            <View
+              style={{
+                paddingVertical: 16,
+                flexWrap: "wrap",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+                paddingBottom: 16,
+              }}
+            >
+              {purposes.map((item, index) => {
+                return (
+                  <TouchableOpacity
+                    key={`purpose-${item.name}-${index}`}
+                    style={{
+                      flexDirection: "row",
+                      gap: 5,
+                      paddingLeft: 8,
+                      paddingRight: 16,
+                      height: 32,
+                      borderRadius: 16,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: "#F2F0FF",
+                    }}
+                  >
+                    <Image
+                      style={{ width: 18, height: 18 }}
+                      contentFit="contain"
+                      source={images.seen_icon}
+                    />
+                    <Text style={{ fontSize: 14, color: "black", fontWeight: "700" }}>
+                      {item.name}
+                    </Text>
+                    {/* <TouchableOpacity onPress={() => removePurpose(index)} style={{ position: 'absolute', top: 0, right: 0, backgroundColor: '#E8FF58', borderWidth: 1, borderColor: '#333333', width: 16, height: 16, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
                                                 <Image source={images.close_icon} style={{ width: 10, height: 10, tintColor: '#333333' }} contentFit='contain' />
                                             </TouchableOpacity> */}
                   </TouchableOpacity>
