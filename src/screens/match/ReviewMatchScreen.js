@@ -38,10 +38,9 @@ const ReviewMatchScreen = ({ navigation, route }) => {
     Keyboard.dismiss();
     setLoading(true);
     apiClient
-      .post("users/review-user", {
+      .post(`users/${profile.id}/reviews`, {
         rating,
         reason: reason.join(", "),
-        friend_id: profile.id,
         note,
       })
       .then((res) => {
@@ -239,8 +238,10 @@ const ReviewMatchScreen = ({ navigation, route }) => {
             }}
           >
             <TextInput
-              style={{ flex: 1, fontSize: 14, color: "#333333", height: 120 }}
+              style={{ flex: 1, fontSize: 14, color: "#333333" }}
               multiline
+              numberOfLines={8}
+              textAlignVertical="top"
               placeholder="Write your review here…"
               placeholderTextColor="#555555"
               underlineColorAndroid="#00000000"

@@ -11,12 +11,14 @@ import Feather from "@expo/vector-icons/Feather";
 import AvatarImage from "@/components/AvatarImage";
 import { formatDistance } from "date-fns/formatDistance";
 import LoadingView from "@/components/LoadingView";
-import NavigationService, { navigationRef } from "@/utils/NavigationService";
+import NavigationService from "@/utils/NavigationService";
+import colors from "@/utils/colors";
+import { TouchableOpacity } from "react-native-gesture-handler";
 
 export const ReviewsScreen = ({ navigation, route }) => {
-  const { profileId, matchInfo, avatar, full_name } = route.params;
+  const { profileId, avatar, full_name, matchInfo } = route.params;
   const insets = useSafeAreaInsets();
-  const { isFetched, data, error, refetch, isRefetching } = useUserReviews(profileId);
+  const { isFetched, data, refetch, isRefetching } = useUserReviews(profileId);
   return (
     <View className="flex h-full">
       <Header
@@ -74,10 +76,16 @@ export const ReviewsScreen = ({ navigation, route }) => {
             </View>
           </SectionCard>
           {!!matchInfo && (
-            <SectionCard className="flex flex-row justify-between">
-              <Text>Share Your Feedback!</Text>
-              <Feather name="chevron-right" size={28} color={"white"} />
-            </SectionCard>
+            <TouchableOpacity
+              onPress={() => {
+                navigation.push("ReviewMatchScreen", { profile: { id: profileId, avatar } });
+              }}
+            >
+              <SectionCard className="flex flex-row justify-between bg-purple text-lg mt-2">
+                <Text className="text-white1">Share Your Feedback!</Text>
+                <Feather name="chevron-right" size={28} color={colors.white1} />
+              </SectionCard>
+            </TouchableOpacity>
           )}
           {isFetched && (
             <FlatList
