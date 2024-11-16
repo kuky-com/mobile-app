@@ -49,5 +49,6 @@ allprojects {
         maven {
             url "https://sdk.smartlook.com/android/release"
         }
+        maven { url "https://repo.sendbird.com/public/maven" }
     }
 }

@@ -64,6 +64,55 @@ import OnboardingVideoTutorialScreen from "./onboarding/OnboardingVideoTutorialS
 import VideoProcessingScreen from "./onboarding/VideoProcessingScreen";
 import VideoUpdateScreen from "./profile/VideoUpdateScreen";
 import { ReviewsScreen } from "./interest/ReviewsScreen";
+import { SendbirdCalls, SoundType } from "@sendbird/calls-react-native";
+import { setupCallKit, startRingingWithCallKit } from "../callHandler/ios";
+import {
+  setFirebaseMessageHandlers,
+  setNotificationForegroundService,
+  startRingingWithNotification,
+} from "../callHandler/android";
+import AuthManager from "@/utils/AuthManager";
+import { getSendbirdToken } from "../utils/api";
+import { authenticate, registerToken } from "../utils/sendbird";
+
+console.log(process.env.SENDBIRD_APP_ID);
+SendbirdCalls.initialize("9BE43E57-7AA4-4D1A-A59A-A567330F0095");
+
+if (Platform.OS === "android") {
+  SendbirdCalls.addDirectCallSound(SoundType.RINGING, "ringing.mp3");
+}
+SendbirdCalls.addDirectCallSound(SoundType.DIALING, "dialing.mp3");
+SendbirdCalls.addDirectCallSound(SoundType.RECONNECTED, "reconnected.mp3");
+SendbirdCalls.addDirectCallSound(SoundType.RECONNECTING, "reconnecting.mp3");
+
+SendbirdCalls.setListener({
+  onRinging: async (call) => {
+    const directCall = await SendbirdCalls.getDirectCall(call.callId);
+
+    if (!SendbirdCalls.currentUser) {
+      try {
+        await authenticate();
+      } catch (err) {
+        return directCall.end();
+      }
+    }
+
+    const unsubscribe = directCall.addListener({
+      onEnded({ callId, callLog }) {
+        // callLog && CallHistoryManager.add(callId, callLog);
+        unsubscribe();
+      },
+    });
+
+    // Show interaction UI (Accept/Decline)
+    if (Platform.OS === "android") {
+      await startRingingWithNotification(call);
+    }
+    if (Platform.OS === "ios") {
+      await startRingingWithCallKit(call);
+    }
+  },
+});
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -369,6 +418,7 @@ const AppStack = ({ navgation }) => {
         const token = await messaging().getToken();
         console.log({ pushToken: token });
         setPushToken(token);
+        registerToken();
         AsyncStorage.getItem("ACCESS_TOKEN", (error, result) => {
           if (result) {
             apiClient

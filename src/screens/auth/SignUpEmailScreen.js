@@ -19,6 +19,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import ButtonWithLoading from "@/components/ButtonWithLoading";
 import { FontAwesome5 } from "@expo/vector-icons";
 import TextInput from "@/components/TextInput";
+import { authenticate, registerToken } from "../../utils/sendbird";
 
 const styles = StyleSheet.create({
   container: {
@@ -63,6 +64,7 @@ const SignUpEmailScreen = ({ navigation }) => {
 
   const checkPushToken = () => {
     if (pushToken) {
+      registerToken();
       apiClient
         .post("users/update-token", { session_token: pushToken })
         .then((res) => {
@@ -94,6 +96,9 @@ const SignUpEmailScreen = ({ navigation }) => {
               setUser(res.data.data.user);
               setToken(res.data.data.token);
               AsyncStorage.setItem("ACCESS_TOKEN", res.data.data.token);
+              AsyncStorage.setItem("SENDBIRD_TOKEN", res.data.data.sendbirdToken);
+              AsyncStorage.setItem("USER_ID", res.data.data.user.id);
+              authenticate();
               setTimeout(() => {
                 checkPushToken();
               }, 200);
@@ -154,6 +159,9 @@ const SignUpEmailScreen = ({ navigation }) => {
               setUser(res.data.data.user);
               setToken(res.data.data.token);
               AsyncStorage.setItem("ACCESS_TOKEN", res.data.data.token);
+              AsyncStorage.setItem("SENDBIRD_TOKEN", res.data.data.sendbirdToken);
+              AsyncStorage.setItem("USER_ID", res.data.data.user.id);
+              authenticate();
               setTimeout(() => {
                 checkPushToken();
               }, 200);
