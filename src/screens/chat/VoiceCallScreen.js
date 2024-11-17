@@ -18,7 +18,7 @@ export const VoiceCallScreen = ({ route, navigation }) => {
   }
 
   return (
-    <View style={{ flex: 1 }} className="bg-black">
+    <View style={{ flex: 1, backgroundColor: "#BDBDBD" }}>
       <DirectCallControllerView
         status={status}
         call={call}

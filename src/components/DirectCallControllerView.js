@@ -6,11 +6,9 @@ import AvatarImage from "@/components/AvatarImage";
 import { DirectCallUserRole } from "@sendbird/calls-react-native";
 
 import { useDirectCallDuration } from "@/hooks/useDirectCallDuration";
-// import AudioDeviceButton from "./AudioDeviceButton";
+import AudioDeviceButton from "./AudioDeviceButton";
 import Text from "@/components/Text";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import CallIcon from "./CallIcon";
 
 // type ControllerViewProps = {
 //   status: DirectCallStatus;
@@ -35,15 +33,14 @@ const DirectCallControllerView = ({ status, call, ios_audioDevice }) => {
   const statusEnded = someOf(["ended"]);
   const isVoiceCall = !call.isVideoCall;
   const isVideoCall = call.isVideoCall;
-
+  console.log(status);
   return (
     <View style={[StyleSheet.absoluteFill, { padding: 16 }]}>
       <View style={styles.topController}>
         <View style={{ alignItems: "flex-end", paddingTop: top }}>
           {isVideoCall && statusInProgress && (
             <Pressable onPress={() => call.switchCamera()}>
-              {/* <SBIcon icon={"btnCameraFlipIos"} size={48} /> */}
-              <MaterialIcons name="flip-camera-ios" size={48} color="black" />
+              <CallIcon icon={"btnCameraFlipIos"} size={48} />
             </Pressable>
           )}
         </View>
@@ -62,14 +59,6 @@ const DirectCallControllerView = ({ status, call, ios_audioDevice }) => {
           )}
           {((isVoiceCall && statusInProgress) || statusEnded) && (
             <Fragment>
-              {/* <Image
-                style={styles.profile}
-                source={
-                  call.remoteUser?.profileUrl
-                    ? { uri: call.remoteUser?.profileUrl }
-                    : IconAssets.Avatar
-                }
-              /> */}
               <AvatarImage
                 full_name={call.remoteUser?.nickname ?? ""}
                 style={{ width: 44, height: 44, borderRadius: 22 }}
@@ -84,7 +73,12 @@ const DirectCallControllerView = ({ status, call, ios_audioDevice }) => {
           <View style={styles.remoteMuteStatus}>
             {statusInProgress && !call.isRemoteAudioEnabled && (
               <Fragment>
-                <FontAwesome name="microphone-slash" size={40} color="black" />
+                <CallIcon
+                  icon={"AudioOff"}
+                  size={40}
+                  color={"rgba(0, 0, 0, 0.88)"}
+                  containerStyle={{ marginBottom: 16 }}
+                />
                 <Text className="text-color-red">{`${remoteUserNickname} is muted`}</Text>
               </Fragment>
             )}
@@ -109,10 +103,10 @@ const DirectCallControllerView = ({ status, call, ios_audioDevice }) => {
                   }
                 }}
               >
-                {/* <SBIcon
+                <CallIcon
                   icon={call.isLocalAudioEnabled ? "btnAudioOff" : "btnAudioOffSelected"}
                   size={64}
-                /> */}
+                />
               </Pressable>
               {isVideoCall && (
                 <Pressable
@@ -125,18 +119,18 @@ const DirectCallControllerView = ({ status, call, ios_audioDevice }) => {
                     }
                   }}
                 >
-                  {/* <SBIcon
+                  <CallIcon
                     icon={call.isLocalVideoEnabled ? "btnVideoOff" : "btnVideoOffSelected"}
                     size={64}
-                  /> */}
+                  />
                 </Pressable>
               )}
-              {/* <AudioDeviceButton
+              <AudioDeviceButton
                 currentAudioDeviceIOS={ios_audioDevice}
                 availableAudioDevicesAndroid={call.android_availableAudioDevices}
                 currentAudioDeviceAndroid={call.android_currentAudioDevice}
                 onSelectAudioDeviceAndroid={call.android_selectAudioDevice}
-              /> */}
+              />
             </View>
 
             <View style={styles.bottomButtonGroup}>
@@ -146,13 +140,11 @@ const DirectCallControllerView = ({ status, call, ios_audioDevice }) => {
                   onPress={() => call.accept()}
                   className="bg-red"
                 >
-                  {/* <SBIcon icon={"btnCallVideoAccept"} size={64} /> */}
-                  <FontAwesome5 name="video" size={64} color="white" />
+                  <CallIcon icon={"btnCallVideoAccept"} size={64} />
                 </Pressable>
               )}
               <Pressable onPress={() => call.end()}>
-                {/* <SBIcon icon={"btnCallEnd"} size={64} /> */}
-                <FontAwesome5 name="video-slash" size={64} color="white" />
+                <CallIcon icon={"btnCallEnd"} size={64} />
               </Pressable>
             </View>
           </>
