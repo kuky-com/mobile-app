@@ -78,7 +78,6 @@ import { VoiceCallScreen } from "./chat/VoiceCallScreen";
 import { VideoCallScreen } from "./chat/VideoCallScreen";
 // import { CALL_PERMISSIONS, usePermissions } from "@/hooks/usePermissions";
 
-console.log(process.env.SENDBIRD_APP_ID);
 SendbirdCalls.initialize("9BE43E57-7AA4-4D1A-A59A-A567330F0095");
 
 if (Platform.OS === "android") {

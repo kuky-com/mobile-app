@@ -33,7 +33,7 @@ const DirectCallControllerView = ({ status, call, ios_audioDevice }) => {
   const statusEnded = someOf(["ended"]);
   const isVoiceCall = !call.isVideoCall;
   const isVideoCall = call.isVideoCall;
-  console.log(status);
+
   return (
     <View style={[StyleSheet.absoluteFill, { padding: 16 }]}>
       <View style={styles.topController}>
