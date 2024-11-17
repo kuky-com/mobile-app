@@ -94,9 +94,9 @@ if (Platform.OS === "android") {
 }
 
 // Setup ios callkit
-// if (Platform.OS === 'ios') {
-//   setupCallKit();
-// }
+if (Platform.OS === "ios") {
+  setupCallKit();
+}
 
 SendbirdCalls.setListener({
   onRinging: async (call) => {
