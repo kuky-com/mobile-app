@@ -14,6 +14,7 @@ import { deviceIdAtom, pushTokenAtom, tokenAtom, userAtom } from "@/actions/glob
 import { getAuthenScreen } from "@/utils/utils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import LoadingView from "@/components/LoadingView";
+import { authenticate, registerToken } from "../../utils/sendbird";
 
 const styles = StyleSheet.create({
   container: {
@@ -52,11 +53,10 @@ const SignUpScreen = ({ navigation }) => {
 
   const checkPushToken = () => {
     if (pushToken) {
+      registerToken();
       apiClient
         .post("users/update-token", { session_token: pushToken })
-        .then((res) => {
-          console.log({ res });
-        })
+        .then((res) => {})
         .catch((error) => {
           console.log({ error });
         });
@@ -84,6 +84,9 @@ const SignUpScreen = ({ navigation }) => {
               setUser(res.data.data.user);
               setToken(res.data.data.token);
               AsyncStorage.setItem("ACCESS_TOKEN", res.data.data.token);
+              AsyncStorage.setItem("SENDBIRD_TOKEN", res.data.data.sendbirdToken);
+              AsyncStorage.setItem("USER_ID", res.data.data.user.id.toString());
+              authenticate();
               setTimeout(() => {
                 checkPushToken();
               }, 200);
@@ -144,6 +147,9 @@ const SignUpScreen = ({ navigation }) => {
               setUser(res.data.data.user);
               setToken(res.data.data.token);
               AsyncStorage.setItem("ACCESS_TOKEN", res.data.data.token);
+              AsyncStorage.setItem("SENDBIRD_TOKEN", res.data.data.sendbirdToken);
+              AsyncStorage.setItem("USER_ID", res.data.data.user.id.toString());
+              authenticate();
               setTimeout(() => {
                 checkPushToken();
               }, 200);

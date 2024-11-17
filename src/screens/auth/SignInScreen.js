@@ -19,6 +19,7 @@ import { getAuthenScreen } from "@/utils/utils";
 import ButtonWithLoading from "@/components/ButtonWithLoading";
 import { FontAwesome5 } from "@expo/vector-icons";
 import TextInput from "@/components/TextInput";
+import { authenticate } from "../../utils/sendbird";
 
 const styles = StyleSheet.create({
   container: {
@@ -90,6 +91,9 @@ const SignInScreen = ({ navigation }) => {
               setUser(res.data.data.user);
               setToken(res.data.data.token);
               AsyncStorage.setItem("ACCESS_TOKEN", res.data.data.token);
+              AsyncStorage.setItem("USER_ID", res.data.data.user.id.toString());
+              AsyncStorage.setItem("SENDBIRD_TOKEN", res.data.data.sendbirdToken);
+              authenticate();
               setTimeout(() => {
                 checkPushToken();
               }, 200);
@@ -151,6 +155,9 @@ const SignInScreen = ({ navigation }) => {
               setUser(res.data.data.user);
               setToken(res.data.data.token);
               AsyncStorage.setItem("ACCESS_TOKEN", res.data.data.token);
+              AsyncStorage.setItem("USER_ID", res.data.data.user.id.toString());
+              AsyncStorage.setItem("SENDBIRD_TOKEN", res.data.data.sendbirdToken);
+              authenticate();
               setTimeout(() => {
                 checkPushToken();
               }, 200);
@@ -189,6 +196,9 @@ const SignInScreen = ({ navigation }) => {
           setUser(currentUser);
           setToken(res.data.data.token);
           await AsyncStorage.setItem("ACCESS_TOKEN", res.data.data.token);
+          await AsyncStorage.setItem("SENDBIRD_TOKEN", res.data.data.sendbirdToken);
+          await AsyncStorage.setItem("USER_ID", res.data.data.user.id.toString());
+          authenticate();
           // Toast.show({ text1: res.data.message, type: 'success' })
           setTimeout(() => {
             checkPushToken();
