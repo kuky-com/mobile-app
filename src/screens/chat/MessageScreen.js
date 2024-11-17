@@ -37,6 +37,8 @@ import NavigationService from "@/utils/NavigationService";
 import AvatarImage from "@/components/AvatarImage";
 import { useAlert } from "@/components/AlertProvider";
 import { VideoIcon, CallIcon } from "@/icons";
+import { SendbirdCalls, SoundType } from "@sendbird/calls-react-native";
+import { authenticate } from "../../utils/sendbird";
 
 const styles = StyleSheet.create({
   container: {
@@ -430,6 +432,26 @@ const MessageScreen = ({ navigation, route }) => {
     },
     [conversation.conversation_id],
   );
+  const onNavigate = (callProps) => {
+    if (callProps.isVideoCall) {
+      navigation.navigate("VideoCallScreen", { callId: callProps.callId, conversation });
+    } else {
+      navigation.navigate("VoiceCallScreen", { callId: callProps.callId, conversation });
+    }
+  };
+
+  const calling = async (isVideoCall) => {
+    try {
+      await authenticate();
+      const callProps = await SendbirdCalls.dial(
+        `${process.env.NODE_ENV}_${conversation.profile?.id}`,
+        isVideoCall,
+      );
+      onNavigate(callProps);
+    } catch (e) {
+      Alert.alert("Failed", e.message);
+    }
+  };
 
   const onDisconnect = async () => {
     await SheetManager.show("confirm-action-sheets", {
@@ -795,13 +817,13 @@ const MessageScreen = ({ navigation, route }) => {
           }}
         >
           <TouchableOpacity
-            onPress={moreAction}
+            onPress={() => calling(false)}
             style={{ width: 30, height: 30, alignItems: "center", justifyContent: "center" }}
           >
             <CallIcon />
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={moreAction}
+            onPress={() => calling(true)}
             style={{ width: 30, height: 30, alignItems: "center", justifyContent: "center" }}
           >
             <VideoIcon />

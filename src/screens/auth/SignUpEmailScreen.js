@@ -97,7 +97,7 @@ const SignUpEmailScreen = ({ navigation }) => {
               setToken(res.data.data.token);
               AsyncStorage.setItem("ACCESS_TOKEN", res.data.data.token);
               AsyncStorage.setItem("SENDBIRD_TOKEN", res.data.data.sendbirdToken);
-              AsyncStorage.setItem("USER_ID", res.data.data.user.id);
+              AsyncStorage.setItem("USER_ID", res.data.data.user.id.toString());
               authenticate();
               setTimeout(() => {
                 checkPushToken();
@@ -160,7 +160,7 @@ const SignUpEmailScreen = ({ navigation }) => {
               setToken(res.data.data.token);
               AsyncStorage.setItem("ACCESS_TOKEN", res.data.data.token);
               AsyncStorage.setItem("SENDBIRD_TOKEN", res.data.data.sendbirdToken);
-              AsyncStorage.setItem("USER_ID", res.data.data.user.id);
+              AsyncStorage.setItem("USER_ID", res.data.data.user.id.toString());
               authenticate();
               setTimeout(() => {
                 checkPushToken();
@@ -193,7 +193,6 @@ const SignUpEmailScreen = ({ navigation }) => {
     apiClient
       .post("auth/register", { full_name: fullName, email, password })
       .then((res) => {
-        console.log({ res });
         setLoading(false);
         if (res && res.data && res.data.success) {
           navigation.navigate("EmailVerificationScreen", { email: email });

@@ -1,17 +1,19 @@
-import * as React from 'react';
-import {StackActions, CommonActions} from '@react-navigation/native';
+import * as React from "react";
+import { StackActions, CommonActions } from "@react-navigation/native";
+import { SendbirdCalls } from "@sendbird/calls-react-native";
 
 export const isReadyRef = React.createRef();
 
 export const navigationRef = React.createRef();
 
 function navigate(name, params) {
-  if (isReadyRef.current && navigationRef.current) {
-    // Perform navigation if the app has mounted
-    navigationRef.current.navigate(name, params);
-  } else {
-    // You can decide what to do if the app hasn't mounted
-    // You can ignore this, or add these actions to a queue you can call later
+  if (isReadyRef.current) {
+    const currentRoute = navigationRef.current?.getCurrentRoute();
+    if (currentRoute?.name === name) {
+      navigationRef.current?.dispatch(StackActions.replace(name, params));
+    } else {
+      navigationRef.current?.navigate(name, params);
+    }
   }
 }
 
@@ -32,10 +34,19 @@ function reset(name, params) {
     CommonActions.reset({
       index: 0,
       key: null,
-      routes: [{name: name, params: params}],
+      routes: [{ name: name, params: params }],
     }),
   );
 }
+
+const nav = {
+  navigate,
+  reset,
+  push,
+  goBack,
+  replace,
+  resetRaw,
+};
 
 function resetRaw(routes) {
   navigationRef.current?.dispatch(
@@ -47,11 +58,15 @@ function resetRaw(routes) {
   );
 }
 
-export default {
-  navigate,
-  reset,
-  push,
-  goBack,
-  replace,
-  resetRaw
+export const RunAfterAppReady = (
+  callback, //: (navigation: StaticNavigation<Routes, RouteWithParams>) => void,
+) => {
+  const id = setInterval(async () => {
+    if (isReadyRef.current && SendbirdCalls.currentUser) {
+      clearInterval(id);
+      callback(nav);
+    }
+  }, 250);
 };
+
+export default nav;

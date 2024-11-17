@@ -43,13 +43,11 @@ const FirstTimeScreen = ({ navigation }) => {
         .then((res) => {
           console.log({ userInfo111: res.data.data });
           if (res && res.data && res.data.success) {
-            console.log({ userInfo: res.data.data });
             setUser(res.data.data);
             setToken(token);
 
             NavigationService.reset(getAuthenScreen(res.data.data));
 
-            console.log({ pushToken });
             if (pushToken) {
               registerToken();
               apiClient

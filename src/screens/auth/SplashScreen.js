@@ -58,9 +58,7 @@ const SplashScreen = ({ navigation }) => {
               registerToken();
               apiClient
                 .post("users/update-token", { session_token: pushToken })
-                .then((res) => {
-                  console.log({ res });
-                })
+                .then((res) => {})
                 .catch((error) => {
                   console.log({ error });
                 });

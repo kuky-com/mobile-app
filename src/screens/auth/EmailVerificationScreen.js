@@ -43,9 +43,7 @@ const EmailVerificationScreen = ({ navigation, route }) => {
       registerToken();
       apiClient
         .post("users/update-token", { session_token: pushToken })
-        .then((res) => {
-          console.log({ res });
-        })
+        .then((res) => {})
         .catch((error) => {
           console.log({ error });
         });
@@ -66,7 +64,7 @@ const EmailVerificationScreen = ({ navigation, route }) => {
           setToken(res.data.data.token);
           AsyncStorage.setItem("ACCESS_TOKEN", res.data.data.token);
           AsyncStorage.setItem("SENDBIRD_TOKEN", res.data.data.sendbirdToken);
-          AsyncStorage.setItem("USER_ID", res.data.data.user.id);
+          AsyncStorage.setItem("USER_ID", res.data.data.user.id.toString());
           authenticate();
           setTimeout(() => {
             checkPushToken();

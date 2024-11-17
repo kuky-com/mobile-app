@@ -91,7 +91,7 @@ const SignInScreen = ({ navigation }) => {
               setUser(res.data.data.user);
               setToken(res.data.data.token);
               AsyncStorage.setItem("ACCESS_TOKEN", res.data.data.token);
-              AsyncStorage.setItem("USER_ID", res.data.data.user.id);
+              AsyncStorage.setItem("USER_ID", res.data.data.user.id.toString());
               AsyncStorage.setItem("SENDBIRD_TOKEN", res.data.data.sendbirdToken);
               authenticate();
               setTimeout(() => {
@@ -155,7 +155,7 @@ const SignInScreen = ({ navigation }) => {
               setUser(res.data.data.user);
               setToken(res.data.data.token);
               AsyncStorage.setItem("ACCESS_TOKEN", res.data.data.token);
-              AsyncStorage.setItem("USER_ID", res.data.data.user.id);
+              AsyncStorage.setItem("USER_ID", res.data.data.user.id.toString());
               AsyncStorage.setItem("SENDBIRD_TOKEN", res.data.data.sendbirdToken);
               authenticate();
               setTimeout(() => {
@@ -197,7 +197,7 @@ const SignInScreen = ({ navigation }) => {
           setToken(res.data.data.token);
           await AsyncStorage.setItem("ACCESS_TOKEN", res.data.data.token);
           await AsyncStorage.setItem("SENDBIRD_TOKEN", res.data.data.sendbirdToken);
-          await AsyncStorage.setItem("USER_ID", res.data.data.user.id);
+          await AsyncStorage.setItem("USER_ID", res.data.data.user.id.toString());
           authenticate();
           // Toast.show({ text1: res.data.message, type: 'success' })
           setTimeout(() => {

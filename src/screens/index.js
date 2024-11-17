@@ -74,6 +74,9 @@ import {
 import AuthManager from "@/utils/AuthManager";
 import { getSendbirdToken } from "../utils/api";
 import { authenticate, registerToken } from "../utils/sendbird";
+import { VoiceCallScreen } from "./chat/VoiceCallScreen";
+import { VideoCallScreen } from "./chat/VideoCallScreen";
+// import { CALL_PERMISSIONS, usePermissions } from "@/hooks/usePermissions";
 
 console.log(process.env.SENDBIRD_APP_ID);
 SendbirdCalls.initialize("9BE43E57-7AA4-4D1A-A59A-A567330F0095");
@@ -84,6 +87,17 @@ if (Platform.OS === "android") {
 SendbirdCalls.addDirectCallSound(SoundType.DIALING, "dialing.mp3");
 SendbirdCalls.addDirectCallSound(SoundType.RECONNECTED, "reconnected.mp3");
 SendbirdCalls.addDirectCallSound(SoundType.RECONNECTING, "reconnecting.mp3");
+
+if (Platform.OS === "android") {
+  console.log("herererere");
+  setFirebaseMessageHandlers();
+  setNotificationForegroundService();
+}
+
+// Setup ios callkit
+// if (Platform.OS === 'ios') {
+//   setupCallKit();
+// }
 
 SendbirdCalls.setListener({
   onRinging: async (call) => {
@@ -140,6 +154,7 @@ const AppStack = ({ navgation }) => {
   const urlHandleRef = useRef(null);
   const showUpdateAlert = useAppUpdateAlert();
   const appState = useRef(AppState.currentState);
+  // usePermissions(CALL_PERMISSIONS);
 
   useEffect(() => {
     if (currentUser && currentUser?.email) {
@@ -184,9 +199,7 @@ const AppStack = ({ navgation }) => {
     if (token && deviceId) {
       apiClient("users/user-info")
         .then((res) => {
-          console.log({ userInfo111: res.data.data });
           if (res && res.data && res.data.success) {
-            console.log({ userInfo: res.data.data });
             setUser(res.data.data);
           }
         })
@@ -219,7 +232,6 @@ const AppStack = ({ navgation }) => {
       apiClient
         .get("/users/latest-version")
         .then((res) => {
-          console.log({ res });
           if (res && res.data && res.data.success && res.data.data) {
             let version = null;
             if (Platform.OS === "android") {
@@ -398,7 +410,7 @@ const AppStack = ({ navgation }) => {
     if (Platform.OS === "ios") {
       PushNotificationIOS.requestPermissions()
         .then((data) => {
-          console.log({ data });
+          // console.log({ data });
         })
         .catch((error) => {
           console.log({ error });
@@ -416,16 +428,13 @@ const AppStack = ({ navgation }) => {
       try {
         await messaging().registerDeviceForRemoteMessages();
         const token = await messaging().getToken();
-        console.log({ pushToken: token });
         setPushToken(token);
         registerToken();
         AsyncStorage.getItem("ACCESS_TOKEN", (error, result) => {
           if (result) {
             apiClient
               .post("users/update-token", { session_token: token })
-              .then((res) => {
-                console.log({ res });
-              })
+              .then((res) => {})
               .catch((error) => {
                 console.log({ error });
               });
@@ -442,7 +451,6 @@ const AppStack = ({ navgation }) => {
         if (remoteMessage.data && remoteMessage.data.data) {
           try {
             const notiData = JSON.parse(remoteMessage.data.data);
-            console.log({ removeNotifcate: notiData });
 
             if (notiData.type === "profile_approved") {
               NavigationService.push("ProfileApprovedScreen");
@@ -634,6 +642,8 @@ const AppStack = ({ navgation }) => {
       <Stack.Screen name="ReviewsScreen" component={ReviewsScreen} />
       <Stack.Screen name="UpdateProfileScreen" component={UpdateProfileScreen} />
       <Stack.Screen name="UpdatePasswordScreen" component={UpdatePasswordScreen} />
+      <Stack.Screen name="VoiceCallScreen" component={VoiceCallScreen} />
+      <Stack.Screen name="VideoCallScreen" component={VideoCallScreen} />
       <Stack.Screen
         name="OnboardingVideoTutorialScreen"
         component={OnboardingVideoTutorialScreen}

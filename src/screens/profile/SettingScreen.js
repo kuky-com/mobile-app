@@ -6,6 +6,7 @@ import apiClient from "@/utils/apiClient";
 import images from "@/utils/images";
 import NavigationService from "@/utils/NavigationService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { SendbirdCalls } from "@sendbird/calls-react-native";
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 import { useSetAtom } from "jotai";
@@ -69,6 +70,9 @@ const SettingScreen = ({ navigation }) => {
         await AsyncStorage.removeItem("ACCESS_TOKEN");
         await AsyncStorage.removeItem("SENDBIRD_TOKEN");
         await AsyncStorage.removeItem("USER_ID");
+        if (SendbirdCalls.currentUser) {
+          SendbirdCalls.deauthenticate();
+        }
         setToken(null);
         setUser(null);
         NavigationService.reset("GetStartScreen");
@@ -80,7 +84,9 @@ const SettingScreen = ({ navigation }) => {
         await AsyncStorage.removeItem("ACCESS_TOKEN");
         await AsyncStorage.removeItem("SENDBIRD_TOKEN");
         await AsyncStorage.removeItem("USER_ID");
-
+        if (SendbirdCalls.currentUser) {
+          SendbirdCalls.deauthenticate();
+        }
         setToken(null);
         setUser(null);
         NavigationService.reset("GetStartScreen");
@@ -129,7 +135,9 @@ const SettingScreen = ({ navigation }) => {
                         await AsyncStorage.removeItem("ACCESS_TOKEN");
                         await AsyncStorage.removeItem("SENDBIRD_TOKEN");
                         await AsyncStorage.removeItem("USER_ID");
-
+                        if (SendbirdCalls.currentUser) {
+                          SendbirdCalls.deauthenticate();
+                        }
                         setToken(null);
                         setUser(null);
                         NavigationService.reset("GetStartScreen");
@@ -187,7 +195,9 @@ const SettingScreen = ({ navigation }) => {
                         await AsyncStorage.removeItem("ACCESS_TOKEN");
                         await AsyncStorage.removeItem("SENDBIRD_TOKEN");
                         await AsyncStorage.removeItem("USER_ID");
-
+                        if (SendbirdCalls.currentUser) {
+                          SendbirdCalls.deauthenticate();
+                        }
                         setToken(null);
                         setUser(null);
                         NavigationService.reset("GetStartScreen");
