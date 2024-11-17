@@ -1,14 +1,18 @@
 const MODULE_RESOLVER = [
-  'module-resolver',
+  "module-resolver",
   {
-    root: ['.'],
+    root: ["."],
     alias: {
-      '@': './src',
+      "@": "./src",
     },
   },
 ];
 
 module.exports = {
-  presets: ['module:metro-react-native-babel-preset'],
-  plugins: [MODULE_RESOLVER, 'react-native-reanimated/plugin', ["@babel/plugin-transform-private-methods", { "loose": true }]],
+  presets: ["module:metro-react-native-babel-preset", "nativewind/babel"],
+  plugins: [
+    MODULE_RESOLVER,
+    "react-native-reanimated/plugin",
+    ["@babel/plugin-transform-private-methods", { loose: true }],
+  ],
 };
