@@ -9,6 +9,7 @@ import { useDirectCallDuration } from "@/hooks/useDirectCallDuration";
 import AudioDeviceButton from "./AudioDeviceButton";
 import Text from "@/components/Text";
 import CallIcon from "./CallIcon";
+import { CALL_PERMISSIONS, usePermissions } from "@/hooks/usePermissions";
 
 // type ControllerViewProps = {
 //   status: DirectCallStatus;
@@ -17,6 +18,7 @@ import CallIcon from "./CallIcon";
 // };
 const DirectCallControllerView = ({ status, call, ios_audioDevice }) => {
   const { top } = useSafeAreaInsets();
+  usePermissions(CALL_PERMISSIONS);
   const remoteUserNickname = useMemo(() => {
     if (call.myRole === DirectCallUserRole.CALLEE) {
       return call.caller?.nickname ?? "No name";

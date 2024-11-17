@@ -3,10 +3,11 @@ import { Animated, Easing, StyleSheet, View, useWindowDimensions } from "react-n
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { DirectCallVideoView } from "@sendbird/calls-react-native";
+import { CALL_PERMISSIONS, usePermissions } from "@/hooks/usePermissions";
 
 const DirectCallVideoContentView = ({ call, status }) => {
   const { left, top, viewWidth, viewHeight, scaleTo } = useLocalViewSize("large");
-
+  usePermissions(CALL_PERMISSIONS);
   useEffect(() => {
     switch (status) {
       case "pending": {
