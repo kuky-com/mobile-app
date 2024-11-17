@@ -61,7 +61,7 @@ const DirectCallControllerView = ({ status, call, ios_audioDevice }) => {
             <Fragment>
               <AvatarImage
                 full_name={call.remoteUser?.nickname ?? ""}
-                style={{ width: 44, height: 44, borderRadius: 22 }}
+                style={{ width: 120, height: 120, borderRadius: 60 }}
                 avatar={call?.remoteUser?.profileUrl}
               />
               <Text className="text-md text-red" style={styles.nickname}>
