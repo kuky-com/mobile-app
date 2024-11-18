@@ -28,6 +28,16 @@ self.define_singleton_method(use_autolinking_method_symbol) do |*args|
   end
 end
 
+def node_require(script)
+  # Resolve script with node to allow for hoisting
+  require Pod::Executable.execute_command('node', ['-p',
+    "require.resolve(
+      '#{script}',
+      {paths: [process.argv[1]]},
+    )", __dir__]).strip
+end
+node_require('react-native-permissions/scripts/setup.rb')
+
 platform :ios, podfile_properties['ios.deploymentTarget'] || '15.4'
 install! 'cocoapods',
   :deterministic_uuids => false
@@ -35,6 +45,11 @@ use_frameworks! :linkage => :static
 $RNFirebaseAsStaticFramework = true
 
 prepare_react_native_project!
+
+setup_permissions([
+   'Camera',
+   'Microphone',
+])
 
 target 'Kuky' do
   use_expo_modules!

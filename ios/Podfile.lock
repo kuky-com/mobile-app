@@ -2532,6 +2532,8 @@ PODS:
   - RevenueCat (5.4.0)
   - RNAppleAuthentication (2.4.0):
     - React-Core
+  - RNCallKeep (4.3.15):
+    - React
   - RNCAsyncStorage (2.0.0):
     - React-Core
   - RNCMaskedView (0.3.1):
@@ -2595,6 +2597,13 @@ PODS:
     - React-Core
     - React-RCTImage
     - TOCropViewController (~> 2.7.4)
+  - RNNotifee (9.1.2):
+    - React-Core
+    - RNNotifee/NotifeeCore (= 9.1.2)
+  - RNNotifee/NotifeeCore (9.1.2):
+    - React-Core
+  - RNPermissions (5.1.0):
+    - React-Core
   - RNPurchases (8.2.3):
     - PurchasesHybridCommon (= 13.4.0)
     - React-Core
@@ -2697,6 +2706,12 @@ PODS:
   - SDWebImageWebPCoder (0.14.6):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.17)
+  - sendbird-calls-react-native (1.1.4):
+    - React-Core
+    - SendBirdCalls (= 1.10.18)
+  - SendBirdCalls (1.10.18):
+    - SendBirdWebRTC (~> 1.8.1)
+  - SendBirdWebRTC (1.8.1)
   - SocketRocket (0.7.0)
   - TOCropViewController (2.7.4)
   - Yoga (0.0.0)
@@ -2791,6 +2806,7 @@ DEPENDENCIES:
   - React-utils (from `../node_modules/react-native/ReactCommon/react/utils`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNAppleAuthentication (from `../node_modules/@invertase/react-native-apple-authentication`)"
+  - RNCallKeep (from `../node_modules/react-native-callkeep`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCMaskedView (from `../node_modules/@react-native-masked-view/masked-view`)"
   - "RNCPushNotificationIOS (from `../node_modules/@react-native-community/push-notification-ios`)"
@@ -2803,10 +2819,13 @@ DEPENDENCIES:
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
   - RNImageCropPicker (from `../node_modules/react-native-image-crop-picker`)
+  - "RNNotifee (from `../node_modules/@notifee/react-native`)"
+  - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNPurchases (from `../node_modules/react-native-purchases`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNShare (from `../node_modules/react-native-share`)
   - RNSVG (from `../node_modules/react-native-svg`)
+  - "sendbird-calls-react-native (from `../node_modules/@sendbird/calls-react-native`)"
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -2858,6 +2877,8 @@ SPEC REPOS:
     - SDWebImageAVIFCoder
     - SDWebImageSVGCoder
     - SDWebImageWebPCoder
+    - SendBirdCalls
+    - SendBirdWebRTC
     - SocketRocket
     - TOCropViewController
     - ZXingObjC
@@ -3026,6 +3047,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   RNAppleAuthentication:
     :path: "../node_modules/@invertase/react-native-apple-authentication"
+  RNCallKeep:
+    :path: "../node_modules/react-native-callkeep"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNCMaskedView:
@@ -3050,6 +3073,10 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-google-signin/google-signin"
   RNImageCropPicker:
     :path: "../node_modules/react-native-image-crop-picker"
+  RNNotifee:
+    :path: "../node_modules/@notifee/react-native"
+  RNPermissions:
+    :path: "../node_modules/react-native-permissions"
   RNPurchases:
     :path: "../node_modules/react-native-purchases"
   RNReanimated:
@@ -3058,6 +3085,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-share"
   RNSVG:
     :path: "../node_modules/react-native-svg"
+  sendbird-calls-react-native:
+    :path: "../node_modules/@sendbird/calls-react-native"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -3186,6 +3215,7 @@ SPEC CHECKSUMS:
   ReactCommon: f79ae672224dc1e6c2d932062176883c98eebd57
   RevenueCat: cb9c3684b01deb0d3db2011db09e638fcb5ad0e0
   RNAppleAuthentication: e00c76acb03351f5544373c78fa7f359bef6d5d3
+  RNCallKeep: fd232f6e77bdff7c60f11dc9e75658c93085e89d
   RNCAsyncStorage: d35c79ffba52c1013013e16b1fc295aec2feabb6
   RNCMaskedView: 090213d32d8b3bb83a4dcb7d12c18f0152591906
   RNCPushNotificationIOS: 64218f3c776c03d7408284a819b2abfda1834bc8
@@ -3198,6 +3228,8 @@ SPEC CHECKSUMS:
   RNGestureHandler: 1cc5930a64f5168977e5726b9c24777ecc8a8570
   RNGoogleSignin: 9e68b9bcc3888219357924e32ee563624745647d
   RNImageCropPicker: 771e2ca319d2cf92e04ebf334ece892ee9a6728f
+  RNNotifee: bc20a5e3d581f629db988075944fdd944d363dfe
+  RNPermissions: 9677e95dd463ec29990c214e8512453f89b276db
   RNPurchases: 441b4e0a0afea31df7578c3a222747a64c8a4893
   RNReanimated: e2b3ca09939e02ff62c1d8f408f0d93209c07717
   RNShare: 24a07f7e6eb56469a2dd534e202c51eb927cc361
@@ -3206,11 +3238,14 @@ SPEC CHECKSUMS:
   SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
+  sendbird-calls-react-native: cb3392175b184ec034171760ef17ee97cffda535
+  SendBirdCalls: 653e17821fbd0326a08eab8b777c95f7092e4e95
+  SendBirdWebRTC: 441cc06f611871544ca7774c76e057708c01027f
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   TOCropViewController: 80b8985ad794298fb69d3341de183f33d1853654
   Yoga: 1ab23c1835475da69cf14e211a560e73aab24cb0
   ZXingObjC: 8898711ab495761b2dbbdec76d90164a6d7e14c5
 
-PODFILE CHECKSUM: 946aef1f1cd0791503480066da74a8b47956aa81
+PODFILE CHECKSUM: aac8589c2fa1f4999cacc4191ba371e85d772da5
 
 COCOAPODS: 1.15.2
