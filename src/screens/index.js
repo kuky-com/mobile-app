@@ -76,7 +76,7 @@ import { getSendbirdToken } from "../utils/api";
 import { authenticate, registerToken } from "../utils/sendbird";
 import { VoiceCallScreen } from "./chat/VoiceCallScreen";
 import { VideoCallScreen } from "./chat/VideoCallScreen";
-// import { CALL_PERMISSIONS, usePermissions } from "@/hooks/usePermissions";
+import { CALL_PERMISSIONS, usePermissions } from "@/hooks/usePermissions";
 
 SendbirdCalls.initialize("9BE43E57-7AA4-4D1A-A59A-A567330F0095");
 
@@ -94,9 +94,9 @@ if (Platform.OS === "android") {
 }
 
 // Setup ios callkit
-// if (Platform.OS === 'ios') {
-//   setupCallKit();
-// }
+if (Platform.OS === "ios") {
+  setupCallKit();
+}
 
 SendbirdCalls.setListener({
   onRinging: async (call) => {
@@ -153,7 +153,7 @@ const AppStack = ({ navgation }) => {
   const urlHandleRef = useRef(null);
   const showUpdateAlert = useAppUpdateAlert();
   const appState = useRef(AppState.currentState);
-  // usePermissions(CALL_PERMISSIONS);
+  usePermissions(CALL_PERMISSIONS);
 
   useEffect(() => {
     if (currentUser && currentUser?.email) {

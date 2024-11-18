@@ -39,6 +39,7 @@ import { useAlert } from "@/components/AlertProvider";
 import { VideoIcon, CallIcon } from "@/icons";
 import { SendbirdCalls, SoundType } from "@sendbird/calls-react-native";
 import { authenticate } from "../../utils/sendbird";
+import { CALL_PERMISSIONS, usePermissions } from "@/hooks/usePermissions";
 
 const styles = StyleSheet.create({
   container: {
@@ -156,6 +157,7 @@ const MessageScreen = ({ navigation, route }) => {
   const appState = useRef(AppState.currentState);
   const [loading, setLoading] = useState(false);
   const showAlert = useAlert();
+  usePermissions(CALL_PERMISSIONS);
 
   const loadSubscriptionInfo = async () => {
     try {

@@ -26,7 +26,7 @@ export const CALL_PERMISSIONS = Platform.select({
 });
 
 export const usePermissions = (perms) => {
-  const [state, setState] = (useState < "pending") | "granted" | ("rejected" > "pending");
+  const [state, setState] = useState("pending");
   useEffect(() => {
     const checkAndRequest = async () => {
       if (Platform.OS === "android") {

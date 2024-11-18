@@ -1,54 +1,49 @@
-// import RNCallKeep from "react-native-callkeep";
-
+import RNCallKeep from "react-native-callkeep";
+import { RunAfterAppReady } from "@/utils/NavigationService";
 import { SendbirdCalls } from "@sendbird/calls-react-native";
 
-// import { RunAfterAppReady } from "../libs/StaticNavigation";
-// import { DirectRouteWithParams, DirectRoutes } from "../navigations/routes";
-
 export const setupCallKit = async () => {
-  // await RNCallKeep.setup({
-  //   ios: {
-  //     appName: "SendbirdCalls RN",
-  //     supportsVideo: true,
-  //     maximumCallGroups: "1",
-  //     maximumCallsPerCallGroup: "1",
-  //     includesCallsInRecents: true,
-  //     ringtoneSound: "ringing.mp3",
-  //   },
-  //   android: {
-  //     alertTitle: "noop",
-  //     alertDescription: "noop",
-  //     cancelButton: "noop",
-  //     okButton: "noop",
-  //     additionalPermissions: [],
-  //   },
-  // });
+  await RNCallKeep.setup({
+    ios: {
+      appName: "Kuky",
+      supportsVideo: true,
+      maximumCallGroups: "1",
+      maximumCallsPerCallGroup: "1",
+      includesCallsInRecents: true,
+      ringtoneSound: "ringing.mp3",
+    },
+    android: {
+      alertTitle: "noop",
+      alertDescription: "noop",
+      cancelButton: "noop",
+      okButton: "noop",
+      additionalPermissions: [],
+    },
+  });
 };
 
 // You can set CallKit listener on app mount with `setupCallKit`
 // but it leads some weird behavior like listener is not triggered after app refresh on development mode.
 export const setupCallKitListeners = () => {
-  // RNCallKeep.addEventListener("answerCall", async ({ callUUID }) => {
-  //   const directCall = await SendbirdCalls.getDirectCall(callUUID);
-  //   RunAfterAppReady < DirectRoutes,
-  //     DirectRouteWithParams >
-  //       ((navigation) => {
-  //         if (directCall.isVideoCall) {
-  //           navigation.navigate(DirectRoutes.VIDEO_CALLING, { callId: directCall.callId });
-  //         } else {
-  //           navigation.navigate(DirectRoutes.VOICE_CALLING, { callId: directCall.callId });
-  //         }
-  //         directCall.accept();
-  //       });
-  // });
-  // RNCallKeep.addEventListener("endCall", async ({ callUUID }) => {
-  //   const directCall = await SendbirdCalls.getDirectCall(callUUID);
-  //   await directCall.end();
-  // });
-  // return () => {
-  //   RNCallKeep.removeEventListener("answerCall");
-  //   RNCallKeep.removeEventListener("endCall");
-  // };
+  RNCallKeep.addEventListener("answerCall", async ({ callUUID }) => {
+    const directCall = await SendbirdCalls.getDirectCall(callUUID);
+    RunAfterAppReady((navigation) => {
+      if (directCall.isVideoCall) {
+        navigation.navigate("VideoCallScreen", { callId: directCall.callId });
+      } else {
+        navigation.navigate("VoiceCallScreen", { callId: directCall.callId });
+      }
+      directCall.accept();
+    });
+  });
+  RNCallKeep.addEventListener("endCall", async ({ callUUID }) => {
+    const directCall = await SendbirdCalls.getDirectCall(callUUID);
+    await directCall.end();
+  });
+  return () => {
+    RNCallKeep.removeEventListener("answerCall");
+    RNCallKeep.removeEventListener("endCall");
+  };
 };
 
 export const startRingingWithCallKit = async (props) => {
@@ -60,10 +55,10 @@ export const startRingingWithCallKit = async (props) => {
     const unsubscribeCallKit = setupCallKitListeners();
     const unsubscribeDirectCall = directCall.addListener({
       onEnded({ callLog }) {
-        // RNCallKeep.endAllCalls();
-        // if (callLog?.endedBy?.userId === remoteUser.userId) {
-        //   RNCallKeep.reportEndCallWithUUID(uuid, 2);
-        // }
+        RNCallKeep.endAllCalls();
+        if (callLog?.endedBy?.userId === remoteUser.userId) {
+          RNCallKeep.reportEndCallWithUUID(uuid, 2);
+        }
         unsubscribeDirectCall();
         unsubscribeCallKit();
       },
@@ -73,16 +68,16 @@ export const startRingingWithCallKit = async (props) => {
     const onGoingCalls = await SendbirdCalls.getOngoingCalls();
     if (onGoingCalls.length > 1 || directCall.isEnded) {
       directCall.end();
-      // RNCallKeep.rejectCall(uuid);
+      RNCallKeep.rejectCall(uuid);
       return;
     }
 
-    // RNCallKeep.displayIncomingCall(
-    //   uuid,
-    //   remoteUser.userId,
-    //   remoteUser.nickname ?? "Unknown",
-    //   "generic",
-    //   props.isVideoCall,
-    // );
+    RNCallKeep.displayIncomingCall(
+      uuid,
+      remoteUser.userId,
+      remoteUser.nickname ?? "Unknown",
+      "generic",
+      props.isVideoCall,
+    );
   }
 };
