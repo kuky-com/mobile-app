@@ -77,6 +77,8 @@ import { authenticate, registerToken } from "../utils/sendbird";
 import { VoiceCallScreen } from "./chat/VoiceCallScreen";
 import { VideoCallScreen } from "./chat/VideoCallScreen";
 import { CALL_PERMISSIONS, usePermissions } from "@/hooks/usePermissions";
+import DisclaimeScreen from "./onboarding/DisclaimeScreen";
+import OnboardingSampleProfile from "./onboarding/OnboardingSampleProfile";
 
 SendbirdCalls.initialize("9BE43E57-7AA4-4D1A-A59A-A567330F0095");
 
@@ -681,6 +683,8 @@ const AppStack = ({ navgation }) => {
       <Stack.Screen name="ProfileRejectScreen" component={ProfileRejectScreen} />
       <Stack.Screen name="VideoProcessingScreen" component={VideoProcessingScreen} />
       <Stack.Screen name="VideoUpdateScreen" component={VideoUpdateScreen} />
+      <Stack.Screen name="DisclaimeScreen" component={DisclaimeScreen} />
+      <Stack.Screen name="OnboardingSampleProfile" component={OnboardingSampleProfile} />
     </Stack.Navigator>
   );
 };

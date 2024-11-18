@@ -15,8 +15,15 @@ const CustomVideo = React.forwardRef((props, ref) => {
     setLoaded(true);
   };
 
+  const onPlaybackStatusUpdate = (status) => {
+    if (props && props.onPlaybackStatusUpdate) {
+      props.onPlaybackStatusUpdate(status);
+    }
+    setLoaded(status.isLoaded);
+  }
+
   return (
-    <Video ref={ref} {...props} onReadyForDisplay={onReadyForDisplay}>
+    <Video ref={ref} {...props} onReadyForDisplay={onReadyForDisplay} onPlaybackStatusUpdate={onPlaybackStatusUpdate}>
       <View
         style={{
           position: "absolute",

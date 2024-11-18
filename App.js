@@ -32,9 +32,11 @@ Smartlook.instance.start();
 
 const prefix = Linking.createURL("/");
 
-var relativeTime = require("dayjs/plugin/relativeTime");
-var customParseFormat = require("dayjs/plugin/customParseFormat");
+import relativeTime from "dayjs/plugin/relativeTime"
+import customParseFormat from "dayjs/plugin/customParseFormat"
+import advancedFormat from 'dayjs/plugin/advancedFormat';
 
+dayjs.extend(advancedFormat);
 dayjs.extend(relativeTime);
 dayjs.extend(customParseFormat);
 

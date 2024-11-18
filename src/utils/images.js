@@ -56,6 +56,15 @@ const buffering = require("../assets/animations/buffering.gif");
 const camera_icon = require("../assets/images/camera_icon.png");
 const video_thumb = require("../assets/images/video_thumb.png");
 const update_video = require("../assets/images/update_video.png");
+const profile_approved = require("../assets/images/profileApprovedIcon.png");
+const profile_pending = require("../assets/images/profilePendingIcon.png");
+const profile_rejected = require("../assets/images/profileRejectedIcon.png");
+const link_icon = require("../assets/images/link_icon.png");
+const share_instagram = require("../assets/images/share_instagram.png");
+const share_facebook = require("../assets/images/share_facebook.png");
+const share_whatsapp = require("../assets/images/share_whatsapp.png");
+const share_twitter = require("../assets/images/share_twitter.png");
+const shared_icon = require("../assets/images/shared_icon.png");
 
 export default {
   logo_text,
@@ -116,4 +125,13 @@ export default {
   video_thumb,
   update_video,
   buffering,
+  profile_approved,
+  profile_pending,
+  profile_rejected,
+  link_icon,
+  share_facebook,
+  share_instagram,
+  share_twitter,
+  share_whatsapp,
+  shared_icon
 };

@@ -495,16 +495,6 @@ const VideoUpdateScreen = ({ navigation, route }) => {
                         borderRadius: 15,
                       }}
                     >
-                      <View
-                        style={{
-                          position: "absolute",
-                          backgroundColor: "#CDB8E2",
-                          top: 8,
-                          left: 8,
-                          bottom: 8,
-                          right: 8,
-                        }}
-                      />
                       <Image
                         source={images.pause_icon}
                         style={{ width: 40, height: 40, borderRadius: 15 }}

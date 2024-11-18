@@ -165,6 +165,18 @@ const ProfileScreen = ({ navigation }) => {
         navigation.push('VideoUpdateScreen')
     }
 
+    const reapplyProfileReview = () => {
+        apiClient.get(`users/${currentUser.id}/reapply-profile-review`)
+        .then((res) => {
+            if(res && res.data && res.data.data) {
+                setCurrentUser(res.data.data)
+            }
+        })
+        .catch((error) => {
+            console.log({error})
+        })
+    }
+
     return (
         <View style={styles.container}>
             <StatusBar translucent style='dark' />
@@ -227,7 +239,7 @@ const ProfileScreen = ({ navigation }) => {
                                     <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>Update my video</Text>
                                 </View>
                                 <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} />
-                                <View style={{  flex: 1, marginTop: 16, marginBottom: 8, alignItems: 'center', justifyContent: 'center' }}>
+                                <View style={{ flex: 1, marginTop: 16, marginBottom: 8, alignItems: 'center', justifyContent: 'center' }}>
                                     {
                                         currentUser?.video_intro &&
                                         <CustomVideo
@@ -252,7 +264,6 @@ const ProfileScreen = ({ navigation }) => {
                                     {
                                         playing && currentUser?.video_intro &&
                                         <TouchableOpacity onPress={pauseVideo} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
-                                            <View style={{ backgroundColor: '#725ED4', position: 'absolute', top: 10, left: 10, right: 10, bottom: 10 }} />
                                             <Image source={images.pause_icon} style={{ width: 40, height: 40 }} />
                                         </TouchableOpacity>
                                     }
@@ -385,8 +396,45 @@ const ProfileScreen = ({ navigation }) => {
                             onRefresh={onRefresh} />}
                         showsVerticalScrollIndicator={false} style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 16, paddingTop: 24 }}>
                         <View style={{ flex: 1, width: Platform.isPad ? 600 : '100%', alignSelf: 'center', gap: 16, marginBottom: insets.bottom + 120 }}>
+                            <View style={{ backgroundColor: '#E9E5FF', gap: 16, borderWidth: 1, borderColor: '#F5F5F5', borderRadius: 10, paddingHorizontal: 24, paddingVertical: 16 }}>
+                                {
+                                    currentUser?.profile_approved === 'approved' &&
+                                    <View style={{ width: '100%', flexDirection: 'row', gap: 16, alignItems: 'center' }}>
+                                        <Image source={images.profile_approved} style={{ width: 25, height: 25 }} contentFit='contain' />
+                                        <Text style={{ fontSize: 13, fontWeight: 'bold', color: 'black' }}>Your account has been approved.</Text>
+                                    </View>
+                                }
+                                {
+                                    currentUser?.profile_approved === 'pending' &&
+                                    <View style={{ width: '100%', flexDirection: 'row', gap: 16, alignItems: 'center' }}>
+                                        <Image source={images.profile_pending} style={{ width: 25, height: 25 }} contentFit='contain' />
+                                        <Text style={{ fontSize: 13, fontWeight: 'bold', color: 'black' }}>Your account is under review.</Text>
+                                    </View>
+                                }
+                                {
+                                    currentUser?.profile_approved === 'rejected' &&
+                                    <View style={{ width: '100%', flexDirection: 'row', gap: 16, alignItems: 'center' }}>
+                                        <Image source={images.profile_rejected} style={{ width: 25, height: 25 }} contentFit='contain' />
+                                        <Text style={{ fontSize: 13, fontWeight: 'bold', color: 'black' }}>Your account was rejected.</Text>
+                                    </View>
+                                }
+                                {
+                                    currentUser?.profile_approved === 'rejected' &&
+                                    <View style={{ width: '100%', gap: 8 }}>
+                                        <Text style={{ fontSize: 13, fontWeight: 'bold', color: '#00000077' }}>Here is why:</Text>
+                                        <Text style={{ fontSize: 13, fontWeight: 'bold', color: 'black', paddingLeft: 8 }}>{currentUser?.profile_rejected_reason}</Text>
+                                    </View>
+                                }
+                                {
+                                    currentUser?.profile_approved === 'rejected' &&
+                                    <TouchableOpacity onPress={reapplyProfileReview} style={{width: '100%', height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.mainColor}}>
+                                        <Text style={{color: '#E8FF58', fontSize: 16, fontWeight: 'bold'}}>Re-apply for Review</Text>
+                                    </TouchableOpacity>
+                                }
+                            </View>
+
                             <View style={{ borderWidth: 1, borderRadius: 10, borderColor: colors.mainColor, padding: 16, gap: 16 }}>
-                                <Text style={{ color: '#333333', fontSize: 14, textAlign: 'center' }}>Let your friends know you found a great match on Kuky!</Text>
+                                <Text style={{ color: '#333333', fontSize: 14, textAlign: 'center', lineHeight: 20 }}>Let your friends know you found a great match on Kuky!</Text>
                                 <TouchableOpacity onPress={onShare} style={{ paddingHorizontal: 32, justifyContent: 'center', height: 40, alignItems: 'center', borderRadius: 20, backgroundColor: colors.mainColor }}>
                                     <Text style={{ fontSize: 16, color: 'white', fontWeight: 'bold' }}>Invite a friend</Text>
                                 </TouchableOpacity>
@@ -423,7 +471,6 @@ const ProfileScreen = ({ navigation }) => {
                                         }
                                         {playing &&
                                             <TouchableOpacity onPress={pauseVideo} style={{ width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center' }}>
-                                                <View style={{ position: 'absolute', top: 20, right: 20, bottom: 20, left: 20, backgroundColor: '#E8FF58' }} />
                                                 <Image source={images.pause_icon} style={{ tintColor: '#7B65E8', width: 80, height: 80, borderRadius: 40, }} contentFit='contain' />
                                             </TouchableOpacity>
                                         }

@@ -323,19 +323,19 @@ const MessageScreen = ({ navigation, route }) => {
           right: {
             backgroundColor: "#E0E1DD",
             borderBottomRightRadius: 2.5,
-            borderBottomLeftRadius: 25,
-            borderTopRightRadius: 25,
-            borderTopLeftRadius: 25,
+            borderBottomLeftRadius: 10,
+            borderTopRightRadius: 10,
+            borderTopLeftRadius: 10,
             paddingHorizontal: 10,
             paddingVertical: 6,
             marginBottom: 15,
           },
           left: {
             backgroundColor: "#CFC7F7",
-            borderBottomRightRadius: 25,
+            borderBottomRightRadius: 10,
             borderBottomLeftRadius: 2.5,
-            borderTopRightRadius: 25,
-            borderTopLeftRadius: 25,
+            borderTopRightRadius: 10,
+            borderTopLeftRadius: 10,
             paddingHorizontal: 10,
             paddingVertical: 6,
             marginBottom: 15,
@@ -430,7 +430,7 @@ const MessageScreen = ({ navigation, route }) => {
           .catch((error) => {
             console.log({ error });
           });
-      } catch (error) {}
+      } catch (error) { }
     },
     [conversation.conversation_id],
   );
@@ -478,7 +478,7 @@ const MessageScreen = ({ navigation, route }) => {
               Toast.show({ text1: error, type: "error" });
             });
         },
-        onConfirm: () => {},
+        onConfirm: () => { },
         cancelText: "End Connection",
         confirmText: "Cancel",
         header: "Do you want to end the connection with this user?",
@@ -508,7 +508,7 @@ const MessageScreen = ({ navigation, route }) => {
               Toast.show({ text1: error, type: "error" });
             });
         },
-        onConfirm: () => {},
+        onConfirm: () => { },
         cancelText: "Block",
         confirmText: "Cancel",
         header: "Do you want to block this user?",
@@ -628,8 +628,7 @@ const MessageScreen = ({ navigation, route }) => {
   };
 
   const renderHeaderView = () => {
-    // console.log({ conversation })
-    if (currentConversation.status === "sent") {
+    if (currentConversation.status === "accepted") {
       let connectionText = "";
       if (currentConversation.sender?.id === currentUser?.id) {
         connectionText = `You sent a matching request to ${currentConversation?.receiver?.full_name ?? ""} ${dayjs(conversation.sent_date).fromNow()}`;
@@ -640,13 +639,14 @@ const MessageScreen = ({ navigation, route }) => {
       return (
         <View
           style={{
-            width: "100%",
             padding: 16,
             alignItems: "center",
             justifyContent: "center",
-            borderBottomWidth: 1,
-            borderBottomColor: "#D2D2D2",
+            backgroundColor: '#E3E1ED',
+            marginHorizontal: 20,
+            marginTop: 12,
             gap: 16,
+            borderRadius: 10
           }}
         >
           <View
@@ -710,32 +710,19 @@ const MessageScreen = ({ navigation, route }) => {
       return (
         <View
           style={{
-            width: "100%",
             padding: 16,
             alignItems: "center",
             justifyContent: "center",
-            borderBottomWidth: 1,
-            borderBottomColor: "#D2D2D2",
+            backgroundColor: '#E3E1ED',
+            marginHorizontal: 20,
+            marginTop: 12,
             gap: 16,
+            borderRadius: 10
           }}
         >
           <Text
             style={{ color: "black", fontSize: 12, fontWeight: "600", textAlign: "center" }}
-          >{`🎉 You matched with ${currentConversation?.profile?.full_name ?? ""} ${dayjs(currentConversation.response_date).fromNow()}!\nContinue your conversation below.`}</Text>
-          {/* <View style={{ width: '100%', flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center', padding: 8, borderRadius: 10, backgroundColor: '#7B65E8' }}>
-                        <Image source={images.category_icon} style={{ width: 16, height: 16 }} contentFit='contain' />
-                        <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'white' }}>Art & Crafts</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center', padding: 8, borderRadius: 10, backgroundColor: '#7B65E8' }}>
-                        <Image source={images.category_icon} style={{ width: 16, height: 16 }} contentFit='contain' />
-                        <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'white' }}>Cooking</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center', padding: 8, borderRadius: 10, backgroundColor: '#7B65E8' }}>
-                        <Image source={images.category_icon} style={{ width: 16, height: 16 }} contentFit='contain' />
-                        <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'white' }}>Yoga</Text>
-                    </View>
-                </View> */}
+          >{`You connected on ${dayjs(currentConversation.response_date).format('MMMM Do')}`}</Text>
         </View>
       );
     }
@@ -818,18 +805,18 @@ const MessageScreen = ({ navigation, route }) => {
             gap: 16,
           }}
         >
-          <TouchableOpacity
+          {/* <TouchableOpacity
             onPress={() => calling(false)}
             style={{ width: 30, height: 30, alignItems: "center", justifyContent: "center" }}
           >
             <CallIcon />
-          </TouchableOpacity>
-          <TouchableOpacity
+          </TouchableOpacity> */}
+          {/* <TouchableOpacity
             onPress={() => calling(true)}
             style={{ width: 30, height: 30, alignItems: "center", justifyContent: "center" }}
           >
             <VideoIcon />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           <TouchableOpacity
             onPress={moreAction}
             style={{ width: 30, height: 30, alignItems: "center", justifyContent: "center" }}

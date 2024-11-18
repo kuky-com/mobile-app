@@ -35,6 +35,7 @@ import Toast from "react-native-toast-message";
 import Feather from "@expo/vector-icons/Feather";
 import colors from "../../utils/colors";
 import { Rating } from "@/components/Rating";
+import ShareModal from "../../components/ShareModal";
 
 const styles = StyleSheet.create({
   container: {
@@ -73,6 +74,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
   const showAlert = useAlert();
   const [currentUserInterests, setCurrentUserInterests] = useState([]);
   const [playing, setPlaying] = useState(false);
+  const [showShare, setShowShare] = useState(null)
 
   const videoRef = useRef(null);
 
@@ -140,7 +142,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
       properties.putString("user_id", currentUser?.id.toString());
       properties.putString("profile_id", profile.id.toString());
       Smartlook.instance.analytics.trackEvent("open_profile", properties);
-    } catch (error) {}
+    } catch (error) { }
   }, []);
 
   const likeAction = () => {
@@ -180,7 +182,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
               [
                 {
                   text: "Keep Exploring",
-                  onPress: () => {},
+                  onPress: () => { },
                 },
               ],
             );
@@ -257,7 +259,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
               Toast.show({ text1: error, type: "error" });
             });
         },
-        onConfirm: () => {},
+        onConfirm: () => { },
         cancelText: "Block",
         confirmText: "Cancel",
         header: "Do you want to block this user?",
@@ -284,6 +286,18 @@ const ConnectProfileScreen = ({ navigation, route }) => {
       setLoading(false);
     }
   };
+
+  const onGetSharedLink = async () => {
+    apiClient.get(`users/${profile.id}/share-link`)
+      .then(res => {
+        console.log({ res: res.data.data })
+
+        setShowShare(res.data.data)
+      })
+      .catch((error) => {
+        console.log({ error })
+      })
+  }
 
   let sameInterests = [];
   let sameDislikes = [];
@@ -316,7 +330,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
     userDislikes = (currentProfile?.interests ?? []).filter(
       (item) => item.user_interests.interest_type === "dislike",
     );
-  } catch (error) {}
+  } catch (error) { }
 
   const playVideo = () => {
     if (videoRef && videoRef) {
@@ -407,43 +421,45 @@ const ConnectProfileScreen = ({ navigation, route }) => {
               colors={["transparent", "rgba(0,0,0,0.79)"]}
               style={styles.nameBackground}
             />
-            {!playing && (
+
+            <View
+              style={{
+                flex: 1,
+                width: "100%",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              {!playing && <View style={{ width: "100%", alignItems: "flex-end", padding: 16 }}>
+                <View style={styles.tagContainer}>
+                  <Text
+                    style={[
+                      styles.tagText,
+                      {
+                        fontSize: (currentProfile?.tag?.name ?? "").length > 20 ? 13 : 15,
+                      },
+                    ]}
+                  >
+                    {currentProfile?.tag?.name}
+                  </Text>
+                </View>
+              </View>
+              }
               <View
                 style={{
                   flex: 1,
                   width: "100%",
-                  alignItems: "center",
-                  justifyContent: "space-between",
+                  justifyContent: "flex-end",
+                  paddingBottom: 25,
+                  paddingHorizontal: 16,
+                  gap: 16,
                 }}
               >
-                <View style={{ width: "100%", alignItems: "flex-end", padding: 16 }}>
-                  <View style={styles.tagContainer}>
-                    <Text
-                      style={[
-                        styles.tagText,
-                        {
-                          fontSize: (currentProfile?.tag?.name ?? "").length > 20 ? 13 : 15,
-                        },
-                      ]}
-                    >
-                      {currentProfile?.tag?.name}
-                    </Text>
-                  </View>
-                </View>
-                <View
-                  style={{
-                    flex: 1,
-                    width: "100%",
-                    justifyContent: "flex-end",
-                    paddingBottom: 25,
-                    paddingHorizontal: 16,
-                    gap: 16,
-                  }}
-                >
-                  <Text style={{ fontSize: 32, color: "white", fontWeight: "bold" }}>
-                    {currentProfile.full_name}
-                  </Text>
-                  {/* <View style={{ width: '100%', flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                {!playing && <Text style={{ fontSize: 32, color: "white", fontWeight: "bold" }}>
+                  {currentProfile.full_name}
+                </Text>
+                }
+                {/* <View style={{ width: '100%', flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                                     {
                                         currentProfile?.interests.map((interest) => (
                                             <View key={`interest-${interest.id}`} style={{ flexDirection: 'row', gap: 5, alignItems: 'center', padding: 8, borderRadius: 10, backgroundColor: interest?.user_interests?.interest_type !== 'dislike' ? 'rgba(123, 101,232,0.75)' : 'rgba(250, 139, 139,0.75)' }}>
@@ -454,151 +470,139 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                                     }
                                 </View> */}
 
-                  <View
-                    style={{
-                      marginTop: 32,
-                      width: "100%",
-                      flexDirection: "row",
-                      alignItems: "flex-end",
-                      justifyContent: "space-between",
-                      paddingHorizontal: 9,
-                    }}
-                  >
-                    {showAcceptReject && !matchInfo && (
-                      <View style={{ alignItems: "center", gap: 13 }}>
-                        <TouchableOpacity
-                          disabled={loading}
-                          onPress={rejectAction}
+                <View
+                  style={{
+                    marginTop: 32,
+                    width: "100%",
+                    flexDirection: "row",
+                    alignItems: "flex-end",
+                    justifyContent: "space-between",
+                    paddingHorizontal: 9,
+                  }}
+                >
+                  {showAcceptReject && !matchInfo && (
+                    <View style={{ alignItems: "center", gap: 13 }}>
+                      <TouchableOpacity
+                        disabled={loading}
+                        onPress={rejectAction}
+                        style={{
+                          width: 60,
+                          height: 60,
+                          borderRadius: 30,
+                          backgroundColor: "#6C6C6C",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Image
+                          source={images.close_icon}
                           style={{
-                            width: 60,
-                            height: 60,
-                            borderRadius: 30,
-                            backgroundColor: "#6C6C6C",
+                            width: 26,
+                            height: 26,
+                            tintColor: "#E8FF58",
+                          }}
+                          contentFit="contain"
+                        />
+                      </TouchableOpacity>
+                      <Text
+                        style={{
+                          color: "#949494",
+                          fontSize: 10,
+                          fontWeight: "bold",
+                        }}
+                      >
+                        Pass
+                      </Text>
+                    </View>
+                  )}
+                  {currentProfile?.video_intro && (
+                    <View style={{ alignItems: "center", gap: 13 }}>
+                      {!playing && (
+                        <TouchableOpacity
+                          onPress={playVideo}
+                          style={{
                             alignItems: "center",
                             justifyContent: "center",
                           }}
                         >
                           <Image
-                            source={images.close_icon}
-                            style={{
-                              width: 26,
-                              height: 26,
-                              tintColor: "#E8FF58",
-                            }}
+                            source={images.play_icon}
+                            style={{ width: 80, height: 80 }}
                             contentFit="contain"
                           />
                         </TouchableOpacity>
-                        <Text
+                      )}
+                      {playing && (
+                        <TouchableOpacity
+                          onPress={pauseVideo}
                           style={{
-                            color: "#949494",
-                            fontSize: 10,
-                            fontWeight: "bold",
+                            width: 80,
+                            height: 80,
+                            borderRadius: 40,
+                            alignItems: "center",
+                            justifyContent: "center",
                           }}
                         >
-                          Pass
-                        </Text>
-                      </View>
-                    )}
-                    {currentProfile?.video_intro && (
-                      <View style={{ alignItems: "center", gap: 13 }}>
-                        {!playing && (
-                          <TouchableOpacity
-                            onPress={playVideo}
-                            style={{
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <Image
-                              source={images.play_icon}
-                              style={{ width: 80, height: 80 }}
-                              contentFit="contain"
-                            />
-                          </TouchableOpacity>
-                        )}
-                        {playing && (
-                          <TouchableOpacity
-                            onPress={pauseVideo}
+                          <Image
+                            source={images.pause_icon}
                             style={{
                               width: 80,
                               height: 80,
                               borderRadius: 40,
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <View
-                              style={{
-                                position: "absolute",
-                                top: 20,
-                                right: 20,
-                                bottom: 20,
-                                left: 20,
-                                backgroundColor: "#E8FF58",
-                              }}
-                            />
-                            <Image
-                              source={images.pause_icon}
-                              style={{
-                                tintColor: "#7B65E8",
-                                width: 80,
-                                height: 80,
-                                borderRadius: 40,
-                              }}
-                              contentFit="contain"
-                            />
-                          </TouchableOpacity>
-                        )}
-                        <Text
-                          style={{
-                            color: "#949494",
-                            fontSize: 10,
-                            fontWeight: "bold",
-                          }}
-                        >
-                          Watch video
-                        </Text>
-                      </View>
-                    )}
-                    {showAcceptReject && !matchInfo && (
-                      <View style={{ alignItems: "center", gap: 13 }}>
-                        <TouchableOpacity
-                          disabled={loading}
-                          onPress={likeAction}
-                          style={{
-                            width: 60,
-                            height: 60,
-                            borderRadius: 30,
-                            backgroundColor: "#6C6C6C",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <Image
-                            source={images.like_icon}
-                            style={{
-                              width: 26,
-                              height: 26,
-                              tintColor: "#E8FF58",
                             }}
                             contentFit="contain"
                           />
                         </TouchableOpacity>
-                        <Text
+                      )}
+                      <Text
+                        style={{
+                          color: "#949494",
+                          fontSize: 10,
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {playing ? 'Pause video' : 'Watch video'}
+                      </Text>
+                    </View>
+                  )}
+                  {showAcceptReject && !matchInfo && (
+                    <View style={{ alignItems: "center", gap: 13 }}>
+                      <TouchableOpacity
+                        disabled={loading}
+                        onPress={likeAction}
+                        style={{
+                          width: 60,
+                          height: 60,
+                          borderRadius: 30,
+                          backgroundColor: "#6C6C6C",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Image
+                          source={images.like_icon}
                           style={{
-                            color: "#949494",
-                            fontSize: 10,
-                            fontWeight: "bold",
+                            width: 26,
+                            height: 26,
+                            tintColor: "#E8FF58",
                           }}
-                        >
-                          Connect
-                        </Text>
-                      </View>
-                    )}
-                  </View>
+                          contentFit="contain"
+                        />
+                      </TouchableOpacity>
+                      <Text
+                        style={{
+                          color: "#949494",
+                          fontSize: 10,
+                          fontWeight: "bold",
+                        }}
+                      >
+                        Connect
+                      </Text>
+                    </View>
+                  )}
                 </View>
               </View>
-            )}
+            </View>
           </View>
           <View
             style={{
@@ -738,9 +742,8 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                     }}
                   >
                     {currentProfile?.reviewsCount && currentProfile?.reviewsCount !== 0
-                      ? `${currentProfile?.reviewsCount} Review${
-                          currentProfile.reviewsCount !== 1 ? "s" : ""
-                        }`
+                      ? `${currentProfile?.reviewsCount} Review${currentProfile.reviewsCount !== 1 ? "s" : ""
+                      }`
                       : "No reviews yet"}
                   </Text>
                   <Feather name="chevron-right" size={28} color={colors.primary} />
@@ -1038,26 +1041,38 @@ const ConnectProfileScreen = ({ navigation, route }) => {
             style={{
               width: "100%",
               marginVertical: 16,
-              height: 2,
+              height: 1,
               backgroundColor: "#D2D2D2",
-              borderRadius: 1,
             }}
           />
 
           <View
             style={{
               width: "100%",
-              padding: 10,
+              paddingHorizontal: 16,
               alignItems: "center",
               justifyContent: "center",
+              gap: 4
             }}
           >
-            <Text onPress={onBlock} style={{ color: "#CB3729", fontSize: 18, fontWeight: "bold" }}>
+            <Text style={{ fontSize: 15, color: '#595959', lineHeight: 25, textAlign: 'center' }}>Think this profile might be a good fit for someone you know?</Text>
+            <Text onPress={onGetSharedLink} style={{ lineHeight: 25, color: "#333333", fontSize: 14, fontWeight: "bold" }}>
+              Share it!
+            </Text>
+
+            <Text onPress={onBlock} style={{ marginTop: 40, lineHeight: 25, color: "#CB3729", fontSize: 14, fontWeight: "bold" }}>
               Block
             </Text>
           </View>
         </View>
       </ScrollView>
+
+      <ShareModal 
+        visible={showShare !== null}
+        onClose={() => setShowShare(null)}
+        full_name={currentProfile?.full_name}
+        shareLink={showShare ?? ''}
+      />
     </View>
   );
 };
