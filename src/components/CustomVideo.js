@@ -8,7 +8,7 @@ const { Video, Audio } = require("expo-av");
 const CustomVideo = React.forwardRef((props, ref) => {
   const [loaded, setLoaded] = useState(false);
 
-  const onReadyForDisplay = () => {
+  const onReadyForDisplay = async () => {
     if (props && props.onReadyForDisplay) {
       props.onReadyForDisplay();
     }
@@ -26,13 +26,37 @@ const CustomVideo = React.forwardRef((props, ref) => {
     Audio.setAudioModeAsync({ playsInSilentModeIOS: true })
   }, [])
 
+  useEffect(() => {
+    const loadNewSource = async () => {
+      try {
+        if (ref && ref.current) {
+          await ref.current.unloadAsync()
+
+          if (props?.source) {
+            await ref.current.loadAsync(props?.source, {
+              positionMillis: props?.positionMillis ? Math.max(props?.positionMillis, 50) : 50, 
+              shouldPlay: props?.shouldPlay,
+              isLooping: props?.isLooping,
+              isMuted: props?.isMuted,
+            })
+          }
+        }
+      } catch (error) {
+        console.log({ error })
+      }
+    }
+
+    loadNewSource()
+  }, [props?.source?.uri])
+
   return (
     <Video
-      ref={ref} 
+      ref={ref}
       {...props}
-      onReadyForDisplay={onReadyForDisplay} 
+      positionMillis={props?.positionMillis ? Math.max(props?.positionMillis, 50) : 50}
+      onReadyForDisplay={onReadyForDisplay}
       onPlaybackStatusUpdate={onPlaybackStatusUpdate}
-      positionMillis={props?.positionMillis ? Math.max(props?.positionMillis, 50) : 50}>
+    >
       <View
         style={{
           position: "absolute",

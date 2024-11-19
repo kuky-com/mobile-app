@@ -159,7 +159,7 @@ const PurposeProfileScreen = ({ navigation, route }) => {
                                 ref={inputRef}
                                 style={{ flex: 1, width: '100%', fontWeight: '600', fontSize: 18, color: 'black' }}
                                 underlineColorAndroid='#00000000'
-                                placeholder='e.g., Dealing with seperation'
+                                placeholder='e.g Dealing with anxiety'
                                 placeholderTextColor='#AAAAAA'
                                 value={tagName}
                                 onChangeText={setTagName}

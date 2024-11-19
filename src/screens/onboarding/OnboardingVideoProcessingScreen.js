@@ -43,14 +43,14 @@ const OnboardingVideoProcessingScreen = ({ navigation, route }) => {
             const { width, height } = await getVideoResizeDimensions(videoUrl.uri)
 
             const outputUri = `${FileSystem.documentDirectory}video_trimmed.mp4`
-            const command = `-y -i ${videoUrl.uri} -ss ${startPosition} -to ${endPosition} -vf ${width > height ? `scale=${height}:${width}` : `scale=${width}:${height}`} -preset ultrafast -f mp4 ${outputUri}`;
+            const command = `-y -i ${videoUrl.uri} -ss ${startPosition} -to ${endPosition} -vf ${width > height ? `scale=${height}:${width}` : `scale=${width}:${height}`} -crf 26 -preset veryfast -f mp4 ${outputUri}`;
 
             await FFmpegKit.execute(command)
 
             const response = await fetch(outputUri);
 
             const blob = await response.blob();
-            const fileName = `video-${dayjs().unix()}.mp4`
+            const fileName = `video-${process.env.NODE_ENV}-${currentUser?.id}-${dayjs().unix()}.mp4`
 
             const result = await uploadData({
                 path: `public/${fileName}`,
@@ -105,7 +105,7 @@ const OnboardingVideoProcessingScreen = ({ navigation, route }) => {
                                 names.push(capitalize(purpose.name))
                         }
                     }
-                    const res = await apiClient.post('interests/update-likes', { purposes: names })
+                    const res = await apiClient.post('interests/update-purposes', { purposes: names })
 
                     if (res.data.data) {
                         purposes = res.data.data.map((item) => ({ name: item.purpose.name }))
