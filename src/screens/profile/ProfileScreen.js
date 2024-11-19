@@ -162,7 +162,7 @@ const ProfileScreen = ({ navigation }) => {
     }
 
     const openEditVideo = () => {
-        navigation.push('VideoUpdateScreen')
+        navigation.push('ProfileVideoUpdateScreen')
     }
 
     const reapplyProfileReview = () => {
@@ -471,7 +471,7 @@ const ProfileScreen = ({ navigation }) => {
                                         }
                                         {playing &&
                                             <TouchableOpacity onPress={pauseVideo} style={{ width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center' }}>
-                                                <Image source={images.pause_icon} style={{ tintColor: '#7B65E8', width: 80, height: 80, borderRadius: 40, }} contentFit='contain' />
+                                                <Image source={images.pause_icon} style={{ width: 80, height: 80, borderRadius: 40, }} contentFit='contain' />
                                             </TouchableOpacity>
                                         }
                                         <Text style={{ color: '#949494', fontSize: 10, fontWeight: 'bold' }}>Watch video</Text>

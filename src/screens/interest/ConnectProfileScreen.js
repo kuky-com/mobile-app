@@ -333,13 +333,13 @@ const ConnectProfileScreen = ({ navigation, route }) => {
   } catch (error) { }
 
   const playVideo = () => {
-    if (videoRef && videoRef) {
+    if (videoRef && videoRef.current) {
       videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: 0 });
     }
   };
 
   const pauseVideo = () => {
-    if (videoRef && videoRef) {
+    if (videoRef && videoRef.current) {
       videoRef.current.setStatusAsync({ shouldPlay: false });
     }
   };

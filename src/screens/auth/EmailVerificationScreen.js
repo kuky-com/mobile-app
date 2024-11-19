@@ -69,7 +69,7 @@ const EmailVerificationScreen = ({ navigation, route }) => {
           setTimeout(() => {
             checkPushToken();
           }, 200);
-          NavigationService.reset("VerificationSuccessScreen", { onboarding: true });
+          NavigationService.reset("DisclaimeScreen", { onboarding: true });
         } else {
           Toast.show({ text1: res.data.message, type: "error" });
         }

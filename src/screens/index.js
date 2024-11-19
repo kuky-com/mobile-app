@@ -29,7 +29,7 @@ import LocationUpdateScreen from "./onboarding/LocationUpdateScreen";
 import OnboardingCompleteScreen from "./onboarding/OnboardingCompleteScreen";
 import ProfileTagScreen from "./onboarding/ProfileTagScreen";
 import PronounsUpdateScreen from "./onboarding/PronounsUpdateScreen";
-import ReviewProfileScreen from "./onboarding/ReviewProfileScreen";
+import OnboardingReviewProfileScreen from "./onboarding/OnboardingReviewProfileScreen";
 import SettingScreen from "./profile/SettingScreen";
 import { deviceIdAtom, pushTokenAtom, userAtom } from "@/actions/global";
 import DeviceInfo from "react-native-device-info";
@@ -61,8 +61,8 @@ import { useAlert } from "@/components/AlertProvider";
 import { useAppUpdateAlert } from "@/components/AppUpdateAlert";
 import dayjs from "dayjs";
 import OnboardingVideoTutorialScreen from "./onboarding/OnboardingVideoTutorialScreen";
-import VideoProcessingScreen from "./onboarding/VideoProcessingScreen";
-import VideoUpdateScreen from "./profile/VideoUpdateScreen";
+import OnboardingVideoProcessingScreen from "./onboarding/OnboardingVideoProcessingScreen";
+import ProfileVideoUpdateScreen from "./profile/ProfileVideoUpdateScreen";
 import { ReviewsScreen } from "./interest/ReviewsScreen";
 import { SendbirdCalls, SoundType } from "@sendbird/calls-react-native";
 import { setupCallKit, startRingingWithCallKit } from "../callHandler/ios";
@@ -79,6 +79,8 @@ import { VideoCallScreen } from "./chat/VideoCallScreen";
 import { CALL_PERMISSIONS, usePermissions } from "@/hooks/usePermissions";
 import DisclaimeScreen from "./onboarding/DisclaimeScreen";
 import OnboardingSampleProfile from "./onboarding/OnboardingSampleProfile";
+import ProfileVideoProcessingScreen from "./profile/ProfileVideoProcessingScreen";
+import ProfileVideoReviewScreen from "./profile/ProfileVideoReviewScreen";
 
 SendbirdCalls.initialize("9BE43E57-7AA4-4D1A-A59A-A567330F0095");
 
@@ -666,7 +668,7 @@ const AppStack = ({ navgation }) => {
       <Stack.Screen name="OnboardingCompleteScreen" component={OnboardingCompleteScreen} />
       <Stack.Screen name="ProfileTagScreen" component={ProfileTagScreen} />
       <Stack.Screen name="PronounsUpdateScreen" component={PronounsUpdateScreen} />
-      <Stack.Screen name="ReviewProfileScreen" component={ReviewProfileScreen} />
+      <Stack.Screen name="OnboardingReviewProfileScreen" component={OnboardingReviewProfileScreen} />
       <Stack.Screen name="SettingScreen" component={SettingScreen} />
       <Stack.Screen name="PurposeUpdateScreen" component={PurposeUpdateScreen} />
       <Stack.Screen name="NameUpdateScreen" component={NameUpdateScreen} />
@@ -681,10 +683,12 @@ const AppStack = ({ navgation }) => {
       <Stack.Screen name="FirstTimeScreen" component={FirstTimeScreen} />
       <Stack.Screen name="ProfileApprovedScreen" component={ProfileApprovedScreen} />
       <Stack.Screen name="ProfileRejectScreen" component={ProfileRejectScreen} />
-      <Stack.Screen name="VideoProcessingScreen" component={VideoProcessingScreen} />
-      <Stack.Screen name="VideoUpdateScreen" component={VideoUpdateScreen} />
+      <Stack.Screen name="OnboardingVideoProcessingScreen" component={OnboardingVideoProcessingScreen} />
+      <Stack.Screen name="ProfileVideoUpdateScreen" component={ProfileVideoUpdateScreen} />
       <Stack.Screen name="DisclaimeScreen" component={DisclaimeScreen} />
       <Stack.Screen name="OnboardingSampleProfile" component={OnboardingSampleProfile} />
+      <Stack.Screen name="ProfileVideoProcessingScreen" component={ProfileVideoProcessingScreen} />
+      <Stack.Screen name="ProfileVideoReviewScreen" component={ProfileVideoReviewScreen} />
     </Stack.Navigator>
   );
 };

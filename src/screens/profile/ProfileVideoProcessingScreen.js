@@ -14,15 +14,19 @@ import axios from 'axios'
 import { useAlert } from '@/components/AlertProvider'
 import { uploadData, getUrl, } from 'aws-amplify/storage'
 import * as FileSystem from 'expo-file-system'
-import { FFmpegKit } from 'ffmpeg-kit-react-native'
+import { FFmpegKit, FFprobeKit } from 'ffmpeg-kit-react-native'
 import CustomVideo from '@/components/CustomVideo'
+import { getVideoResizeDimensions } from '../../utils/utils'
+import { useAtomValue } from 'jotai'
+import { userAtom } from '../../actions/global'
 
-const VideoProcessingScreen = ({ navigation, route }) => {
+const ProfileVideoProcessingScreen = ({ navigation, route }) => {
     const insets = useSafeAreaInsets()
     const { videoUrl, startPosition, endPosition } = route.params
     const videoRef = useRef(null);
     const [videoIntro, setVideoIntro] = useState(null)
     const showAlert = useAlert()
+    const currentUser = useAtomValue(userAtom)
 
     useEffect(() => {
         uploadFileToAws()
@@ -36,13 +40,15 @@ const VideoProcessingScreen = ({ navigation, route }) => {
 
     const uploadFileToAws = async () => {
         try {
+            const { width, height } = await getVideoResizeDimensions(videoUrl.uri)
+
             const outputUri = `${FileSystem.documentDirectory}video_trimmed.mp4`
-            const command = `-y -i ${videoUrl.uri} -ss ${startPosition} -to ${endPosition} -preset slow -c:a copy -f mp4 ${outputUri}`;
+            const command = `-y -i ${videoUrl.uri} -ss ${startPosition} -to ${endPosition} -vf ${width > height ? `scale=${height}:${width}` : `scale=${width}:${height}`} -preset ultrafast -f mp4 ${outputUri}`;
 
             await FFmpegKit.execute(command)
 
             const response = await fetch(outputUri);
-      
+
             const blob = await response.blob();
             const fileName = `video-${dayjs().unix()}.mp4`
 
@@ -54,14 +60,13 @@ const VideoProcessingScreen = ({ navigation, route }) => {
                     accessLevel: 'public'
                 }
             }).result
-            console.log('Succeeded: ', result)
 
             setVideoIntro({
                 https: `https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${fileName}`,
                 s3: `s3://kuky-video/public/${fileName}`
             })
         } catch (error) {
-            console.log({error})
+            console.log({ error })
 
             showAlert('Error', 'Could not process your video at the moment.', [
                 { text: 'Resubmit processing', onPress: () => uploadFileToAws() },
@@ -81,60 +86,77 @@ const VideoProcessingScreen = ({ navigation, route }) => {
             let likes = []
             let dislikes = []
             let purposes = []
-            let age = null
-            let gender = null
-            let name = null
 
             if (response && response.data && response.data.tags) {
                 const tags = response.data.tags
 
                 try {
+                    let names = []
                     if (tags.journey && tags.journey.length > 0) {
-                        const names = tags.journey.map((item) => capitalize(item))
-                        const res = await apiClient.post('interests/update-likes', { purposes: names })
+                        names = tags.journey.map((item) => capitalize(item))
+                    }
 
-                        if (res.data.data) {
-                            purposes = res.data.data.map((item) => ({ name: item.purpose.name }))
+                    if (currentUser && currentUser.purposes) {
+                        for (const purpose of currentUser.purposes) {
+                            if (!names.includes(capitalize(purpose.name)))
+                                names.push(capitalize(purpose.name))
                         }
+                    }
+                    const res = await apiClient.post('interests/update-likes', { purposes: names })
+
+                    if (res.data.data) {
+                        purposes = res.data.data.map((item) => ({ name: item.purpose.name }))
                     }
                 } catch (error) {
                     console.log({ error })
                 }
 
                 try {
+                    let names = []
                     if (tags.like && tags.like.length > 0) {
-                        const names = tags.like.map((item) => capitalize(item))
-                        const res = await apiClient.post('interests/update-likes', { likes: names })
+                        names = tags.like.map((item) => capitalize(item))
+                    }
 
-                        if (res.data.data) {
-                            likes = res.data.data.map((item) => ({ name: item.interest.name }))
+                    if (currentUser && currentUser.interests) {
+                        for (const interest of currentUser.interests) {
+                            if (interest && interest.user_interests && interest.user_interests.interest_type === 'like' && !names.includes(capitalize(interest.name)))
+                                names.push(capitalize(interest.name))
                         }
+                    }
+                    const res = await apiClient.post('interests/update-likes', { likes: names })
+
+                    if (res.data.data) {
+                        likes = res.data.data.map((item) => ({ name: item.interest.name }))
                     }
                 } catch (error) {
                     console.log({ error })
                 }
 
                 try {
+                    let names = []
                     if (tags.dislike && tags.dislike.length > 0) {
-                        const names = tags.dislike.map((item) => capitalize(item))
-                        const res = await apiClient.post('interests/update-dislikes', { dislikes: names })
+                        names = tags.dislike.map((item) => capitalize(item))
+                    }
 
-                        if (res.data.data) {
-                            dislikes = res.data.data.map((item) => ({ name: item.interest.name }))
+                    if (currentUser && currentUser.interests) {
+                        for (const interest of currentUser.interests) {
+                            if (interest && interest.user_interests && interest.user_interests.interest_type === 'dislike' && !names.includes(capitalize(interest.name)))
+                                names.push(capitalize(interest.name))
                         }
+                    }
+                    const res = await apiClient.post('interests/update-dislikes', { dislikes: names })
+
+                    if (res.data.data) {
+                        dislikes = res.data.data.map((item) => ({ name: item.interest.name }))
                     }
                 } catch (error) {
                     console.log({ error })
-                }
-
-                if (tags.name) {
-                    name = tags.name
                 }
             }
 
-            console.log({likes, dislikes, purposes, age, gender, name, videoIntro})
+            console.log({ likes, dislikes, purposes, videoIntro })
 
-            NavigationService.reset('ReviewProfileScreen', { likes, dislikes, purposes, age, gender, name, videoIntro: videoIntro })
+            NavigationService.replace('ProfileVideoReviewScreen', { likes, dislikes, purposes, videoIntro: videoIntro })
         } catch (error) {
             console.log({ error })
             showAlert('Error', 'Could not process your video at the moment.', [
@@ -178,4 +200,4 @@ const VideoProcessingScreen = ({ navigation, route }) => {
     )
 }
 
-export default VideoProcessingScreen
+export default ProfileVideoProcessingScreen

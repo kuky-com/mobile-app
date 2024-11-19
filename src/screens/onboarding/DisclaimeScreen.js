@@ -78,7 +78,7 @@ const DisclaimeScreen = ({ navigation, route }) => {
     }, [])
 
     const onContinue = () => {
-        NavigationService.reset('OnboardingCompleteScreen')
+        NavigationService.reset('VerificationSuccessScreen')
     }
 
     return (

@@ -26,10 +26,6 @@ import * as FileSystem from "expo-file-system";
 import { FFmpegKit } from "ffmpeg-kit-react-native";
 import ButtonWithLoading from "@/components/ButtonWithLoading";
 import Slider from "@react-native-community/slider";
-import apiClient from "@/utils/apiClient";
-import { uploadData } from "aws-amplify/storage";
-import { useAtom } from "jotai";
-import { userAtom } from "@/actions/global";
 import CustomVideo from "@/components/CustomVideo";
 
 const styles = StyleSheet.create({
@@ -67,7 +63,7 @@ const styles = StyleSheet.create({
 
 const MAX_DURATION = 60;
 
-const VideoUpdateScreen = ({ navigation, route }) => {
+const ProfileVideoUpdateScreen = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
   const [videoUrl, setVideoUrl] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -80,7 +76,6 @@ const VideoUpdateScreen = ({ navigation, route }) => {
   const [startPosition, setStartPosition] = useState(0);
   const [endPosition, setEndPosition] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const [currentUser, setUser] = useAtom(userAtom);
 
   const [timer, setTimer] = useState(0);
 
@@ -102,6 +97,7 @@ const VideoUpdateScreen = ({ navigation, route }) => {
         }, 1000);
 
         const videoData = await cameraRef.current.recordAsync({ maxDuration: MAX_DURATION });
+        console.log({ videoData });
         setVideoUrl(videoData);
         setRecording(false);
       } catch (error) {
@@ -132,7 +128,7 @@ const VideoUpdateScreen = ({ navigation, route }) => {
         await cameraRef.current.stopRecording();
         setRecording(false);
       }
-    } catch (error) {}
+    } catch (error) { }
   };
 
   const onPlay = () => {
@@ -140,7 +136,7 @@ const VideoUpdateScreen = ({ navigation, route }) => {
       if (videoRef && videoRef.current) {
         videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: startPosition * 1000 });
       }
-    } catch (error) {}
+    } catch (error) { }
   };
 
   const onPause = () => {
@@ -148,7 +144,7 @@ const VideoUpdateScreen = ({ navigation, route }) => {
       if (videoRef && videoRef.current) {
         videoRef.current.setStatusAsync({ shouldPlay: false });
       }
-    } catch (error) {}
+    } catch (error) { }
   };
 
   const onConfirm = () => {
@@ -173,45 +169,15 @@ const VideoUpdateScreen = ({ navigation, route }) => {
   const handleTrim = async () => {
     setProcessing(true);
     try {
-      const outputUri = `${FileSystem.documentDirectory}video_trimmed.mp4`;
-      const command = `-y -i ${videoUrl.uri} -ss ${startPosition} -to ${endPosition} -preset slow -c:a copy -f mp4 ${outputUri}`;
-
-      await FFmpegKit.execute(command);
-
-      const response = await fetch(outputUri);
-
-      const blob = await response.blob();
-      const fileName = `video-${dayjs().unix()}.mp4`;
-
-      const result = await uploadData({
-        path: `public/${fileName}`,
-        data: blob,
-        options: {
-          contentType: "video/mp4",
-          accessLevel: "public",
-        },
-      }).result;
-      console.log("Succeeded: ", result);
-
-      apiClient
-        .post("users/update", {
-          video_intro: `https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${fileName}`,
-        })
-        .then((res) => {
-          setLoading(false);
-          if (res && res.data && res.data.success) {
-            setUser(res.data.data);
-            navigation.goBack();
-          } else {
-            Toast.show({ text1: res.data.message, type: "error" });
-          }
-        })
-        .catch((error) => {
-          setLoading(false);
-          console.log({ error });
-          Toast.show({ text1: error, type: "error" });
-          setProcessing(false);
-        });
+      setProcessing(false);
+      NavigationService.push("ProfileVideoProcessingScreen", {
+        videoUrl: videoUrl,
+        startPosition,
+        endPosition,
+      });
+      setTimeout(() => {
+        clearVideo();
+      }, 1000);
     } catch (error) {
       Toast.show({ text1: "Cannot process your video. Please try to retake!", type: "error" });
       setProcessing(false);
@@ -229,6 +195,10 @@ const VideoUpdateScreen = ({ navigation, route }) => {
       if (!audioRes.canAskAgain && !audioRes.granted) {
         Linking.openSettings();
       }
+
+      if (res.granted && videoRef && videoRef.current) {
+        videoRef.current.resumePreview();
+      }
       console.log({ res });
     } catch (error) {
       console.log({ error });
@@ -241,87 +211,6 @@ const VideoUpdateScreen = ({ navigation, route }) => {
       onPause();
     }
   };
-
-  if (processing) {
-    return (
-      <View style={{ flex: 1, width: "100%" }}>
-        <StatusBar translucent style="dark" />
-        {videoUrl && (
-          <CustomVideo
-            style={{
-              width: "100%",
-              height: "100%",
-              position: "absolute",
-              top: 0,
-              left: 0,
-            }}
-            ref={videoRef}
-            source={videoUrl}
-            resizeMode={ResizeMode.COVER}
-            shouldPlay={true}
-            isLooping={true}
-            isMuted={true}
-            positionMillis={startPosition * 1000}
-          />
-        )}
-
-        <View style={{ ...StyleSheet.absoluteFill, backgroundColor: "#00000030" }} />
-        <View
-          style={{
-            flex: 1,
-            paddingHorizontal: 32,
-            paddingTop: insets.top,
-            paddingBottom: insets.bottom,
-            alignItems: "center",
-          }}
-        >
-          <View
-            style={{
-              flex: 1,
-              alignItems: "center",
-              justifyContent: "flex-start",
-              gap: 16,
-              paddingTop: 64,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 24,
-                fontWeight: "bold",
-                color: "white",
-                textAlign: "center",
-                lineHeight: 30,
-              }}
-            >
-              We are analyzing your video
-            </Text>
-            <Text style={{ fontSize: 14, color: "white" }}>This may take a few moments...</Text>
-          </View>
-          <Image
-            source={images.processing}
-            style={{
-              width: Dimensions.get("screen").width - 80,
-              height: Dimensions.get("screen").width - 80,
-            }}
-            contentFit="cover"
-          />
-          <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-            <Text
-              style={{
-                lineHeight: 28,
-                fontSize: 20,
-                fontWeight: "bold",
-                color: "white",
-                textAlign: "center",
-              }}
-            >
-              Please hold tight! Your video is being analyzed and will be ready shortly.
-            </Text>
-          </View>
-        </View>
-      </View>
-    );
-  }
 
   return (
     <View style={{ flex: 1, width: "100%" }}>
@@ -353,10 +242,13 @@ const VideoUpdateScreen = ({ navigation, route }) => {
             paddingBottom: 16,
           }}
         >
-          <View style={{ width: "100%", alignItems: "flex-end" }}>
+          <View style={{ paddingHorizontal: 16, marginBottom: 32, width: "100%", flexDirection: 'row', alignItems: "center", justifyContent: 'space-between' }}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
+              <Image source={images.back_icon} style={{ width: 30, height: 30 }} contentFit="contain" />
+            </TouchableOpacity>
             <Image
               source={images.logo_with_text}
-              style={{ width: 120, height: 40, marginBottom: 32 }}
+              style={{ width: 120, height: 40 }}
               contentFit="contain"
             />
           </View>
@@ -509,8 +401,8 @@ const VideoUpdateScreen = ({ navigation, route }) => {
                     max={videoDuration}
                     low={startPosition}
                     high={endPosition}
-                    //TODO: Set start time was never defined
-                    //onValueChange={(value) => setStartTime(value)}
+                    //TODO: HAVE A LOOK ON THIS
+                    // onValueChange={(value) => setStartTime(value)}
                     onChangeValue={handleValueChange}
                   />
                   <View
@@ -766,10 +658,12 @@ const VideoUpdateScreen = ({ navigation, route }) => {
               onPress={retryPermission}
             />
             <TouchableOpacity
-              onPress={() => navigation.goBack()}
+              onPress={retryPermission}
               style={{ paddingHorizontal: 15, paddingVertical: 8, marginTop: 8 }}
             >
-              <Text style={{ fontSize: 14, fontWeight: "500", color: "white" }}>Go Back</Text>
+              <Text style={{ fontSize: 14, fontWeight: "500", color: "white" }}>
+                Retry Permission
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -778,4 +672,4 @@ const VideoUpdateScreen = ({ navigation, route }) => {
   );
 };
 
-export default VideoUpdateScreen;
+export default ProfileVideoUpdateScreen;

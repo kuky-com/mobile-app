@@ -27,7 +27,12 @@ const CustomVideo = React.forwardRef((props, ref) => {
   }, [])
 
   return (
-    <Video ref={ref} {...props} onReadyForDisplay={onReadyForDisplay} onPlaybackStatusUpdate={onPlaybackStatusUpdate}>
+    <Video
+      ref={ref} 
+      {...props}
+      onReadyForDisplay={onReadyForDisplay} 
+      onPlaybackStatusUpdate={onPlaybackStatusUpdate}
+      positionMillis={props?.positionMillis ? Math.max(props?.positionMillis, 50) : 50}>
       <View
         style={{
           position: "absolute",

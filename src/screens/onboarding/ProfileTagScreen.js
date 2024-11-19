@@ -101,7 +101,7 @@ const ProfileTagScreen = ({ navigation, route }) => {
 
     const onContinue = () => {
         if (currentUser?.tag) {
-            NavigationService.reset('DisclaimeScreen')
+            NavigationService.reset('OnboardingCompleteScreen')
         } else {
             getNewTag()
         }

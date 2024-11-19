@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const ReviewProfileScreen = ({ navigation, route }) => {
+const ProfileVideoReviewScreen = ({ navigation, route }) => {
   const userInfo = route.params;
   const insets = useSafeAreaInsets();
   const currentUser = useAtomValue(userAtom);
@@ -34,16 +34,8 @@ const ReviewProfileScreen = ({ navigation, route }) => {
   const [likes, setLikes] = useState(userInfo?.likes ?? []);
   const [dislikes, setDislikes] = useState(userInfo?.dislikes ?? []);
   const [loading, setLoading] = useState(false);
-  const [fullName, setFullName] = useState(
-    userInfo?.name ? userInfo?.name : (currentUser?.full_name ?? ""),
-  );
-  const [birthday, setBirthday] = useState(currentUser?.birthday ?? "");
-  const [location, setLocation] = useState(currentUser?.location ?? "");
   const showAlert = useAlert();
 
-  const nameInputRef = useRef(null);
-  const birthdayInputRef = useRef(null);
-  const locationInputRef = useRef(null);
 
   useEffect(() => {
     apiClient
@@ -91,21 +83,6 @@ const ReviewProfileScreen = ({ navigation, route }) => {
   };
 
   const onContinue = async () => {
-    if (fullName.length === 0) {
-      Toast.show({ text1: "Please enter your full name", type: "error" });
-      if (nameInputRef && nameInputRef.current) nameInputRef.current.focus();
-      return;
-    }
-    if (birthday.length === 0) {
-      Toast.show({ text1: "Please enter your birthday", type: "error" });
-      if (birthdayInputRef && birthdayInputRef.current) birthdayInputRef.current.focus();
-      return;
-    }
-    if (location.length === 0) {
-      Toast.show({ text1: "Please enter your location", type: "error" });
-      if (locationInputRef && locationInputRef.current) locationInputRef.current.focus();
-      return;
-    }
     if (purposes.length === 0) {
       Toast.show({ text1: "Please enter at least one journey/purpose", type: "error" });
       return;
@@ -135,11 +112,19 @@ const ReviewProfileScreen = ({ navigation, route }) => {
       }
 
       apiClient
-        .post("users/update", { birthday, location, full_name: fullName, video_intro: videoUrl })
+        .post("users/update", { video_intro: videoUrl })
         .then((res) => {
           setLoading(false);
           if (res && res.data && res.data.success) {
-            NavigationService.reset("ProfileTagScreen");
+            NavigationService.resetRaw([
+              {
+                name: "Dashboard",
+                state: {
+                  index: 2,
+                  routes: [{ name: "ExploreScreen" }, { name: "MatchesScreen" }, { name: "ProfileScreen" }],
+                },
+              },
+            ]);
           } else {
             Toast.show({ text1: res.data.message, type: "error" });
           }
@@ -149,86 +134,13 @@ const ReviewProfileScreen = ({ navigation, route }) => {
           console.log({ error });
           Toast.show({ text1: error, type: "error" });
         });
-
-      // const likeNames = likes.map((item) => item.name)
-      // const dislikeNames = dislikes.map((item) => item.name)
-
-      // const updateLikesRequest = await apiClient.post('interests/update-likes', { likes: likeNames })
-      // const updateDislikesRequest = await apiClient.post('interests/update-dislikes', { dislikes: dislikeNames })
-
-      // setLoading(false)
-      // if (updateLikesRequest && updateLikesRequest.data && updateLikesRequest.data.success &&
-      //     updateDislikesRequest && updateDislikesRequest.data && updateDislikesRequest.data.success
-      // ) {
-      //     // Toast.show({text1: 'Your interest information has been updated!', type: 'success'})
-      //     let someWordIncorrect = false
-
-      //     if (updateLikesRequest.data.data && updateLikesRequest.data.data.length < likes.length) {
-      //         const newLikes = updateLikesRequest.data.data.map((item) => ({ name: item.interest.name }))
-      //         setLikes(newLikes)
-      //         someWordIncorrect = true
-      //     }
-      //     if (updateDislikesRequest.data.data && updateDislikesRequest.data.data.length < dislikeNames.length) {
-      //         const newDislikes = updateDislikesRequest.data.data.map((item) => ({ name: item.interest.name }))
-      //         setDislikes(newDislikes)
-      //         someWordIncorrect = true
-      //     }
-
-      //     if (someWordIncorrect) {
-      //         // Toast.show({text1: `Oops! That doesn't look like an English word. Please try again.`, text1NumberOfLines: 0, type: 'error'})
-      //         showAlert('', `Oops! That doesn't look like an English word. Please try again.`, [{ text: 'Ok' }])
-      //     } else {
-      //         NavigationService.reset('ProfileTagScreen')
-      //     }
-      // } else {
-      //     Toast.show({ text1: 'Your request failed. Please try again!', type: 'error' })
-      // }
     } catch (error) {
       setLoading(false);
     }
   };
 
-  const removePurpose = (index) => {
-    const newPurposes = [...purposes];
-    newPurposes.splice(index, 1);
-    setPurposes(newPurposes);
-  };
-
-  const removeLike = (index) => {
-    const newLikes = [...likes];
-    newLikes.splice(index, 1);
-    setLikes(newLikes);
-  };
-
-  const removeDislike = (index) => {
-    const newDislikes = [...dislikes];
-    newDislikes.splice(index, 1);
-    setDislikes(newDislikes);
-  };
-
   const updateAvatar = () => {
     navigation.push("AvatarUpdateScreen");
-  };
-
-  const handleBirthdayChange = (text) => {
-    let cleanedText = text.replace(/[^0-9]/g, "");
-
-    if (cleanedText.length >= 5) {
-      cleanedText = cleanedText.replace(/(\d{2})(\d{2})(\d{0,4})/, "$1/$2/$3");
-    } else if (cleanedText.length >= 3) {
-      cleanedText = cleanedText.replace(/(\d{2})(\d{0,2})/, "$1/$2");
-    }
-
-    setBirthday(cleanedText);
-
-    if (cleanedText.length === 10) {
-      if (locationInputRef.current) {
-        locationInputRef.current.focus();
-      } else {
-        // TODO: KEYBOARD IS NOT DEFINED!
-        //Keyboard.dismiss();
-      }
-    }
   };
 
   return (
@@ -311,97 +223,6 @@ const ReviewProfileScreen = ({ navigation, route }) => {
         }}
       >
         <View style={{ flex: 1, gap: 16, width: "100%" }}>
-          <View
-            style={{
-              width: "100%",
-              height: 53,
-              borderRadius: 20,
-              backgroundColor: "white",
-              alignItems: "center",
-              flexDirection: "row",
-              paddingHorizontal: 16,
-            }}
-          >
-            <Text style={{ width: 110, fontSize: 14, color: "black" }}>Name</Text>
-            <TextInput
-              style={{
-                flex: 1,
-                fontFamily: "Comfortaa-Bold",
-                fontSize: 14,
-                color: "black",
-                fontWeight: "bold",
-                paddingVertical: 5,
-                paddingHorizontal: 8,
-              }}
-              underlineColorAndroid={"#00000000"}
-              value={fullName}
-              onChangeText={setFullName}
-              placeholder="Your fullname"
-              placeholderTextColor="#777777"
-              ref={nameInputRef}
-              onEndEditing={() => birthdayInputRef.current && birthdayInputRef.current.focus()}
-            />
-          </View>
-          <View
-            style={{
-              width: "100%",
-              height: 53,
-              borderRadius: 20,
-              backgroundColor: "white",
-              alignItems: "center",
-              flexDirection: "row",
-              paddingHorizontal: 16,
-            }}
-          >
-            <Text style={{ width: 110, fontSize: 14, color: "black" }}>Date of Birth</Text>
-            <TextInput
-              style={{
-                flex: 1,
-                fontFamily: "Comfortaa-Bold",
-                fontSize: 14,
-                color: "black",
-                fontWeight: "bold",
-                paddingVertical: 5,
-                paddingHorizontal: 8,
-              }}
-              underlineColorAndroid={"#00000000"}
-              value={birthday}
-              onChangeText={handleBirthdayChange}
-              placeholder="DD/MM/YYYY"
-              placeholderTextColor="#777777"
-              ref={birthdayInputRef}
-            />
-          </View>
-          <View
-            style={{
-              width: "100%",
-              height: 53,
-              borderRadius: 20,
-              backgroundColor: "white",
-              alignItems: "center",
-              flexDirection: "row",
-              paddingHorizontal: 16,
-            }}
-          >
-            <Text style={{ width: 110, fontSize: 14, color: "black" }}>Location</Text>
-            <TextInput
-              style={{
-                flex: 1,
-                fontFamily: "Comfortaa-Bold",
-                fontSize: 14,
-                color: "black",
-                fontWeight: "bold",
-                paddingVertical: 5,
-                paddingHorizontal: 8,
-              }}
-              underlineColorAndroid={"#00000000"}
-              value={location}
-              onChangeText={setLocation}
-              placeholder="Your location"
-              placeholderTextColor="#777777"
-              ref={locationInputRef}
-            />
-          </View>
           <View
             style={{
               backgroundColor: "#725ED4",
@@ -648,4 +469,4 @@ const ReviewProfileScreen = ({ navigation, route }) => {
   );
 };
 
-export default ReviewProfileScreen;
+export default ProfileVideoReviewScreen;

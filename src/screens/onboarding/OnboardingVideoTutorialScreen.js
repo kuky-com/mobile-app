@@ -43,14 +43,13 @@ const OnboardingVideoTutorialScreen = ({ navigation, route }) => {
 
     const onContinue = () => {
         NavigationService.reset('OnboardingVideoScreen')
-        // NavigationService.reset('VideoProcessingScreen')
     }
 
     const onSkip = () => {
         if(currentUser?.profile_tag) {
             NavigationService.reset('Dashboard')
         } else {
-            NavigationService.reset('ReviewProfileScreen')
+            NavigationService.reset('OnboardingReviewProfileScreen')
         }
     }
 
