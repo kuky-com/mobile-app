@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import images from "@/utils/images";
 import { Image } from "expo-image";
 import { View } from "react-native";
 
-const { Video } = require("expo-av");
+const { Video, Audio } = require("expo-av");
 
 const CustomVideo = React.forwardRef((props, ref) => {
   const [loaded, setLoaded] = useState(false);
@@ -21,6 +21,10 @@ const CustomVideo = React.forwardRef((props, ref) => {
     }
     setLoaded(status.isLoaded);
   }
+
+  useEffect(() => {
+    Audio.setAudioModeAsync({ playsInSilentModeIOS: true })
+  }, [])
 
   return (
     <Video ref={ref} {...props} onReadyForDisplay={onReadyForDisplay} onPlaybackStatusUpdate={onPlaybackStatusUpdate}>

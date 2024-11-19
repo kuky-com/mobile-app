@@ -261,6 +261,7 @@ const OnboardingSampleProfile = ({ navigation }) => {
                                     console.log({ status, url: currentProfile?.video_intro });
                                     setPlaying(status.isPlaying);
                                 }}
+                                isMuted={false}
                             />
                         )}
                         <LinearGradient
