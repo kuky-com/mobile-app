@@ -75,14 +75,14 @@ const ConnectProfileScreen = ({ navigation, route }) => {
   const [currentUserInterests, setCurrentUserInterests] = useState([]);
   const [playing, setPlaying] = useState(false);
   const [showShare, setShowShare] = useState(null)
+  const [pendingVideo, setPendingVideo] = useState(false)
 
   const videoRef = useRef(null);
 
   const onRefresh = () => {
     try {
       setLoading(true);
-      apiClient
-        .get(`users/${profile.id}/profile`)
+      apiClient.post('users/friend-info', { friend_id: profile.id })
         .then((res) => {
           setLoading(false);
           if (res && res.data && res.data.success) {
@@ -174,6 +174,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
               text2: `Your invitation to connect has been sent to ${currentProfile?.full_name}.`,
               visibilityTime: 2000,
               autoHide: true,
+              topOffset: 0
             });
           } else if (res && res.data && !res.data.success) {
             showAlert(
@@ -223,6 +224,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
         position: "top",
         visibilityTime: 2000,
         autoHide: true,
+        topOffset: 0,
       });
       setTimeout(() => {
         navigation.goBack();
@@ -332,17 +334,28 @@ const ConnectProfileScreen = ({ navigation, route }) => {
     );
   } catch (error) { }
 
-  const playVideo = () => {
+  const playVideo = async () => {
     if (videoRef && videoRef.current) {
-      videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: 0 });
+        setPendingVideo(true)
+        try {
+            await videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: 50 });
+        } catch (error) {
+            console.log({error})
+            setPendingVideo(false)
+        }
     }
-  };
+};
 
-  const pauseVideo = () => {
+const pauseVideo = async () => {
+    setPendingVideo(false)
     if (videoRef && videoRef.current) {
-      videoRef.current.setStatusAsync({ shouldPlay: false });
+        try {
+            await videoRef.current.setStatusAsync({ shouldPlay: false });
+        } catch (error) {
+            
+        }
     }
-  };
+};
 
   return (
     <View style={[styles.container]}>
@@ -383,7 +396,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
             }}
           >
             {/* <Image source={{ uri: currentProfile?.avatar }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 10 }} contentFit='cover' /> */}
-            {!playing && (
+            {!playing  && !pendingVideo && (
               <AvatarImage
                 avatar={currentProfile?.avatar}
                 full_name={currentProfile?.full_name}
@@ -400,7 +413,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
             {currentProfile?.video_intro && (
               <CustomVideo
                 style={{
-                  display: playing ? "flex" : "none",
+                  display: (playing || pendingVideo) ? "flex" : "none",
                   position: "absolute",
                   top: 0,
                   left: 0,
@@ -412,9 +425,16 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                 source={{ uri: currentProfile?.video_intro }}
                 resizeMode={ResizeMode.COVER}
                 onPlaybackStatusUpdate={(status) => {
-                  console.log({ status, url: currentProfile?.video_intro });
-                  setPlaying(status.isPlaying);
-                }}
+                  // console.log({ status });
+                  setPlaying(status.isPlaying || status.isBuffering || status.shouldPlay);
+                  if (status.didJustFinish || status.isPlaying) {
+                      setPendingVideo(false)
+                  }
+              }}
+              onError={() => {
+                  setPendingVideo(false)
+                  setPlaying(false)
+              }}
               />
             )}
             <LinearGradient
@@ -476,7 +496,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                     width: "100%",
                     flexDirection: "row",
                     alignItems: "flex-end",
-                    justifyContent: "space-between",
+                    justifyContent: (showAcceptReject && !matchInfo) ? "space-between" : 'center',
                     paddingHorizontal: 9,
                   }}
                 >
@@ -517,7 +537,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                   )}
                   {currentProfile?.video_intro && (
                     <View style={{ alignItems: "center", gap: 13 }}>
-                      {!playing && (
+                      {!playing && !pendingVideo && (
                         <TouchableOpacity
                           onPress={playVideo}
                           style={{
@@ -532,7 +552,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                           />
                         </TouchableOpacity>
                       )}
-                      {playing && (
+                      {(playing || pendingVideo) && (
                         <TouchableOpacity
                           onPress={pauseVideo}
                           style={{
@@ -561,7 +581,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                           fontWeight: "bold",
                         }}
                       >
-                        {playing ? 'Pause video' : 'Watch video'}
+                        {(playing || pendingVideo) ? 'Pause video' : 'Watch video'}
                       </Text>
                     </View>
                   )}
@@ -730,7 +750,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
               <View className="flex flex-row justify-between grow items-center">
                 <Rating
                   disabled={true}
-                  rating={Number.parseFloat(currentProfile?.avgRating || 5) || 5}
+                  rating={Number.parseFloat(currentProfile?.avgRating || 0) || 0}
                 />
                 <View className="flex flex-row items-center">
                   <Text
@@ -1067,7 +1087,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
         </View>
       </ScrollView>
 
-      <ShareModal 
+      <ShareModal
         visible={showShare !== null}
         onClose={() => setShowShare(null)}
         full_name={currentProfile?.full_name}

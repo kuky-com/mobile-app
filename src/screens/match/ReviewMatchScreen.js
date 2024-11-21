@@ -46,14 +46,14 @@ const ReviewMatchScreen = ({ navigation, route }) => {
       .then((res) => {
         setLoading(false);
         console.log({ res });
-        Toast.show({ type: "review_sent" });
+        Toast.show({ type: "review_sent", topOffset: 0 });
         setTimeout(() => {
           navigation.goBack();
         }, 2000);
       })
       .catch((error) => {
         console.log({ error });
-        Toast.show({ type: "review_sent" });
+        Toast.show({ type: "review_sent", topOffset: 0 });
         setTimeout(() => {
           navigation.goBack();
         }, 2000);

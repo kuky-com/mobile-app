@@ -69,6 +69,7 @@ const OnboardingSampleProfile = ({ navigation }) => {
     const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
     const [sampleProfiles, setSampleProfiles] = useState([]);
     const [playing, setPlaying] = useState(false);
+    const [pendingVideo, setPendingVideo] = useState(false)
 
     const videoRef = useRef(null);
 
@@ -106,6 +107,7 @@ const OnboardingSampleProfile = ({ navigation }) => {
     }, []);
 
     const likeAction = () => {
+        handleNextProfile()
         try {
             setLoading(true);
             Toast.show({
@@ -115,26 +117,25 @@ const OnboardingSampleProfile = ({ navigation }) => {
                 text2: `Your invitation to connect has been sent to ${currentProfile?.full_name}.`,
                 visibilityTime: 2000,
                 autoHide: true,
+                topOffset: 0
             });
             apiClient
                 .post("matches/accept", { friend_id: currentProfile?.id })
                 .then((res) => {
                     console.log({ res });
                     setLoading(false);
-                    handleNextProfile()
                 })
                 .catch((error) => {
                     console.log({ error });
                     setLoading(false);
-                    handleNextProfile()
                 });
         } catch (error) {
             setLoading(false);
-            handleNextProfile()
         }
     };
 
     const rejectAction = () => {
+        handleNextProfile()
         try {
             setLoading(true);
             Toast.show({
@@ -142,23 +143,21 @@ const OnboardingSampleProfile = ({ navigation }) => {
                 position: "top",
                 visibilityTime: 2000,
                 autoHide: true,
+                topOffset: 0
             });
             apiClient
                 .post("matches/reject", { friend_id: currentProfile?.id })
                 .then((res) => {
                     console.log({ res });
                     setLoading(false);
-                    handleNextProfile()
                 })
                 .catch((error) => {
                     console.log({ error });
                     setLoading(false);
-                    handleNextProfile()
                 });
 
         } catch (error) {
             setLoading(false);
-            handleNextProfile()
         }
     };
 
@@ -166,9 +165,13 @@ const OnboardingSampleProfile = ({ navigation }) => {
         pauseVideo()
 
         if (sampleProfiles.length > 0 && currentProfileIndex === (sampleProfiles.length - 1)) {
-            NavigationService.reset('OnboardingVideoTutorialScreen')
+            setTimeout(() => {
+                NavigationService.reset('OnboardingVideoTutorialScreen')
+            }, 1000);
         } else {
-            setCurrentProfileIndex(old => (old + 1))
+            setTimeout(() => {
+                setCurrentProfileIndex(old => (old + 1))
+            }, 500);
         }
     }
 
@@ -184,15 +187,26 @@ const OnboardingSampleProfile = ({ navigation }) => {
         );
     } catch (error) { }
 
-    const playVideo = () => {
+    const playVideo = async () => {
         if (videoRef && videoRef.current) {
-            videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: 0 });
+            setPendingVideo(true)
+            try {
+                await videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: 50 });
+            } catch (error) {
+                console.log({error})
+                setPendingVideo(false)
+            }
         }
     };
 
-    const pauseVideo = () => {
+    const pauseVideo = async () => {
+        setPendingVideo(false)
         if (videoRef && videoRef.current) {
-            videoRef.current.setStatusAsync({ shouldPlay: false });
+            try {
+                await videoRef.current.setStatusAsync({ shouldPlay: false });
+            } catch (error) {
+                
+            }
         }
     };
 
@@ -229,7 +243,7 @@ const OnboardingSampleProfile = ({ navigation }) => {
                             borderRadius: 15,
                         }}
                     >
-                        {!playing && (
+                        {!playing && !pendingVideo && (
                             <AvatarImage
                                 avatar={currentProfile?.avatar}
                                 full_name={currentProfile?.full_name}
@@ -246,7 +260,7 @@ const OnboardingSampleProfile = ({ navigation }) => {
                         {currentProfile?.video_intro && (
                             <CustomVideo
                                 style={{
-                                    display: playing ? "flex" : "none",
+                                    display: (pendingVideo || playing) ? 'flex': 'none',
                                     position: "absolute",
                                     top: 0,
                                     left: 0,
@@ -255,13 +269,19 @@ const OnboardingSampleProfile = ({ navigation }) => {
                                     borderRadius: 10,
                                 }}
                                 ref={videoRef}
-                                source={{ uri: currentProfile?.video_intro }}
                                 resizeMode={ResizeMode.COVER}
+                                source={{ uri: currentProfile?.video_intro }}
                                 onPlaybackStatusUpdate={(status) => {
-                                    console.log({ status, url: currentProfile?.video_intro });
-                                    setPlaying(status.isPlaying);
+                                    console.log({ status });
+                                    setPlaying(status.isPlaying || status.isBuffering || status.shouldPlay);
+                                    if (status.didJustFinish || status.isPlaying) {
+                                        setPendingVideo(false)
+                                    }
                                 }}
-                                isMuted={false}
+                                onError={() => {
+                                    setPendingVideo(false)
+                                    setPlaying(false)
+                                }}
                             />
                         )}
                         <LinearGradient
@@ -357,7 +377,7 @@ const OnboardingSampleProfile = ({ navigation }) => {
                                     }
                                     {currentProfile?.video_intro && (
                                         <View style={{ alignItems: "center", gap: 13 }}>
-                                            {!playing && (
+                                            {!playing && !pendingVideo && (
                                                 <TouchableOpacity
                                                     onPress={playVideo}
                                                     style={{
@@ -372,7 +392,7 @@ const OnboardingSampleProfile = ({ navigation }) => {
                                                     />
                                                 </TouchableOpacity>
                                             )}
-                                            {playing && (
+                                            {(playing || pendingVideo) && (
                                                 <TouchableOpacity
                                                     onPress={pauseVideo}
                                                     style={{
@@ -401,7 +421,7 @@ const OnboardingSampleProfile = ({ navigation }) => {
                                                     fontWeight: "bold",
                                                 }}
                                             >
-                                                {playing ? 'Pause video' : 'Watch video'}
+                                                {(playing || pendingVideo) ? 'Pause video' : 'Watch video'}
                                             </Text>
                                         </View>
                                     )}

@@ -33,8 +33,11 @@ const ShareModal = ({ visible = false, onClose, full_name = '', shareLink = '' }
     const singleShare = async (type) => {
         try {
             const shareOptions = {
-                url: shareLink,
+                message: `Check out this awesome profile on Kuky\n${shareLink}`,
                 social: type,
+                url: type !== Share.Social.INSTAGRAM ? shareLink : undefined,
+                attributionURL: shareLink,
+                appId: (type === Share.Social.FACEBOOK || type === Share.Social.INSTAGRAM) ? '1051248213166532' : undefined
             };
 
             const result = await Share.shareSingle(shareOptions);

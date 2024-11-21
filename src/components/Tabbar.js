@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -19,6 +19,9 @@ import PushNotificationIOS from "@react-native-community/push-notification-ios";
 import constants from "@/utils/constants";
 import apiClient from "@/utils/apiClient";
 import AvatarImage from "./AvatarImage";
+import * as Linking from "expo-linking";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import NavigationService, { navigationRef } from "../utils/NavigationService";
 
 const styles = StyleSheet.create({
   container: {
@@ -56,6 +59,8 @@ const Tabbar = ({ navigation, state }) => {
   const currentIndex = state.index;
   const totalUnreadRaw = useAtomValue(totalMessageUnreadAtom);
   const [notiCounter, setNotiCounter] = useAtom(notiCounterAtom);
+  const url = Linking.useURL();
+  const urlHandleRef = useRef(null);
 
   const openTab = (tabIndex) => {
     const { routes } = state;
@@ -94,6 +99,80 @@ const Tabbar = ({ navigation, state }) => {
       }
     } catch (error) {}
   }, [totalUnreadRaw, notiCounter]);
+
+  useEffect(() => {
+    try {
+      if (url && currentUser) {
+        
+        if (urlHandleRef && urlHandleRef.current) {
+          clearTimeout(urlHandleRef.current);
+          urlHandleRef.current = null;
+        }
+
+        urlHandleRef.current = setTimeout(async () => {
+          const route = Linking.parse(url);
+
+          if(route.scheme === 'https') {
+            if (route?.path && route?.path.includes("profile")) {
+              const profile_id = route?.path.split('/')[1];
+  
+              const token = await AsyncStorage.getItem("ACCESS_TOKEN");
+              if (token) {
+                if (navigationRef.current.getCurrentRoute().name === "ConnectProfileScreen") {
+                  NavigationService.replace("ConnectProfileScreen", { profile: { id: profile_id } });
+                } else {
+                  NavigationService.push("ConnectProfileScreen", { profile: { id: profile_id } });
+                }
+              }
+            }
+            if (route?.path && route?.hostname.includes("conversation")) {
+              const conversation_id = route?.path.split('/')[1];
+              const token = await AsyncStorage.getItem("ACCESS_TOKEN");
+              if (token) {
+                if (navigationRef.current.getCurrentRoute().name === "ConnectProfileScreen") {
+                  NavigationService.replace("MessageScreen", {
+                    conversation: { conversation_id: conversation_id },
+                  });
+                } else {
+                  NavigationService.push("MessageScreen", {
+                    conversation: { conversation_id: conversation_id },
+                  });
+                }
+              }
+            }
+          } else {
+            if (route?.hostname === "profile") {
+              const profile_id = route?.path;
+  
+              const token = await AsyncStorage.getItem("ACCESS_TOKEN");
+              if (token) {
+                if (navigationRef.current.getCurrentRoute().name === "ConnectProfileScreen") {
+                  NavigationService.replace("ConnectProfileScreen", { profile: { id: profile_id } });
+                } else {
+                  NavigationService.push("ConnectProfileScreen", { profile: { id: profile_id } });
+                }
+              }
+            }
+            if (route?.hostname === "conversation") {
+              const conversation_id = route?.path;
+              const token = await AsyncStorage.getItem("ACCESS_TOKEN");
+              if (token) {
+                if (navigationRef.current.getCurrentRoute().name === "ConnectProfileScreen") {
+                  NavigationService.replace("MessageScreen", {
+                    conversation: { conversation_id: conversation_id },
+                  });
+                } else {
+                  NavigationService.push("MessageScreen", {
+                    conversation: { conversation_id: conversation_id },
+                  });
+                }
+              }
+            }
+          }
+        }, 1000);
+      }
+    } catch (error) {}
+  }, [url]);
 
   return (
     <View

@@ -194,30 +194,32 @@ export default function App() {
   });
 
   return (
-    <SafeAreaProvider>
-      <SheetProvider>
-        <AppUpdateAlertProvider>
-          <AlertProvider>
-            <NavigationContainer
-              ref={navigationRef}
-              linking={linking}
-              onReady={() => {
-                isReadyRef.current = true;
-              }}
-            >
-              <StatusBar translucent style="dark" />
-              <Suspense>
-                <QueryClientProvider client={queryClient}>
-                  <Provider store={storeAtom}>
-                    <MainApp />
-                  </Provider>
-                </QueryClientProvider>
-              </Suspense>
-              <Toast config={toastConfig} />
-            </NavigationContainer>
-          </AlertProvider>
-        </AppUpdateAlertProvider>
-      </SheetProvider>
-    </SafeAreaProvider>
+    <>
+      <SafeAreaProvider>
+        <SheetProvider>
+          <AppUpdateAlertProvider>
+            <AlertProvider>
+              <NavigationContainer
+                ref={navigationRef}
+                linking={linking}
+                onReady={() => {
+                  isReadyRef.current = true;
+                }}
+              >
+                <StatusBar translucent style="dark" />
+                <Suspense>
+                  <QueryClientProvider client={queryClient}>
+                    <Provider store={storeAtom}>
+                      <MainApp />
+                    </Provider>
+                  </QueryClientProvider>
+                </Suspense>
+              </NavigationContainer>
+            </AlertProvider>
+          </AppUpdateAlertProvider>
+        </SheetProvider>
+      </SafeAreaProvider>
+      <Toast config={toastConfig} />
+    </>
   );
 }

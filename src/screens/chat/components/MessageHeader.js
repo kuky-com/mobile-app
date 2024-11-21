@@ -83,8 +83,8 @@ const MessageHeader = ({ conversation, rejectAction, likeAction }) => {
             )}
 
             {expanded &&
-                <View style={{ width: "100%", paddingVertical: 15, borderTopWidth: 1, borderTopColor: '#D2D2D2' }}>
-                    <Text style={{ fontSize: 13, fontWeight: '400', color: 'black' }}>{`• ${conversation?.profile?.full_name} is on a `}
+                <View style={{ width: "100%", paddingTop: 15, borderTopWidth: 1, borderTopColor: '#D2D2D2' }}>
+                    <Text style={{ lineHeight: 20, fontSize: 13, fontWeight: '400', color: 'black' }}>{`• ${conversation?.profile?.full_name} is on a `}
                         <Text style={{ fontWeight: 'bold' }}>{`${conversation?.profile?.tag?.name}`}</Text>
                     </Text>
                 </View>

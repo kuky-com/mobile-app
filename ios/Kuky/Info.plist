@@ -59,6 +59,9 @@
 	<false/>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
+		<string>facebook</string>
+		<string>x</string>
+		<string>twitter</string>
 		<string>itms-apps</string>
 		<string>fbapi</string>
 		<string>fb-messenger-api</string>

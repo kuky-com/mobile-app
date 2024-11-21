@@ -40,6 +40,7 @@ import { VideoIcon, CallIcon } from "@/icons";
 import { SendbirdCalls, SoundType } from "@sendbird/calls-react-native";
 import { authenticate } from "../../utils/sendbird";
 import { CALL_PERMISSIONS, usePermissions } from "@/hooks/usePermissions";
+import MessageHeader from "./components/MessageHeader";
 
 const styles = StyleSheet.create({
   container: {
@@ -628,104 +629,9 @@ const MessageScreen = ({ navigation, route }) => {
   };
 
   const renderHeaderView = () => {
-    if (currentConversation.status === "accepted") {
-      let connectionText = "";
-      if (currentConversation.sender?.id === currentUser?.id) {
-        connectionText = `You sent a matching request to ${currentConversation?.receiver?.full_name ?? ""} ${dayjs(conversation.sent_date).fromNow()}`;
-      } else {
-        connectionText = `You received a matching request from ${currentConversation?.sender?.full_name ?? ""} ${dayjs(conversation.sent_date).fromNow()}`;
-      }
-
-      return (
-        <View
-          style={{
-            padding: 16,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: '#E3E1ED',
-            marginHorizontal: 20,
-            marginTop: 12,
-            gap: 16,
-            borderRadius: 10
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: "#725ED4",
-              height: 24,
-              borderRadius: 12,
-              paddingHorizontal: 16,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Text style={{ fontSize: 14, fontWeight: "bold", color: "white" }}>
-              {currentConversation?.profile?.tag?.name}
-            </Text>
-          </View>
-          <Text style={{ color: "black", fontSize: 12, fontWeight: "600", textAlign: "center" }}>
-            {connectionText}
-          </Text>
-          {currentUser?.id === currentConversation.receiver_id && (
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 32,
-              }}
-            >
-              <TouchableOpacity
-                onPress={rejectAction}
-                style={{
-                  width: 120,
-                  height: 36,
-                  borderRadius: 18,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "#333333",
-                }}
-              >
-                <Text style={{ color: "white", fontSize: 13, fontWeight: "600" }}>Reject</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={likeAction}
-                style={{
-                  width: 120,
-                  height: 36,
-                  borderRadius: 18,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "#725ED4",
-                }}
-              >
-                <Text style={{ color: "#E8FF58", fontSize: 13, fontWeight: "bold" }}>Connect</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-      );
-    }
-    if (currentConversation.status === "accepted") {
-      return (
-        <View
-          style={{
-            padding: 16,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: '#E3E1ED',
-            marginHorizontal: 20,
-            marginTop: 12,
-            gap: 16,
-            borderRadius: 10
-          }}
-        >
-          <Text
-            style={{ color: "black", fontSize: 12, fontWeight: "600", textAlign: "center" }}
-          >{`You connected on ${dayjs(currentConversation.response_date).format('MMMM Do')}`}</Text>
-        </View>
-      );
-    }
+    return(
+      <MessageHeader conversation={currentConversation} rejectAction={rejectAction} likeAction={likeAction} />
+    )
   };
 
   const renderAvatar = (props) => {

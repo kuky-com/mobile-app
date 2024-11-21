@@ -151,7 +151,7 @@ const ProfileScreen = ({ navigation }) => {
     }
     const playVideo = () => {
         if (videoRef && videoRef.current) {
-            videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: 0 })
+            videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: 50 })
         }
     }
 
@@ -248,7 +248,7 @@ const ProfileScreen = ({ navigation }) => {
                                             source={{ uri: currentUser?.video_intro }}
                                             resizeMode={ResizeMode.COVER}
                                             onPlaybackStatusUpdate={status => {
-                                                setPlaying(status.isPlaying)
+                                                setPlaying(status.isPlaying || status.isBuffering || status.shouldPlay);
                                             }}
                                         />
                                     }
@@ -457,8 +457,8 @@ const ProfileScreen = ({ navigation }) => {
                                         source={{ uri: currentUser?.video_intro }}
                                         resizeMode={ResizeMode.COVER}
                                         onPlaybackStatusUpdate={status => {
-                                            console.log({ status, url: currentUser?.video_intro })
-                                            setPlaying(status.isPlaying)
+                                            // console.log({ status, url: currentUser?.video_intro })
+                                            setPlaying(status.isPlaying || status.isBuffering || status.shouldPlay);
                                         }}
                                     />
                                 }
