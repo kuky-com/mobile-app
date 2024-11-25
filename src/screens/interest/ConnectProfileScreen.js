@@ -74,15 +74,16 @@ const ConnectProfileScreen = ({ navigation, route }) => {
   const showAlert = useAlert();
   const [currentUserInterests, setCurrentUserInterests] = useState([]);
   const [playing, setPlaying] = useState(false);
-  const [showShare, setShowShare] = useState(null)
-  const [pendingVideo, setPendingVideo] = useState(false)
+  const [showShare, setShowShare] = useState(null);
+  const [pendingVideo, setPendingVideo] = useState(false);
 
   const videoRef = useRef(null);
 
   const onRefresh = () => {
     try {
       setLoading(true);
-      apiClient.post('users/friend-info', { friend_id: profile.id })
+      apiClient
+        .post("users/friend-info", { friend_id: profile.id })
         .then((res) => {
           setLoading(false);
           if (res && res.data && res.data.success) {
@@ -142,7 +143,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
       properties.putString("user_id", currentUser?.id.toString());
       properties.putString("profile_id", profile.id.toString());
       Smartlook.instance.analytics.trackEvent("open_profile", properties);
-    } catch (error) { }
+    } catch (error) {}
   }, []);
 
   const likeAction = () => {
@@ -174,7 +175,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
               text2: `Your invitation to connect has been sent to ${currentProfile?.full_name}.`,
               visibilityTime: 2000,
               autoHide: true,
-              topOffset: 0
+              topOffset: 0,
             });
           } else if (res && res.data && !res.data.success) {
             showAlert(
@@ -183,7 +184,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
               [
                 {
                   text: "Keep Exploring",
-                  onPress: () => { },
+                  onPress: () => {},
                 },
               ],
             );
@@ -261,7 +262,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
               Toast.show({ text1: error, type: "error" });
             });
         },
-        onConfirm: () => { },
+        onConfirm: () => {},
         cancelText: "Block",
         confirmText: "Cancel",
         header: "Do you want to block this user?",
@@ -290,16 +291,17 @@ const ConnectProfileScreen = ({ navigation, route }) => {
   };
 
   const onGetSharedLink = async () => {
-    apiClient.get(`users/${profile.id}/share-link`)
-      .then(res => {
-        console.log({ res: res.data.data })
+    apiClient
+      .get(`users/${profile.id}/share-link`)
+      .then((res) => {
+        console.log({ res: res.data.data });
 
-        setShowShare(res.data.data)
+        setShowShare(res.data.data);
       })
       .catch((error) => {
-        console.log({ error })
-      })
-  }
+        console.log({ error });
+      });
+  };
 
   let sameInterests = [];
   let sameDislikes = [];
@@ -332,30 +334,28 @@ const ConnectProfileScreen = ({ navigation, route }) => {
     userDislikes = (currentProfile?.interests ?? []).filter(
       (item) => item.user_interests.interest_type === "dislike",
     );
-  } catch (error) { }
+  } catch (error) {}
 
   const playVideo = async () => {
     if (videoRef && videoRef.current) {
-        setPendingVideo(true)
-        try {
-            await videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: 50 });
-        } catch (error) {
-            console.log({error})
-            setPendingVideo(false)
-        }
+      setPendingVideo(true);
+      try {
+        await videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: 50 });
+      } catch (error) {
+        console.log({ error });
+        setPendingVideo(false);
+      }
     }
-};
+  };
 
-const pauseVideo = async () => {
-    setPendingVideo(false)
+  const pauseVideo = async () => {
+    setPendingVideo(false);
     if (videoRef && videoRef.current) {
-        try {
-            await videoRef.current.setStatusAsync({ shouldPlay: false });
-        } catch (error) {
-            
-        }
+      try {
+        await videoRef.current.setStatusAsync({ shouldPlay: false });
+      } catch (error) {}
     }
-};
+  };
 
   return (
     <View style={[styles.container]}>
@@ -396,7 +396,7 @@ const pauseVideo = async () => {
             }}
           >
             {/* <Image source={{ uri: currentProfile?.avatar }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 10 }} contentFit='cover' /> */}
-            {!playing  && !pendingVideo && (
+            {!playing && !pendingVideo && (
               <AvatarImage
                 avatar={currentProfile?.avatar}
                 full_name={currentProfile?.full_name}
@@ -413,7 +413,7 @@ const pauseVideo = async () => {
             {currentProfile?.video_intro && (
               <CustomVideo
                 style={{
-                  display: (playing || pendingVideo) ? "flex" : "none",
+                  display: playing || pendingVideo ? "flex" : "none",
                   position: "absolute",
                   top: 0,
                   left: 0,
@@ -428,13 +428,13 @@ const pauseVideo = async () => {
                   // console.log({ status });
                   setPlaying(status.isPlaying || status.isBuffering || status.shouldPlay);
                   if (status.didJustFinish || status.isPlaying) {
-                      setPendingVideo(false)
+                    setPendingVideo(false);
                   }
-              }}
-              onError={() => {
-                  setPendingVideo(false)
-                  setPlaying(false)
-              }}
+                }}
+                onError={() => {
+                  setPendingVideo(false);
+                  setPlaying(false);
+                }}
               />
             )}
             <LinearGradient
@@ -450,21 +450,22 @@ const pauseVideo = async () => {
                 justifyContent: "space-between",
               }}
             >
-              {!playing && <View style={{ width: "100%", alignItems: "flex-end", padding: 16 }}>
-                <View style={styles.tagContainer}>
-                  <Text
-                    style={[
-                      styles.tagText,
-                      {
-                        fontSize: (currentProfile?.tag?.name ?? "").length > 20 ? 13 : 15,
-                      },
-                    ]}
-                  >
-                    {currentProfile?.tag?.name}
-                  </Text>
+              {!playing && (
+                <View style={{ width: "100%", alignItems: "flex-end", padding: 16 }}>
+                  <View style={styles.tagContainer}>
+                    <Text
+                      style={[
+                        styles.tagText,
+                        {
+                          fontSize: (currentProfile?.tag?.name ?? "").length > 20 ? 13 : 15,
+                        },
+                      ]}
+                    >
+                      {currentProfile?.tag?.name}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-              }
+              )}
               <View
                 style={{
                   flex: 1,
@@ -475,10 +476,11 @@ const pauseVideo = async () => {
                   gap: 16,
                 }}
               >
-                {!playing && <Text style={{ fontSize: 32, color: "white", fontWeight: "bold" }}>
-                  {currentProfile.full_name}
-                </Text>
-                }
+                {!playing && (
+                  <Text style={{ fontSize: 32, color: "white", fontWeight: "bold" }}>
+                    {currentProfile.full_name}
+                  </Text>
+                )}
                 {/* <View style={{ width: '100%', flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                                     {
                                         currentProfile?.interests.map((interest) => (
@@ -496,7 +498,7 @@ const pauseVideo = async () => {
                     width: "100%",
                     flexDirection: "row",
                     alignItems: "flex-end",
-                    justifyContent: (showAcceptReject && !matchInfo) ? "space-between" : 'center',
+                    justifyContent: showAcceptReject && !matchInfo ? "space-between" : "center",
                     paddingHorizontal: 9,
                   }}
                 >
@@ -581,7 +583,7 @@ const pauseVideo = async () => {
                           fontWeight: "bold",
                         }}
                       >
-                        {(playing || pendingVideo) ? 'Pause video' : 'Watch video'}
+                        {playing || pendingVideo ? "Pause video" : "Watch video"}
                       </Text>
                     </View>
                   )}
@@ -737,6 +739,7 @@ const pauseVideo = async () => {
           </View>
           {/** Ratings card */}
           <TouchableOpacity
+            disabled={currentProfile.reviewsCount === 0}
             onPress={() =>
               navigation.navigate("ReviewsScreen", {
                 profileId: currentProfile?.id,
@@ -748,10 +751,12 @@ const pauseVideo = async () => {
           >
             <SectionCard className="bg-purple2/50">
               <View className="flex flex-row justify-between grow items-center">
-                <Rating
-                  disabled={true}
-                  rating={Number.parseFloat(currentProfile?.avgRating || 0) || 0}
-                />
+                {currentProfile?.reviewsCount > 0 && (
+                  <Rating
+                    disabled={true}
+                    rating={Number.parseFloat(currentProfile?.avgRating || 0) || 0}
+                  />
+                )}
                 <View className="flex flex-row items-center">
                   <Text
                     style={{
@@ -762,11 +767,14 @@ const pauseVideo = async () => {
                     }}
                   >
                     {currentProfile?.reviewsCount && currentProfile?.reviewsCount !== 0
-                      ? `${currentProfile?.reviewsCount} Review${currentProfile.reviewsCount !== 1 ? "s" : ""
-                      }`
+                      ? `${currentProfile?.reviewsCount} Review${
+                          currentProfile.reviewsCount !== 1 ? "s" : ""
+                        }`
                       : "No reviews yet"}
                   </Text>
-                  <Feather name="chevron-right" size={28} color={colors.primary} />
+                  {currentProfile?.reviewsCount !== 0 && (
+                    <Feather name="chevron-right" size={28} color={colors.primary} />
+                  )}
                 </View>
               </View>
             </SectionCard>
@@ -1072,15 +1080,29 @@ const pauseVideo = async () => {
               paddingHorizontal: 16,
               alignItems: "center",
               justifyContent: "center",
-              gap: 4
+              gap: 4,
             }}
           >
-            <Text style={{ fontSize: 15, color: '#595959', lineHeight: 25, textAlign: 'center' }}>Think this profile might be a good fit for someone you know?</Text>
-            <Text onPress={onGetSharedLink} style={{ lineHeight: 25, color: "#333333", fontSize: 14, fontWeight: "bold" }}>
+            <Text style={{ fontSize: 15, color: "#595959", lineHeight: 25, textAlign: "center" }}>
+              Think this profile might be a good fit for someone you know?
+            </Text>
+            <Text
+              onPress={onGetSharedLink}
+              style={{ lineHeight: 25, color: "#333333", fontSize: 14, fontWeight: "bold" }}
+            >
               Share it!
             </Text>
 
-            <Text onPress={onBlock} style={{ marginTop: 40, lineHeight: 25, color: "#CB3729", fontSize: 14, fontWeight: "bold" }}>
+            <Text
+              onPress={onBlock}
+              style={{
+                marginTop: 40,
+                lineHeight: 25,
+                color: "#CB3729",
+                fontSize: 14,
+                fontWeight: "bold",
+              }}
+            >
               Block
             </Text>
           </View>
@@ -1091,7 +1113,7 @@ const pauseVideo = async () => {
         visible={showShare !== null}
         onClose={() => setShowShare(null)}
         full_name={currentProfile?.full_name}
-        shareLink={showShare ?? ''}
+        shareLink={showShare ?? ""}
       />
     </View>
   );
