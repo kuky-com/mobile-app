@@ -780,6 +780,21 @@ const ConnectProfileScreen = ({ navigation, route }) => {
             </SectionCard>
           </TouchableOpacity>
 
+          {!!matchInfo && currentProfile?.reviewsCount === 0 && (
+            <TouchableOpacity
+              onPress={() => {
+                navigation.push("ReviewMatchScreen", {
+                  profile: { id: currentProfile?.id, avatar: currentProfile?.avatar },
+                });
+              }}
+            >
+              <SectionCard className="flex flex-row justify-between bg-purple text-lg mt-2">
+                <Text className="text-white1">Share Your Feedback!</Text>
+                <Feather name="chevron-right" size={28} color={colors.white1} />
+              </SectionCard>
+            </TouchableOpacity>
+          )}
+
           {sameDislikes.length > 0 ||
             (sameInterests.length > 0 && (
               <View
