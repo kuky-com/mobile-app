@@ -78,6 +78,7 @@
     "react-native-swipe-list-view": "^3.2.9",
     "react-native-toast-message": "^2.2.1",
     "react-native-url-polyfill": "^2.0.0",
+    "react-native-voip-push-notification": "^3.3.2",
     "tailwind-merge": "^2.5.4",
     "typescript": "~5.3.3"
   },

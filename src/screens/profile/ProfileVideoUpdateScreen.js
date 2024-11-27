@@ -520,8 +520,8 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
             gap: 16,
           }}
         >
-          <Text style={{ fontSize: 14, fontWeight: "500", color: "black" }}>
-            Now, introduce yourself and tell us why you’re excited to connect with others on Kuky!
+          <Text style={{ fontSize: 14, fontWeight: "500", color: "black", lineHeight: 18, textAlign: 'center' }}>
+          Share your purpose, likes, and dislikes with us - it only takes a moment and will help us connect you with the right people.
           </Text>
           {!recording && !loading && !videoUrl && (
             <TouchableOpacity

@@ -10,10 +10,10 @@ export const getUnit = (unit) => {
     return Platform.isPad ? (unit * 1.2) : unit
 }
 
-export const getAuthenScreen = (currentUser, exclude = 'AvatarUpdateScreen') =>{
+export const getAuthenScreen = (currentUser, skipVideo = false) =>{
     if (!currentUser?.full_name) {
         return 'NameUpdateScreen'
-    } else if (!currentUser?.video_intro) {
+    } else if (!currentUser?.video_intro && !skipVideo) {
         // return 'OnboardingVideoTutorialScreen'
         return 'OnboardingSampleProfile'
     } else if (!currentUser?.purposes || currentUser?.purposes.length === 0 || !currentUser?.interests || currentUser?.interests.length === 0) {

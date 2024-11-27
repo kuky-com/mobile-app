@@ -81,30 +81,13 @@ import DisclaimeScreen from "./onboarding/DisclaimeScreen";
 import OnboardingSampleProfile from "./onboarding/OnboardingSampleProfile";
 import ProfileVideoProcessingScreen from "./profile/ProfileVideoProcessingScreen";
 import ProfileVideoReviewScreen from "./profile/ProfileVideoReviewScreen";
-
-SendbirdCalls.initialize("9BE43E57-7AA4-4D1A-A59A-A567330F0095");
-
-if (Platform.OS === "android") {
-  SendbirdCalls.addDirectCallSound(SoundType.RINGING, "ringing.mp3");
-}
-SendbirdCalls.addDirectCallSound(SoundType.DIALING, "dialing.mp3");
-SendbirdCalls.addDirectCallSound(SoundType.RECONNECTED, "reconnected.mp3");
-SendbirdCalls.addDirectCallSound(SoundType.RECONNECTING, "reconnecting.mp3");
-
-if (Platform.OS === "android") {
-  console.log("herererere");
-  setFirebaseMessageHandlers();
-  setNotificationForegroundService();
-}
-
-// Setup ios callkit
-if (Platform.OS === "ios") {
-  setupCallKit();
-}
+import RNVoipPushNotification from "react-native-voip-push-notification";
+import RNCallKeep from "react-native-callkeep";
 
 SendbirdCalls.setListener({
-  onRinging: async (call) => {
-    const directCall = await SendbirdCalls.getDirectCall(call.callId);
+  onRinging: async (callProps) => {
+    console.log('calll --------------\n------------\n---------------------')
+    const directCall = await SendbirdCalls.getDirectCall(callProps.callId);
 
     if (!SendbirdCalls.currentUser) {
       try {
@@ -115,21 +98,57 @@ SendbirdCalls.setListener({
     }
 
     const unsubscribe = directCall.addListener({
-      onEnded({ callId, callLog }) {
-        // callLog && CallHistoryManager.add(callId, callLog);
+      onEnded() {
+        RNCallKeep.removeEventListener('answerCall');
+        RNCallKeep.removeEventListener('endCall');
+        RNCallKeep.endAllCalls();
         unsubscribe();
       },
     });
 
     // Show interaction UI (Accept/Decline)
     if (Platform.OS === "android") {
-      await startRingingWithNotification(call);
+      await startRingingWithNotification(callProps);
     }
     if (Platform.OS === "ios") {
-      await startRingingWithCallKit(call);
+      await startRingingWithCallKit(callProps);
     }
+
+    RNCallKeep.addEventListener('answerCall', async () => {
+      directCall.accept();
+    });
+    RNCallKeep.addEventListener('endCall', async () => {
+      directCall.end();
+    });
+
+    RNCallKeep.displayIncomingCall(
+      callProps.ios_callUUID,
+      callProps.remoteUser?.userId,
+      callProps.remoteUser?.nickname ?? 'Unknown',
+      'generic',
+      callProps.isVideoCall,
+    );
   },
 });
+
+RNVoipPushNotification.registerVoipToken();
+
+if (Platform.OS === "android") {
+  SendbirdCalls.addDirectCallSound(SoundType.RINGING, "ringing.mp3");
+}
+SendbirdCalls.addDirectCallSound(SoundType.DIALING, "dialing.mp3");
+SendbirdCalls.addDirectCallSound(SoundType.RECONNECTED, "reconnected.mp3");
+SendbirdCalls.addDirectCallSound(SoundType.RECONNECTING, "reconnecting.mp3");
+
+if (Platform.OS === "android") {
+  setFirebaseMessageHandlers();
+  setNotificationForegroundService();
+}
+
+// Setup ios callkit
+if (Platform.OS === "ios") {
+  setupCallKit();
+}
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -156,7 +175,6 @@ const AppStack = ({ navgation }) => {
   const showUpdateAlert = useAppUpdateAlert();
   const appState = useRef(AppState.currentState);
   usePermissions(CALL_PERMISSIONS);
-  
 
   useEffect(() => {
     if (currentUser && currentUser?.email) {

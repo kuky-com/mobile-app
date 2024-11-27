@@ -19,7 +19,7 @@
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.1.2</string>
+	<string>1.2.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -86,9 +86,9 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>We need access to your camera to allow you to take a photo for your profile picture.</string>
+	<string>We need access to your camera to allow you to take a photo for your profile picture and record your profile introduction video.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>We need access to your camera to allow you to take a photo for your profile picture.</string>
+	<string>We need access to your microphone to record profile introduction video.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>We need access to your photo library to allow you to upload a photo as your profile picture.</string>
 	<key>NSUserTrackingUsageDescription</key>
@@ -97,6 +97,7 @@
 	<array>
 		<string>fetch</string>
 		<string>remote-notification</string>
+		<string>voip</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>SplashScreen</string>

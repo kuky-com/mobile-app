@@ -12,7 +12,7 @@ import { Image } from 'expo-image';
 import images from '@/utils/images';
 import { StatusBar } from 'expo-status-bar';
 
-export const Header = ({ leftIcon, leftAction, rightIcon, rightAction, rightIconColor, leftIconColor, rightCounter = 0, showLogo = true}) => {
+export const Header = ({ leftIcon, rightText, leftAction, rightIcon, rightAction, rightIconColor, leftIconColor, rightCounter = 0, showLogo = true}) => {
   const insets = useSafeAreaInsets()
   return (
     <View style={[styles.container, {paddingTop: insets.top + 8}]}>
@@ -35,6 +35,11 @@ export const Header = ({ leftIcon, leftAction, rightIcon, rightAction, rightIcon
                 <Text style={{fontSize: 8, fontWeight: 'bold', color: 'white'}}>{rightCounter > 99 ? '...' : rightCounter}</Text>
               </View>
             }
+          </TouchableOpacity>
+        }
+        {rightText &&
+          <TouchableOpacity style={styles.rightButton} onPress={() => rightAction && rightAction()}>
+            <Text style={[styles.rightText, {color: rightIconColor ? rightIconColor : '#333333'}]}>{rightText}</Text>
           </TouchableOpacity>
         }
       </View>
@@ -81,4 +86,8 @@ const styles = StyleSheet.create({
   buttonIcon: {
     width: 27, height: 27,
   },
+  rightText: {
+    fontSize: 14,
+    fontWeight: 'bold'
+  }
 });

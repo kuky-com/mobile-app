@@ -161,20 +161,48 @@ const ProfileScreen = ({ navigation }) => {
         }
     }
 
-    const openEditVideo = () => {
-        navigation.push('ProfileVideoUpdateScreen')
+    const openEditVideo = async () => {
+        const options = [
+            { text: 'Record new video' },
+            { text: 'Remove profile video', color: '#FF8B8B' }
+        ]
+
+        await SheetManager.show('cmd-action-sheets', {
+            payload: {
+                actions: options,
+                onPress(index) {
+                    console.log({ index })
+                    if (index === 0) {
+                        navigation.push('ProfileVideoUpdateScreen')
+                    } else {
+                        apiClient
+                            .post("users/update", { video_intro: null })
+                            .then((res) => {
+                                if (res && res.data && res.data.success) {
+                                    setCurrentUser(res.data.data)
+                                } else {
+                                    Toast.show({ text1: res.data.message, type: "error" });
+                                }
+                            })
+                            .catch((error) => {
+                                console.log({ error });
+                            });
+                    }
+                },
+            },
+        });
     }
 
     const reapplyProfileReview = () => {
-        apiClient.get(`users/${currentUser.id}/reapply-profile-review`)
-        .then((res) => {
-            if(res && res.data && res.data.data) {
-                setCurrentUser(res.data.data)
-            }
-        })
-        .catch((error) => {
-            console.log({error})
-        })
+        apiClient.get(`users/reapply-profile-review`)
+            .then((res) => {
+                if (res && res.data && res.data.data) {
+                    setCurrentUser(res.data.data)
+                }
+            })
+            .catch((error) => {
+                console.log({ error })
+            })
     }
 
     return (
@@ -427,8 +455,8 @@ const ProfileScreen = ({ navigation }) => {
                                 }
                                 {
                                     currentUser?.profile_approved === 'rejected' &&
-                                    <TouchableOpacity onPress={reapplyProfileReview} style={{width: '100%', height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.mainColor}}>
-                                        <Text style={{color: '#E8FF58', fontSize: 16, fontWeight: 'bold'}}>Re-apply for Review</Text>
+                                    <TouchableOpacity onPress={reapplyProfileReview} style={{ width: '100%', height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.mainColor }}>
+                                        <Text style={{ color: '#E8FF58', fontSize: 16, fontWeight: 'bold' }}>Re-apply for Review</Text>
                                     </TouchableOpacity>
                                 }
                             </View>

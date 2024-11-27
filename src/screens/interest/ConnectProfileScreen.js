@@ -36,6 +36,7 @@ import Feather from "@expo/vector-icons/Feather";
 import colors from "../../utils/colors";
 import { Rating } from "@/components/Rating";
 import ShareModal from "../../components/ShareModal";
+import { FontAwesome6 } from "@expo/vector-icons";
 
 const styles = StyleSheet.create({
   container: {
@@ -76,6 +77,8 @@ const ConnectProfileScreen = ({ navigation, route }) => {
   const [playing, setPlaying] = useState(false);
   const [showShare, setShowShare] = useState(null);
   const [pendingVideo, setPendingVideo] = useState(false);
+
+  const [isMute, setIsMute] = useState(false)
 
   const videoRef = useRef(null);
 
@@ -357,6 +360,10 @@ const ConnectProfileScreen = ({ navigation, route }) => {
     }
   };
 
+  const onChangeMuteOption = () => {
+    setIsMute(!isMute)
+}
+
   return (
     <View style={[styles.container]}>
       <Header
@@ -435,6 +442,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                   setPendingVideo(false);
                   setPlaying(false);
                 }}
+                isMuted={isMute}
               />
             )}
             <LinearGradient
@@ -450,22 +458,29 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                 justifyContent: "space-between",
               }}
             >
-              {!playing && (
-                <View style={{ width: "100%", alignItems: "flex-end", padding: 16 }}>
-                  <View style={styles.tagContainer}>
-                    <Text
-                      style={[
-                        styles.tagText,
-                        {
-                          fontSize: (currentProfile?.tag?.name ?? "").length > 20 ? 13 : 15,
-                        },
-                      ]}
-                    >
-                      {currentProfile?.tag?.name}
-                    </Text>
-                  </View>
-                </View>
-              )}
+              <View style={{ width: "100%", alignItems: "space-between", padding: 16 }}>
+                                {
+                                    (playing || pendingVideo) && 
+                                    <TouchableOpacity onPress={onChangeMuteOption} style={{width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.mainColor}}>
+                                        <FontAwesome6 name={isMute ? 'volume-xmark' : 'volume-high'} size={20} color='white' />
+                                    </TouchableOpacity>
+                                }
+                                {!playing && <View style={styles.tagContainer}>
+                                    <Text
+                                        style={[
+                                            styles.tagText,
+                                            {
+                                                fontSize: (currentProfile?.tag?.name ?? "").length > 20 ? 13 : 15,
+                                            },
+                                        ]}
+                                    >
+                                        {currentProfile?.tag?.name}
+                                    </Text>
+                                </View>
+                                }
+                            </View>
+
+              
               <View
                 style={{
                   flex: 1,

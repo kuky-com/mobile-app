@@ -170,7 +170,7 @@ const ProfileVideoProcessingScreen = ({ navigation, route }) => {
     return (
         <View style={{ flex: 1, width: '100%' }}>
             <StatusBar translucent style='dark' />
-            <CustomVideo
+            <Video
                 style={{
                     width: '100%',
                     height: '100%',

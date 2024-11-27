@@ -26,6 +26,7 @@ import { Amplify } from "aws-amplify";
 import amplifyconfig from "./src/amplifyconfiguration.json";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 Amplify.configure(amplifyconfig);
+SendbirdCalls.initialize("9BE43E57-7AA4-4D1A-A59A-A567330F0095");
 
 Smartlook.instance.preferences.setProjectKey("6bebfbc50c0aedc486a2766bc51c24d0d2b4a13f");
 Smartlook.instance.start();
@@ -35,6 +36,7 @@ const prefix = Linking.createURL("/");
 import relativeTime from "dayjs/plugin/relativeTime"
 import customParseFormat from "dayjs/plugin/customParseFormat"
 import advancedFormat from 'dayjs/plugin/advancedFormat';
+import { SendbirdCalls } from "@sendbird/calls-react-native";
 
 dayjs.extend(advancedFormat);
 dayjs.extend(relativeTime);

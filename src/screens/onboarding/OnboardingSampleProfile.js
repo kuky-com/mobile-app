@@ -13,7 +13,7 @@ import dayjs from "dayjs";
 import { ResizeMode, Video } from "expo-av";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import React, { useEffect, useRef, useState } from "react";
 import { SectionCard } from "@/components/SectionCard";
 import {
@@ -35,6 +35,8 @@ import Toast from "react-native-toast-message";
 import Feather from "@expo/vector-icons/Feather";
 import colors from "../../utils/colors";
 import { Rating } from "@/components/Rating";
+import { getAuthenScreen } from "../../utils/utils";
+import { FontAwesome6 } from "@expo/vector-icons";
 
 const styles = StyleSheet.create({
     container: {
@@ -69,7 +71,10 @@ const OnboardingSampleProfile = ({ navigation }) => {
     const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
     const [sampleProfiles, setSampleProfiles] = useState([]);
     const [playing, setPlaying] = useState(false);
-    const [pendingVideo, setPendingVideo] = useState(false)
+    const [pendingVideo, setPendingVideo] = useState(true)
+    const [isMute, setIsMute] = useState(true)
+
+    const currentUser = useAtomValue(userAtom)
 
     const videoRef = useRef(null);
 
@@ -193,7 +198,7 @@ const OnboardingSampleProfile = ({ navigation }) => {
             try {
                 await videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: 50 });
             } catch (error) {
-                console.log({error})
+                console.log({ error })
                 setPendingVideo(false)
             }
         }
@@ -205,15 +210,25 @@ const OnboardingSampleProfile = ({ navigation }) => {
             try {
                 await videoRef.current.setStatusAsync({ shouldPlay: false });
             } catch (error) {
-                
+
             }
         }
     };
+
+    const onSkip = () => {
+        NavigationService.reset(getAuthenScreen(currentUser, true))
+    }
+
+    const onChangeMuteOption = () => {
+        setIsMute(!isMute)
+    }
 
     return (
         <View style={[styles.container]}>
             <Header
                 showLogo
+                rightText='Skip'
+                rightAction={onSkip}
             />
             <ScrollView
                 showsVerticalScrollIndicator={false}
@@ -260,7 +275,7 @@ const OnboardingSampleProfile = ({ navigation }) => {
                         {currentProfile?.video_intro && (
                             <CustomVideo
                                 style={{
-                                    display: (pendingVideo || playing) ? 'flex': 'none',
+                                    display: (pendingVideo || playing) ? 'flex' : 'none',
                                     position: "absolute",
                                     top: 0,
                                     left: 0,
@@ -282,6 +297,8 @@ const OnboardingSampleProfile = ({ navigation }) => {
                                     setPendingVideo(false)
                                     setPlaying(false)
                                 }}
+                                isMuted={isMute}
+                                shouldPlay={true}
                             />
                         )}
                         <LinearGradient
@@ -296,22 +313,29 @@ const OnboardingSampleProfile = ({ navigation }) => {
                                 justifyContent: "space-between",
                             }}
                         >
-                            {!playing &&
-                                <View style={{ width: "100%", alignItems: "flex-end", padding: 16 }}>
-                                    <View style={styles.tagContainer}>
-                                        <Text
-                                            style={[
-                                                styles.tagText,
-                                                {
-                                                    fontSize: (currentProfile?.tag?.name ?? "").length > 20 ? 13 : 15,
-                                                },
-                                            ]}
-                                        >
-                                            {currentProfile?.tag?.name}
-                                        </Text>
-                                    </View>
+
+                            <View style={{ width: "100%", alignItems: "space-between", padding: 16 }}>
+                                {
+                                    (playing || pendingVideo) && 
+                                    <TouchableOpacity onPress={onChangeMuteOption} style={{width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.mainColor}}>
+                                        <FontAwesome6 name={isMute ? 'volume-xmark' : 'volume-high'} size={20} color='white' />
+                                    </TouchableOpacity>
+                                }
+                                {!playing && <View style={styles.tagContainer}>
+                                    <Text
+                                        style={[
+                                            styles.tagText,
+                                            {
+                                                fontSize: (currentProfile?.tag?.name ?? "").length > 20 ? 13 : 15,
+                                            },
+                                        ]}
+                                    >
+                                        {currentProfile?.tag?.name}
+                                    </Text>
                                 </View>
-                            }
+                                }
+                            </View>
+
                             <View
                                 style={{
                                     flex: 1,

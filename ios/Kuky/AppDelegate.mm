@@ -8,6 +8,13 @@
 #import <AuthenticationServices/AuthenticationServices.h>
 #import <SafariServices/SafariServices.h>
 #import <FBSDKCoreKit/FBSDKCoreKit-Swift.h>
+#import <CoreMedia/CoreMedia.h>
+#import <WebRTC/WebRTC.h>
+#import <PushKit/PushKit.h>
+#import <AVKit/AVKit.h>
+#import <SendBirdCalls/SendBirdCalls-Swift.h>
+#import <RNCallKeep.h>
+#import "RNVoipPushNotificationManager.h"
 
 @implementation AppDelegate
 
@@ -17,6 +24,14 @@
   [FIRApp configure];
   [FBSDKApplicationDelegate.sharedInstance initializeSDK];
   
+  [RNCallKeep setup:@{
+      @"appName": @"KUKY",
+      @"maximumCallGroups": @1,
+      @"maximumCallsPerCallGroup": @1,
+      @"supportsVideo": @YES,
+    }];
+  
+  [RNVoipPushNotificationManager voipRegistration];
   [[FBSDKApplicationDelegate sharedInstance] application:application
                          didFinishLaunchingWithOptions:launchOptions];
 
@@ -98,6 +113,59 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
 -(void)userNotificationCenter:(UNUserNotificationCenter *)center willPresentNotification:(UNNotification *)notification withCompletionHandler:(void (^)(UNNotificationPresentationOptions options))completionHandler
 {
   completionHandler(UNNotificationPresentationOptionSound | UNNotificationPresentationOptionAlert | UNNotificationPresentationOptionBadge);
+}
+
+- (void)pushRegistry:(PKPushRegistry *)registry didUpdatePushCredentials:(PKPushCredentials *)credentials forType:(PKPushType)type {
+  // Register VoIP push token (a property of PKPushCredentials) with server
+  [RNVoipPushNotificationManager didUpdatePushCredentials:credentials forType:(NSString *)type];
+}
+
+- (void)pushRegistry:(PKPushRegistry *)registry didInvalidatePushTokenForType:(PKPushType)type
+{
+  // --- The system calls this method when a previously provided push token is no longer valid for use. No action is necessary on your part to reregister the push type. Instead, use this method to notify your server not to send push notifications using the matching push token.
+}
+
+- (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(PKPushType)type withCompletionHandler:(void (^)())completion
+{
+  [SBCSendBirdCall pushRegistry:registry didReceiveIncomingPushWith:payload for:type completionHandler:^(NSUUID * _Nullable uuid) {
+    // IMPORTANT: Incoming calls MUST be reported when receiving a PushKit push.
+    //  If you don't report to CallKit, the app will be terminated.
+
+    if(uuid != nil) {
+      // Report valid call
+      SBCDirectCall* call = [SBCSendBirdCall callForUUID: uuid];
+      [RNCallKeep reportNewIncomingCall: [uuid UUIDString]
+                                 handle: [[call remoteUser] userId]
+                             handleType: @"generic"
+                               hasVideo: [call isVideoCall]
+                    localizedCallerName: [[call remoteUser] nickname]
+                        supportsHolding: YES
+                           supportsDTMF: YES
+                       supportsGrouping: YES
+                     supportsUngrouping: YES
+                            fromPushKit: YES
+                                payload: [payload dictionaryPayload]
+                  withCompletionHandler: completion];
+    } else {
+      // Report and end invalid call
+      NSUUID* uuid = [NSUUID alloc];
+      NSString* uuidString = [uuid UUIDString];
+
+      [RNCallKeep reportNewIncomingCall: uuidString
+                                 handle: @"invalid"
+                             handleType: @"generic"
+                               hasVideo: NO
+                    localizedCallerName: @"invalid"
+                        supportsHolding: NO
+                           supportsDTMF: NO
+                       supportsGrouping: NO
+                     supportsUngrouping: NO
+                            fromPushKit: YES
+                                payload: [payload dictionaryPayload]
+                  withCompletionHandler: completion];
+      [RNCallKeep endCallWithUUID:uuidString reason:1];
+    }
+  }];
 }
 
 @end

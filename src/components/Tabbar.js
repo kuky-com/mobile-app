@@ -31,21 +31,24 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     flexDirection: "row",
     borderRadius: 34,
-    borderWidth: 1,
-    borderColor: "#D9D9D9",
+    // borderWidth: 1,
+    // borderColor: "#D9D9D9",
     backgroundColor: "white",
-    overflow: "hidden",
     position: "absolute",
     bottom: 0,
     left: 16,
     right: 0,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    elevation: 1,
+    shadowColor: "#000000",
   },
   buttonContainer: {
     alignItems: "center",
     justifyContent: "center",
     height: "100%",
     flex: 1,
-    gap: 3,
+    gap: 6,
   },
   buttonIcon: {
     width: 28,
@@ -97,13 +100,13 @@ const Tabbar = ({ navigation, state }) => {
       if (Platform.OS === "ios") {
         PushNotificationIOS.setApplicationIconBadgeNumber(totalUnreadRaw + notiCounter);
       }
-    } catch (error) {}
+    } catch (error) { }
   }, [totalUnreadRaw, notiCounter]);
 
   useEffect(() => {
     try {
       if (url && currentUser) {
-        
+
         if (urlHandleRef && urlHandleRef.current) {
           clearTimeout(urlHandleRef.current);
           urlHandleRef.current = null;
@@ -112,10 +115,10 @@ const Tabbar = ({ navigation, state }) => {
         urlHandleRef.current = setTimeout(async () => {
           const route = Linking.parse(url);
 
-          if(route.scheme === 'https') {
+          if (route.scheme === 'https') {
             if (route?.path && route?.path.includes("profile")) {
               const profile_id = route?.path.split('/')[1];
-  
+
               const token = await AsyncStorage.getItem("ACCESS_TOKEN");
               if (token) {
                 if (navigationRef.current.getCurrentRoute().name === "ConnectProfileScreen") {
@@ -143,7 +146,7 @@ const Tabbar = ({ navigation, state }) => {
           } else {
             if (route?.hostname === "profile") {
               const profile_id = route?.path;
-  
+
               const token = await AsyncStorage.getItem("ACCESS_TOKEN");
               if (token) {
                 if (navigationRef.current.getCurrentRoute().name === "ConnectProfileScreen") {
@@ -171,7 +174,7 @@ const Tabbar = ({ navigation, state }) => {
           }
         }, 1000);
       }
-    } catch (error) {}
+    } catch (error) { }
   }, [url]);
 
   return (
@@ -183,19 +186,20 @@ const Tabbar = ({ navigation, state }) => {
     >
       <TouchableWithoutFeedback onPress={() => openTab(0)}>
         <View style={[styles.buttonContainer]}>
-          <View style={{ alignItems: "center" }}>
+          <View style={{ alignItems: "center", gap: 6 }}>
             <Image
               style={[
                 styles.buttonIcon,
-                { tintColor: currentIndex === 0 ? colors.mainColor : "#949494" },
+                { tintColor: currentIndex === 0 ? colors.mainColor : "#707070" },
               ]}
               source={images.logo_icon}
+              contentFit="contain"
             />
             <Text
               style={{
-                fontSize: 10,
-                fontWeight: "700",
-                color: currentIndex === 0 ? colors.mainColor : "#949494",
+                fontSize: 12,
+                fontWeight: "bold",
+                color: currentIndex === 0 ? colors.mainColor : "#707070",
               }}
             >
               Explore
@@ -205,17 +209,17 @@ const Tabbar = ({ navigation, state }) => {
               <View
                 style={{
                   position: "absolute",
-                  top: -5,
-                  right: -5,
-                  width: 20,
-                  height: 20,
-                  borderRadius: 10,
+                  top: -2,
+                  right: 6,
+                  width: 18,
+                  height: 18,
+                  borderRadius: 9,
                   alignItems: "center",
                   justifyContent: "center",
-                  backgroundColor: "#FF8B8B",
+                  backgroundColor: colors.mainColor,
                 }}
               >
-                <Text style={{ fontSize: 8, fontWeight: "bold", color: "white" }}>
+                <Text style={{ fontSize: 8, fontWeight: "500", color: "white" }}>
                   {notiCounter > 99 ? "..." : notiCounter}
                 </Text>
               </View>
@@ -226,19 +230,20 @@ const Tabbar = ({ navigation, state }) => {
 
       <TouchableWithoutFeedback onPress={() => openTab(1)}>
         <View style={[styles.buttonContainer]}>
-          <View style={{ alignItems: "center" }}>
+          <View style={{ alignItems: "center", gap: 6 }}>
             <Image
               style={[
                 styles.buttonIcon,
-                { tintColor: currentIndex === 1 ? colors.mainColor : "#949494" },
+                { tintColor: currentIndex === 1 ? colors.mainColor : "#707070" },
               ]}
               source={images.matches_icon}
+              contentFit="contain"
             />
             <Text
               style={{
-                fontSize: 10,
-                fontWeight: "700",
-                color: currentIndex === 1 ? colors.mainColor : "#949494",
+                fontSize: 12,
+                fontWeight: "bold",
+                color: currentIndex === 1 ? colors.mainColor : "#707070",
               }}
             >
               Matches
@@ -248,17 +253,17 @@ const Tabbar = ({ navigation, state }) => {
               <View
                 style={{
                   position: "absolute",
-                  top: -5,
-                  right: -5,
-                  width: 20,
-                  height: 20,
-                  borderRadius: 10,
+                  top: -2,
+                  right: 6,
+                  width: 18,
+                  height: 18,
+                  borderRadius: 9,
                   alignItems: "center",
                   justifyContent: "center",
-                  backgroundColor: "#FF8B8B",
+                  backgroundColor: colors.mainColor,
                 }}
               >
-                <Text style={{ fontSize: 8, fontWeight: "bold", color: "white" }}>
+                <Text style={{ fontSize: 8, fontWeight: "500", color: "white" }}>
                   {totalUnreadRaw > 99 ? "..." : totalUnreadRaw}
                 </Text>
               </View>
@@ -281,9 +286,9 @@ const Tabbar = ({ navigation, state }) => {
           />
           <Text
             style={{
-              fontSize: 10,
-              fontWeight: "700",
-              color: currentIndex === 2 ? colors.mainColor : "#949494",
+              fontSize: 12,
+              fontWeight: "bold",
+              color: currentIndex === 2 ? colors.mainColor : "#707070",
             }}
           >
             Profile
