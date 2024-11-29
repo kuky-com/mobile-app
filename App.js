@@ -25,6 +25,8 @@ import { AppUpdateAlertProvider } from "@/components/AppUpdateAlert";
 import { Amplify } from "aws-amplify";
 import amplifyconfig from "./src/amplifyconfiguration.json";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import analytics from '@react-native-firebase/analytics'
+
 Amplify.configure(amplifyconfig);
 SendbirdCalls.initialize("9BE43E57-7AA4-4D1A-A59A-A567330F0095");
 
@@ -37,6 +39,7 @@ import relativeTime from "dayjs/plugin/relativeTime"
 import customParseFormat from "dayjs/plugin/customParseFormat"
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import { SendbirdCalls } from "@sendbird/calls-react-native";
+import { AlertIconProvider } from "./src/components/AlertIconProvider";
 
 dayjs.extend(advancedFormat);
 dayjs.extend(relativeTime);
@@ -201,22 +204,24 @@ export default function App() {
         <SheetProvider>
           <AppUpdateAlertProvider>
             <AlertProvider>
-              <NavigationContainer
-                ref={navigationRef}
-                linking={linking}
-                onReady={() => {
-                  isReadyRef.current = true;
-                }}
-              >
-                <StatusBar translucent style="dark" />
-                <Suspense>
-                  <QueryClientProvider client={queryClient}>
-                    <Provider store={storeAtom}>
-                      <MainApp />
-                    </Provider>
-                  </QueryClientProvider>
-                </Suspense>
-              </NavigationContainer>
+              <AlertIconProvider>
+                <NavigationContainer
+                  ref={navigationRef}
+                  linking={linking}
+                  onReady={() => {
+                    isReadyRef.current = true;
+                  }}
+                >
+                  <StatusBar translucent style="dark" />
+                  <Suspense>
+                    <QueryClientProvider client={queryClient}>
+                      <Provider store={storeAtom}>
+                        <MainApp />
+                      </Provider>
+                    </QueryClientProvider>
+                  </Suspense>
+                </NavigationContainer>
+              </AlertIconProvider>
             </AlertProvider>
           </AppUpdateAlertProvider>
         </SheetProvider>

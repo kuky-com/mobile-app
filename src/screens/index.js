@@ -83,6 +83,7 @@ import ProfileVideoProcessingScreen from "./profile/ProfileVideoProcessingScreen
 import ProfileVideoReviewScreen from "./profile/ProfileVideoReviewScreen";
 import RNVoipPushNotification from "react-native-voip-push-notification";
 import RNCallKeep from "react-native-callkeep";
+import ConnectUsScreen from "./profile/ConnectUsScreen";
 
 SendbirdCalls.setListener({
   onRinging: async (callProps) => {
@@ -656,6 +657,7 @@ const AppStack = ({ navgation }) => {
       <Stack.Screen name="OnboardingSampleProfile" component={OnboardingSampleProfile} />
       <Stack.Screen name="ProfileVideoProcessingScreen" component={ProfileVideoProcessingScreen} />
       <Stack.Screen name="ProfileVideoReviewScreen" component={ProfileVideoReviewScreen} />
+      <Stack.Screen name="ConnectUsScreen" component={ConnectUsScreen} />
     </Stack.Navigator>
   );
 };

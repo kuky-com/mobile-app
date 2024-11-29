@@ -85,10 +85,10 @@ const CustomVideo = React.forwardRef((props, ref) => {
           autoPlay
           style={{
             display: loading ? 'flex' : 'none',
-            width: "60%", height: "60%",
+            width: "30%", height: "30%",
             backgroundColor: "#00000000",
           }}
-          source={require("../assets/animations/loading.json")}
+          source={require("../assets/animations/buffering.json")}
         />
       </View>
     </Video>

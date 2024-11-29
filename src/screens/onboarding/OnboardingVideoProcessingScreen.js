@@ -11,7 +11,6 @@ import apiClient from '@/utils/apiClient'
 import { capitalize, getAuthenScreen } from '@/utils/utils'
 import { ResizeMode, Video } from 'expo-av'
 import axios from 'axios'
-import { useAlert } from '@/components/AlertProvider'
 import { uploadData, getUrl, } from 'aws-amplify/storage'
 import * as FileSystem from 'expo-file-system'
 import { FFmpegKit, FFprobeKit } from 'ffmpeg-kit-react-native'
@@ -19,69 +18,135 @@ import CustomVideo from '@/components/CustomVideo'
 import { getVideoResizeDimensions } from '../../utils/utils'
 import { useAtomValue } from 'jotai'
 import { userAtom } from '../../actions/global'
+import { useAlertWithIcon } from '../../components/AlertIconProvider'
 
 const OnboardingVideoProcessingScreen = ({ navigation, route }) => {
     const insets = useSafeAreaInsets()
     const { videoUrl, startPosition, endPosition } = route.params
     const videoRef = useRef(null);
     const [videoIntro, setVideoIntro] = useState(null)
-    const showAlert = useAlert()
+    const showAlert = useAlertWithIcon()
     const currentUser = useAtomValue(userAtom)
+    const [processingData, setProcessingData] = useState(null)
+    const [progress, setProgress] = useState(0)
 
     useEffect(() => {
         uploadFileToAws()
     }, [videoUrl])
 
     useEffect(() => {
-        if (videoIntro) {
+        if (videoIntro && processingData) {
             processAudio()
         }
-    }, [videoIntro])
+    }, [videoIntro, processingData])
 
     const uploadFileToAws = async () => {
         try {
-            const { width, height } = await getVideoResizeDimensions(videoUrl.uri)
+            const outputAudioUri = `${FileSystem.documentDirectory}audio.m4a`
+            const commandAudio = `-y -i ${videoUrl.uri} -ss ${startPosition} -to ${endPosition} -vn -acodec aac ${outputAudioUri}`;
 
-            const outputUri = `${FileSystem.documentDirectory}video_trimmed.mp4`
-            const command = `-y -i ${videoUrl.uri} -ss ${startPosition} -to ${endPosition} -vf ${width > height ? `scale=${height}:${width}` : `scale=${width}:${height}`} -crf 26 -preset veryfast -f mp4 ${outputUri}`;
+            await FFmpegKit.execute(commandAudio)
 
-            await FFmpegKit.execute(command)
+            const responseAudio = await fetch(outputAudioUri);
 
-            const response = await fetch(outputUri);
+            const blobAudio = await responseAudio.blob();
+            const audioFileName = `audio-${process.env.NODE_ENV}-${currentUser?.id}-${dayjs().unix()}.m4a`
 
-            const blob = await response.blob();
-            const fileName = `video-${process.env.NODE_ENV}-${currentUser?.id}-${dayjs().unix()}.mp4`
-
-            const result = await uploadData({
-                path: `public/${fileName}`,
-                data: blob,
+            await uploadData({
+                path: `public/${audioFileName}`,
+                data: blobAudio,
                 options: {
-                    contentType: 'video/mp4',
+                    contentType: 'audio/m4a',
                     accessLevel: 'public'
                 }
             }).result
 
-            setVideoIntro({
-                https: `https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${fileName}`,
-                s3: `s3://kuky-video/public/${fileName}`
+            axios.post('https://ugfgxk4hudtff26aeled4u3h3u0buuhr.lambda-url.ap-southeast-1.on.aws', {
+                s3_uri: `s3://kuky-video/public/${audioFileName}`
             })
+                .then((res) => {
+                    if (res && res.data && res.data.tags) {
+                        setProcessingData(res.data)
+                    }
+                })
+                .catch(() => {
+                    showAlert(images.video_error, 'Oops!', 'Something went wrong while processing your video.', 'Please try again recording your video', [
+                        { text: 'Record Again', onPress: () => navigation.goBack() }
+                    ])
+                })
+
+
+            const { width, height } = await getVideoResizeDimensions(videoUrl.uri)
+
+            const outputVideoUri = `${FileSystem.documentDirectory}video_trimmed.mp4`
+            const commandVideo = `-y -i ${videoUrl.uri} -ss ${startPosition} -to ${endPosition} -vf ${width > height ? `scale=${height}:${width}` : `scale=${width}:${height}`} -crf 26 -preset veryfast -f mp4 ${outputVideoUri}`;
+
+            await FFmpegKit.executeAsync(commandVideo, async (session) => {
+                const returnCode = await session.getReturnCode();
+                if (returnCode.isValueSuccess()) {
+                    console.log('Conversion successful');
+                    setProgress(100)
+
+                    const responseVideo = await fetch(outputVideoUri);
+
+                    const blobVideo = await responseVideo.blob();
+                    const videoFileName = `audio-${process.env.NODE_ENV}-${currentUser?.id}-${dayjs().unix()}.mp4`
+
+                    await uploadData({
+                        path: `public/${videoFileName}`,
+                        data: blobVideo,
+                        options: {
+                            contentType: 'video/mp4',
+                            accessLevel: 'public'
+                        }
+                    }).result
+
+                    setVideoIntro({
+                        https: `https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${videoFileName}`,
+                        s3: `s3://kuky-video/public/${videoFileName}`
+                    })
+                } else {
+                    console.log('Conversion failed', returnCode);
+                }
+            },
+                (log) => {
+                    const regex = /time=(\d{2}:\d{2}:\d{2}.\d{2})/;
+                    const match = log.getMessage().match(regex);
+
+                    if (match) {
+                        const currentTime = match[1]; // Extracted time in HH:MM:SS.SS
+                        calculateProgress(currentTime);
+                    }
+                }, (statistics) => {
+
+                })
+
+
         } catch (error) {
             console.log({ error })
 
-            showAlert('Error', 'Could not process your video at the moment.', [
-                { text: 'Resubmit processing', onPress: () => uploadFileToAws() },
-                { text: 'Retake your video', onPress: () => navigation.goBack() }
+            showAlert(images.video_error, 'Oops!', 'Something went wrong while processing your video.', 'Please try again recording your video', [
+                { text: 'Record Again', onPress: () => navigation.goBack() }
             ])
         }
     }
 
+    const calculateProgress = (currentTime) => {
+        const timeParts = currentTime.split(':');
+        const seconds =
+            parseFloat(timeParts[0]) * 3600 +
+            parseFloat(timeParts[1]) * 60 +
+            parseFloat(timeParts[2]);
+
+        const totalDuration = (endPosition - startPosition)
+
+        const progressPercent = Math.min((seconds / totalDuration) * 100, 100);
+        setProgress(Math.round(progressPercent));
+    }
+
     const processAudio = async () => {
         try {
-            if (!videoIntro || !videoIntro.s3 || !videoIntro.https) return
-
-            const response = await axios.post('https://ugfgxk4hudtff26aeled4u3h3u0buuhr.lambda-url.ap-southeast-1.on.aws', {
-                s3_uri: videoIntro.s3
-            })
+            if (!videoIntro || !videoIntro.s3 || !videoIntro.https || !processingData) return
 
             let likes = []
             let dislikes = []
@@ -90,8 +155,8 @@ const OnboardingVideoProcessingScreen = ({ navigation, route }) => {
             let gender = null
             let name = null
 
-            if (response && response.data && response.data.tags) {
-                const tags = response.data.tags
+            if (processingData.tags) {
+                const tags = processingData.tags
 
                 try {
                     let names = []
@@ -166,9 +231,8 @@ const OnboardingVideoProcessingScreen = ({ navigation, route }) => {
             NavigationService.reset('OnboardingReviewProfileScreen', { likes, dislikes, purposes, age, gender, name, videoIntro: videoIntro })
         } catch (error) {
             console.log({ error })
-            showAlert('Error', 'Could not process your video at the moment.', [
-                { text: 'Resubmit processing', onPress: () => processAudio() },
-                { text: 'Retake your video', onPress: () => navigation.goBack() }
+            showAlert(images.video_error, 'Oops!', 'Something went wrong while processing your video.', 'Please try again recording your video', [
+                { text: 'Record Again', onPress: () => navigation.goBack() }
             ])
         }
 
@@ -199,6 +263,9 @@ const OnboardingVideoProcessingScreen = ({ navigation, route }) => {
                     <Text style={{ fontSize: 14, color: 'white' }}>This may take a few moments...</Text>
                 </View>
                 <Image source={images.processing} style={{ width: Dimensions.get('screen').width - 80, height: Dimensions.get('screen').width - 80 }} contentFit='cover' />
+                <View style={{ backgroundColor: '#E74C3C', height: 32, borderRadius: 16, width: 90, justifyContent: 'center', alignItems: 'center' }}>
+                    <Text style={{ color: 'black', fontSize: 20, fontWeight: "400" }}>{`${progress}%`}</Text>
+                </View>
                 <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                     <Text style={{ lineHeight: 28, fontSize: 20, fontWeight: 'bold', color: 'white', textAlign: 'center' }}>Please hold tight! Your video is being analyzed and will be ready shortly.</Text>
                 </View>
