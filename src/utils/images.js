@@ -65,6 +65,16 @@ const share_facebook = require("../assets/images/share_facebook.png");
 const share_whatsapp = require("../assets/images/share_whatsapp.png");
 const share_twitter = require("../assets/images/share_twitter.png");
 const shared_icon = require("../assets/images/shared_icon.png");
+const video_error = require("../assets/images/video_error.png");
+
+const instagram_icon = require("../assets/images/social/instagram.png");
+const twitter_icon = require("../assets/images/social/twitter.png");
+const facebook_icon = require("../assets/images/social/facebook.png");
+const whatsapp_icon = require("../assets/images/social/whatsapp.png");
+const youtube_icon = require("../assets/images/social/youtube.png");
+const tiktok_icon = require("../assets/images/social/tiktok.png");
+const cal_icon = require("../assets/images/social/cal.png");
+const linkedin_icon = require("../assets/images/social/linkedin.png");
 
 export default {
   logo_text,
@@ -133,5 +143,14 @@ export default {
   share_instagram,
   share_twitter,
   share_whatsapp,
-  shared_icon
+  shared_icon,
+  instagram_icon,
+  twitter_icon,
+  facebook_icon,
+  whatsapp_icon,
+  youtube_icon,
+  tiktok_icon,
+  cal_icon,
+  linkedin_icon,
+  video_error
 };

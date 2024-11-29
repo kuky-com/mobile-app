@@ -258,6 +258,10 @@ const SettingScreen = ({ navigation }) => {
       });
   };
 
+  const onConnectWithUs = () => {
+    navigation.push('ConnectUsScreen')
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar translucent style="dark" />
@@ -369,6 +373,17 @@ const SettingScreen = ({ navigation }) => {
             <TouchableOpacity onPress={onTerm} style={[styles.buttonContainer]}>
               <Text style={{ color: "#333333", fontSize: 16, fontWeight: "bold", flex: 1 }}>
                 Terms of use
+              </Text>
+              <Image
+                source={images.next_icon}
+                style={{ width: 18, height: 18 }}
+                contentFit="contain"
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={onConnectWithUs} style={[styles.buttonContainer]}>
+              <Text style={{ color: "#333333", fontSize: 16, fontWeight: "bold", flex: 1 }}>
+                Connect with Us
               </Text>
               <Image
                 source={images.next_icon}

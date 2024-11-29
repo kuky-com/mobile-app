@@ -601,7 +601,7 @@ const MessageScreen = ({ navigation, route }) => {
     apiClient
       .post("matches/accept", { friend_id: conversation.profile?.id })
       .then((res) => {
-        // console.log({ res })
+        console.log({ res })
         DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS);
         if (res && res.data && res.data.success && res.data.data) {
           setCurrentConversation(res.data.data);
@@ -699,7 +699,7 @@ const MessageScreen = ({ navigation, route }) => {
             }}
           />
         </TouchableOpacity>
-        <Text onPress={openProfile} style={{ fontSize: 18, color: "white", fontWeight: "bold" }}>
+        <Text onPress={openProfile} style={{ flex: 1, fontSize: 18, color: "white", fontWeight: "bold" }}>
           {currentConversation?.profile?.full_name}
         </Text>
         <View
@@ -708,7 +708,7 @@ const MessageScreen = ({ navigation, route }) => {
             alignItems: "center",
             flexDirection: "row",
             justifyContent: "flex-end",
-            gap: 16,
+            gap: 12,
           }}
         >
           {/* <TouchableOpacity
@@ -716,8 +716,8 @@ const MessageScreen = ({ navigation, route }) => {
             style={{ width: 30, height: 30, alignItems: "center", justifyContent: "center" }}
           >
             <CallIcon />
-          </TouchableOpacity> */}
-          {/* <TouchableOpacity
+          </TouchableOpacity>
+          <TouchableOpacity
             onPress={() => calling(true)}
             style={{ width: 30, height: 30, alignItems: "center", justifyContent: "center" }}
           >

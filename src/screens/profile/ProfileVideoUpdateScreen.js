@@ -27,6 +27,7 @@ import { FFmpegKit } from "ffmpeg-kit-react-native";
 import ButtonWithLoading from "@/components/ButtonWithLoading";
 import Slider from "@react-native-community/slider";
 import CustomVideo from "@/components/CustomVideo";
+import { useAlertWithIcon } from "../../components/AlertIconProvider";
 
 const styles = StyleSheet.create({
   container: {
@@ -76,6 +77,8 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
   const [startPosition, setStartPosition] = useState(0);
   const [endPosition, setEndPosition] = useState(0);
   const [playing, setPlaying] = useState(false);
+
+  const showAlert = useAlertWithIcon()
 
   const [timer, setTimer] = useState(0);
 
@@ -167,6 +170,13 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
   };
 
   const handleTrim = async () => {
+    if((endPosition - startPosition) < 10) {
+      showAlert(images.video_error, 'Too Short', 'Your video duration is too short.', 'Please record video at least 10 seconds', [
+        {text: "Record again", onPress: () => clearVideo()}
+      ])
+      return
+    }
+
     setProcessing(true);
     try {
       setProcessing(false);
