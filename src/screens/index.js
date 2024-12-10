@@ -84,6 +84,9 @@ import ProfileVideoReviewScreen from "./profile/ProfileVideoReviewScreen";
 import RNVoipPushNotification from "react-native-voip-push-notification";
 import RNCallKeep from "react-native-callkeep";
 import ConnectUsScreen from "./profile/ConnectUsScreen";
+import SampleExploreScreen from "./interest/SampleExploreScreen";
+import SampleProfileScreen from "./interest/SampleProfileScreen";
+import OnboardingVideoWalkthroughtScreen from "./onboarding/OnboardingVideoWalkthroughtScreen";
 
 SendbirdCalls.setListener({
   onRinging: async (callProps) => {
@@ -132,8 +135,6 @@ SendbirdCalls.setListener({
   },
 });
 
-RNVoipPushNotification.registerVoipToken();
-
 if (Platform.OS === "android") {
   SendbirdCalls.addDirectCallSound(SoundType.RINGING, "ringing.mp3");
 }
@@ -148,6 +149,8 @@ if (Platform.OS === "android") {
 
 // Setup ios callkit
 if (Platform.OS === "ios") {
+  RNVoipPushNotification.registerVoipToken();
+  
   setupCallKit();
 }
 
@@ -658,6 +661,9 @@ const AppStack = ({ navgation }) => {
       <Stack.Screen name="ProfileVideoProcessingScreen" component={ProfileVideoProcessingScreen} />
       <Stack.Screen name="ProfileVideoReviewScreen" component={ProfileVideoReviewScreen} />
       <Stack.Screen name="ConnectUsScreen" component={ConnectUsScreen} />
+      <Stack.Screen name="SampleExploreScreen" component={SampleExploreScreen} />
+      <Stack.Screen name="SampleProfileScreen" component={SampleProfileScreen} />
+      <Stack.Screen name="OnboardingVideoWalkthroughtScreen" component={OnboardingVideoWalkthroughtScreen} />
     </Stack.Navigator>
   );
 };
