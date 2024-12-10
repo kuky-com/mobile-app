@@ -66,6 +66,12 @@ const share_whatsapp = require("../assets/images/share_whatsapp.png");
 const share_twitter = require("../assets/images/share_twitter.png");
 const shared_icon = require("../assets/images/shared_icon.png");
 const video_error = require("../assets/images/video_error.png");
+const share_profile = require("../assets/images/share_profile.png");
+const match_icon = require("../assets/images/match_icon.png");
+
+const walkthrought1 = require("../assets/images/walkthrought1.png");
+const walkthrought2 = require("../assets/images/walkthrought2.png");
+const walkthrought3 = require("../assets/images/walkthrought3.png");
 
 const instagram_icon = require("../assets/images/social/instagram.png");
 const twitter_icon = require("../assets/images/social/twitter.png");
@@ -152,5 +158,10 @@ export default {
   tiktok_icon,
   cal_icon,
   linkedin_icon,
-  video_error
+  video_error,
+  share_profile,
+  match_icon,
+  walkthrought1,
+  walkthrought2,
+  walkthrought3
 };

@@ -10,7 +10,7 @@ export const useAlertWithIcon = () => {
     return useContext(AlertContext);
 };
 
-const CustomAlert = ({ visible, title, icon, message1, message2, onClose, buttons = [] }) => {
+const CustomAlert = ({ visible, title, icon, message1, message2, onClose, buttons = [], cancelButtons }) => {
     const onPress = (button) => {
         onClose()
         if (button && button.onPress) {
@@ -44,6 +44,15 @@ const CustomAlert = ({ visible, title, icon, message1, message2, onClose, button
                             )
                         })
                     }
+                    {
+                        cancelButtons.map((button, index) => {
+                            return (
+                                <TouchableOpacity key={`${button.text}-${index}`} onPress={() => onPress(button)} style={styles.cancelButton}>
+                                    <Text style={styles.cancelButtonText}>{button?.text ?? 'Cancel'}</Text>
+                                </TouchableOpacity>
+                            )
+                        })
+                    }
                     {/* <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                         <Image source={images.close_icon} style={styles.closeIcon} contentFit='contain' />
                     </TouchableOpacity> */}
@@ -55,10 +64,10 @@ const CustomAlert = ({ visible, title, icon, message1, message2, onClose, button
 
 export const AlertIconProvider = ({ children }) => {
     const [alertVisible, setAlertVisible] = useState(false);
-    const [alertConfig, setAlertConfig] = useState({ icon: null, title: '', message1: '', message2: '', buttons: [], onClose: null });
+    const [alertConfig, setAlertConfig] = useState({ icon: null, title: '', message1: '', message2: '', buttons: [], cancelButtons: [], onClose: null });
 
-    const showAlert = useCallback((icon, title, message1, message2, buttons = [], onClose) => {
-        setAlertConfig({ icon, title, message1, message2, buttons, onClose });
+    const showAlert = useCallback((icon, title, message1, message2, buttons = [], cancelButtons = [], onClose) => {
+        setAlertConfig({ icon, title, message1, message2, buttons, cancelButtons, onClose });
         setAlertVisible(true);
     }, []);
 
@@ -78,6 +87,7 @@ export const AlertIconProvider = ({ children }) => {
                 icon={alertConfig.icon}
                 message1={alertConfig.message1}
                 message2={alertConfig.message2}
+                cancelButtons={alertConfig.cancelButtons}
                 onClose={closeAlert}
                 buttons={alertConfig.buttons}
             />
@@ -151,5 +161,16 @@ const styles = StyleSheet.create({
     },
     closeIcon: {
         width: 15, height: 15
-    }
+    },
+    cancelButton: {
+        padding: 10,
+        alignItems: 'center',
+        width: '100%',
+        justifyContent: 'center'
+    },
+    cancelButtonText: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: 'white',
+    },
 });

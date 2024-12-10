@@ -216,7 +216,8 @@ const OnboardingSampleProfile = ({ navigation }) => {
     };
 
     const onSkip = () => {
-        NavigationService.reset(getAuthenScreen(currentUser, true))
+        NavigationService.reset('OnboardingVideoTutorialScreen')
+        // NavigationService.reset(getAuthenScreen(currentUser, true))
     }
 
     const onChangeMuteOption = () => {
@@ -227,7 +228,7 @@ const OnboardingSampleProfile = ({ navigation }) => {
         <View style={[styles.container]}>
             <Header
                 showLogo
-                rightText='Skip'
+                rightText='Skip to Proceed'
                 rightAction={onSkip}
             />
             <ScrollView
@@ -316,8 +317,8 @@ const OnboardingSampleProfile = ({ navigation }) => {
 
                             <View style={{ width: "100%", alignItems: "space-between", padding: 16 }}>
                                 {
-                                    (playing || pendingVideo) && 
-                                    <TouchableOpacity onPress={onChangeMuteOption} style={{width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.mainColor}}>
+                                    (playing || pendingVideo) &&
+                                    <TouchableOpacity onPress={onChangeMuteOption} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.mainColor }}>
                                         <FontAwesome6 name={isMute ? 'volume-xmark' : 'volume-high'} size={20} color='white' />
                                     </TouchableOpacity>
                                 }

@@ -90,7 +90,7 @@ const ProfileVideoProcessingScreen = ({ navigation, route }) => {
                     const responseVideo = await fetch(outputVideoUri);
 
                     const blobVideo = await responseVideo.blob();
-                    const videoFileName = `audio-${process.env.NODE_ENV}-${currentUser?.id}-${dayjs().unix()}.mp4`
+                    const videoFileName = `video-${process.env.NODE_ENV}-${currentUser?.id}-${dayjs().unix()}.mp4`
 
                     await uploadData({
                         path: `public/${videoFileName}`,
@@ -256,8 +256,8 @@ const ProfileVideoProcessingScreen = ({ navigation, route }) => {
                     <Text style={{ fontSize: 14, color: 'white' }}>This may take a few moments...</Text>
                 </View>
                 <Image source={images.processing} style={{ width: Dimensions.get('screen').width - 80, height: Dimensions.get('screen').width - 80 }} contentFit='cover' />
-                <View style={{ backgroundColor: '#E74C3C', height: 32, borderRadius: 16, width: 90, justifyContent: 'center', alignItems: 'center' }}>
-                    <Text style={{ color: 'black', fontSize: 20, fontWeight: "400" }}>{`${progress}%`}</Text>
+                <View style={{ backgroundColor: '#E74C3C', height: 40, borderRadius: 20, width: 90, justifyContent: 'center', alignItems: 'center' }}>
+                    <Text style={{ color: 'black', fontSize: 18, fontWeight: "400" }}>{`${progress}%`}</Text>
                 </View>
                 <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                     <Text style={{ lineHeight: 28, fontSize: 20, fontWeight: 'bold', color: 'white', textAlign: 'center' }}>Please hold tight! Your video is being analyzed and will be ready shortly.</Text>

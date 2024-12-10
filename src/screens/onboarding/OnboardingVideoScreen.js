@@ -180,7 +180,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
     setProcessing(true);
     try {
       setProcessing(false);
-      NavigationService.push("OnboardingVideoProcessingScreen", {
+      NavigationService.reset("OnboardingVideoProcessingScreen", {
         videoUrl: videoUrl,
         startPosition,
         endPosition,
