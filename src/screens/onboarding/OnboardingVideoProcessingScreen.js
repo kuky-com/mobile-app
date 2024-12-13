@@ -95,7 +95,7 @@ const OnboardingVideoProcessingScreen = ({ navigation, route }) => {
                 const returnCode = await session.getReturnCode();
                 if (returnCode.isValueSuccess()) {
                     console.log('Conversion successful');
-                    setProgress(100)
+                    setProgress(95)
 
                     const responseVideo = await fetch(outputVideoUri);
 
@@ -149,7 +149,7 @@ const OnboardingVideoProcessingScreen = ({ navigation, route }) => {
         const totalDuration = (endPosition - startPosition)
 
         const progressPercent = Math.min((seconds / totalDuration) * 100, 100);
-        setProgress(Math.round(progressPercent));
+        setProgress(Math.round(progressPercent * 0.95));
     }
 
     const processAudio = async () => {

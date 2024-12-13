@@ -299,6 +299,8 @@ const ConnectProfileScreen = ({ navigation, route }) => {
           actions: options,
           onPress(index) {
             if (index === 0) {
+              onGetSharedLink()
+            } else if (index === 1) {
               onBlock();
             }
           },
@@ -831,7 +833,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                   contentFit="contain"
                 />
                 {
-                  commonInterests.filter((item) => item.type === 'like') && (
+                  commonInterests.filter((item) => item.type === 'like').length > 0 && (
                     <>
                       <Text style={{ fontSize: 14, color: "white", fontWeight: "bold" }}>
                         See What You Both Like!
@@ -877,7 +879,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                   )
                 }
                 {
-                  commonInterests.filter((item) => item.type === 'dislike') && (
+                  commonInterests.filter((item) => item.type === 'dislike').length > 0 && (
                     <>
                       <Text style={{ fontSize: 14, color: "white", fontWeight: "bold" }}>
                         See What You Both Dislike!

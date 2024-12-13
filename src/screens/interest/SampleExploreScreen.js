@@ -11,7 +11,8 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder'
 import constants from '@/utils/constants';
 import { useAtom } from 'jotai';
 import { notiCounterAtom } from '@/actions/global';
-import colors from '@/utils/colors';
+import { sampleProfileViewAtom } from '../../actions/global';
+import NavigationService from '@/utils/NavigationService'
 
 const ITEM_WIDTH = Platform.isPad ? Dimensions.get('screen').width / 4 - 20 : Dimensions.get('screen').width / 2 - 24;
 const PAGE_SIZE = 8
@@ -20,6 +21,7 @@ const SampleExploreScreen = ({ navigation }) => {
     const insets = useSafeAreaInsets()
     const [suggestions, setSuggestions] = useState([])
     const [isFetching, setFetching] = useState(false)
+    const [counter, setCounter] = useState(0)
 
     useEffect(() => {
         onRefresh()
@@ -44,7 +46,12 @@ const SampleExploreScreen = ({ navigation }) => {
     }
 
     const openProfile = (item) => {
-        navigation.push('SampleProfileScreen', { profile: item })
+        if(counter >= 4) {
+            NavigationService.reset('RegisterSuggestionScreen')
+        } else {
+            navigation.push('SampleProfileScreen', { profile: item })
+        }
+        setCounter((old) => old + 1)
     }
 
     const renderItem = ({ item }) => {

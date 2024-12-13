@@ -103,7 +103,7 @@ const ConversationListItem = ({ onPress, conversation, marginBottom, onDisconnec
                 <AvatarImage avatar={conversation?.profile?.avatar} full_name={conversation?.profile?.full_name} style={{ width: 70, height: 70, borderRadius: 35, borderWidth: 1, borderColor: colors.mainColor }} />
                 <View style={{ flex: 1, gap: 8, marginHorizontal: 12 }}>
                     <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>{conversation?.profile?.full_name}</Text>
-                    <Text style={{ fontSize: 12, color: !lastMessageCloud ? colors.mainColor : '#6C6C6C', fontWeight: unreadCount > 0 || !lastMessageCloud ? 'bold' : '300' }}>{lastMessage}</Text>
+                    <Text numberOfLines={2} style={{ fontSize: 12, color: !lastMessageCloud ? colors.mainColor : '#6C6C6C', fontWeight: unreadCount > 0 || !lastMessageCloud ? 'bold' : '300' }}>{lastMessage}</Text>
                 </View>
                 <View style={{ alignItems: 'flex-end', gap: 5 }}>
                     <Text style={{ fontSize: 10, color: '#726E70' }}>{lastDate}</Text>

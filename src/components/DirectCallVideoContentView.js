@@ -4,9 +4,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { DirectCallVideoView } from "@sendbird/calls-react-native";
 import { CALL_PERMISSIONS, usePermissions } from "@/hooks/usePermissions";
+import AvatarImage from "./AvatarImage";
+import Text from "./Text";
+import { BlurView } from "expo-blur";
 
 const DirectCallVideoContentView = ({ call, status }) => {
   const { left, top, viewWidth, viewHeight, scaleTo } = useLocalViewSize("large");
+  const insets = useSafeAreaInsets()
+
   usePermissions(CALL_PERMISSIONS);
   useEffect(() => {
     switch (status) {
@@ -27,26 +32,63 @@ const DirectCallVideoContentView = ({ call, status }) => {
   }, [status]);
 
   return (
-    <View style={{ flex: 1 }}>
-      <DirectCallVideoView
-        mirror={false}
-        resizeMode={"cover"}
-        viewType={"remote"}
-        callId={call.callId}
-        style={StyleSheet.absoluteFill}
-      />
-      <Animated.View
-        style={{ left, top, width: viewWidth, height: viewHeight, backgroundColor: "black" }}
-      >
-        <DirectCallVideoView
-          mirror={true}
-          resizeMode={"cover"}
-          viewType={"local"}
-          callId={call.callId}
-          android_zOrderMediaOverlay
-          style={StyleSheet.absoluteFill}
-        />
-      </Animated.View>
+    <View style={{ flex: 1, backgroundColor: '#E8E8E8', gap: 1 }}>
+      <View style={{ flex: 1 }}>
+        {
+          call?.isRemoteVideoEnabled ?
+            <DirectCallVideoView
+              mirror={false}
+              resizeMode={"cover"}
+              viewType={"remote"}
+              callId={call.callId}
+              style={{ flex: 1 }}
+            />
+            :
+            <View style={{ flex: 1 }}>
+              <AvatarImage
+                full_name={call.remoteUser?.nickname ?? ""}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                avatar={call?.remoteUser?.profileUrl}
+              />
+              <BlurView style={{ flex: 1, alignItems: 'center', justifyContent: "center", gap: 16 }}>
+                <AvatarImage
+                  full_name={call.remoteUser?.nickname ?? ""}
+                  style={{ width: 120, height: 120, borderRadius: 60 }}
+                  avatar={call?.remoteUser?.profileUrl}
+                />
+                <Text style={{ fontSize: 22, fontWeight: 'bold', color: 'white' }}>{call.remoteUser?.nickname ?? ""}</Text>
+              </BlurView>
+            </View>
+        }
+      </View>
+      <View style={{ flex: 1 }}>
+        {
+          call?.isLocalVideoEnabled ?
+            <DirectCallVideoView
+              mirror={true}
+              resizeMode={"cover"}
+              viewType={"local"}
+              callId={call.callId}
+              android_zOrderMediaOverlay
+              style={{ flex: 1 }}
+            /> :
+            <View style={{ flex: 1 }}>
+              <AvatarImage
+                full_name={call.localUser?.nickname ?? ""}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                avatar={call?.localUser?.profileUrl}
+              />
+              <BlurView style={{ flex: 1, alignItems: 'center', justifyContent: "center", gap: 16, paddingBottom: 90 + insets.bottom }}>
+                <AvatarImage
+                  full_name={call.localUser?.nickname ?? ""}
+                  style={{ width: 120, height: 120, borderRadius: 60 }}
+                  avatar={call?.localUser?.profileUrl}
+                />
+                <Text style={{ fontSize: 22, fontWeight: 'bold', color: 'white' }}>{call.localUser?.nickname ?? ""}</Text>
+              </BlurView>
+            </View>
+        }
+      </View>
     </View>
   );
 };

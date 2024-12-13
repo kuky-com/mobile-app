@@ -5,6 +5,7 @@ import { Image } from "expo-image";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Dimensions,
   Linking,
   Platform,
@@ -14,7 +15,6 @@ import {
 } from "react-native";
 import { SheetManager } from "react-native-actions-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import ImagePicker from "react-native-image-crop-picker";
 import { StatusBar } from "expo-status-bar";
 import dayjs from "dayjs";
 import Toast from "react-native-toast-message";
@@ -28,6 +28,8 @@ import ButtonWithLoading from "@/components/ButtonWithLoading";
 import Slider from "@react-native-community/slider";
 import CustomVideo from "@/components/CustomVideo";
 import { useAlertWithIcon } from "../../components/AlertIconProvider";
+import * as ImagePicker from 'expo-image-picker'
+import { useAlert } from "../../components/AlertProvider";
 
 const styles = StyleSheet.create({
   container: {
@@ -79,6 +81,7 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
   const [playing, setPlaying] = useState(false);
 
   const showAlert = useAlertWithIcon()
+  const showNormalAlert = useAlert()
 
   const [timer, setTimer] = useState(0);
 
@@ -108,6 +111,27 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
       }
     }
   };
+
+  const selectFromLibrary = async () => {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['videos'],
+        allowsEditing: true,
+        quality: 1,
+        duration: 60000
+      })
+  
+      console.log(result);
+  
+      if (!result.canceled) {
+        if(result.assets[0].width > result.assets[0].height) {
+          showNormalAlert('Error', 'Oops! Please upload a portrait video for the best experience.')
+          
+          return
+        }
+        setVideoUrl(result.assets[0])
+      }
+    }
+  
 
   useEffect(() => {
     const updateTimer = async () => {
@@ -170,9 +194,15 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
   };
 
   const handleTrim = async () => {
-    if((endPosition - startPosition) < 10) {
+    if ((endPosition - startPosition) < 10) {
       showAlert(images.video_error, 'Too Short', 'Your video duration is too short.', 'Please record video at least 10 seconds', [
-        {text: "Record again", onPress: () => clearVideo()}
+        { text: "Record again", onPress: () => clearVideo() }
+      ])
+      return
+    }
+    if ((endPosition - startPosition) > 60) {
+      showAlert(images.video_error, 'Too Long', 'Your video duration is too long.', 'Please record video with maximum 60 seconds', [
+        { text: "Record again", onPress: () => clearVideo() }
       ])
       return
     }
@@ -531,7 +561,7 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
           }}
         >
           <Text style={{ fontSize: 14, fontWeight: "500", color: "black", lineHeight: 18, textAlign: 'center' }}>
-          Share your purpose, likes, and dislikes with us - it only takes a moment and will help us connect you with the right people.
+            Share your purpose, likes, and dislikes with us - it only takes a moment and will help us connect you with the right people.
           </Text>
           {!recording && !loading && !videoUrl && (
             <TouchableOpacity
@@ -548,6 +578,23 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
             >
               <Text style={{ fontSize: 18, fontWeight: "700", color: "white" }}>
                 {"Start recording"}
+              </Text>
+            </TouchableOpacity>
+          )}
+          {!recording && !loading && !videoUrl && (
+            <TouchableOpacity
+              onPress={selectFromLibrary}
+              style={{
+                paddingHorizontal: 16,
+                alignSelf: "center",
+                height: 30,
+                borderRadius: 30,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={{ fontSize: 18, fontWeight: "700", color: "#333333" }}>
+                {"Upload your video"}
               </Text>
             </TouchableOpacity>
           )}
@@ -659,8 +706,7 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
                 textAlign: "center",
               }}
             >
-              We use your camera to help you create a video that lets us find the best matches for
-              you.
+              We use your camera to help you create a video that lets us find the best matches for you.
             </Text>
             <ButtonWithLoading
               text="Grant Camera Access"

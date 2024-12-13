@@ -69,6 +69,17 @@ const video_error = require("../assets/images/video_error.png");
 const share_profile = require("../assets/images/share_profile.png");
 const match_icon = require("../assets/images/match_icon.png");
 
+const suggestion_register1 = require("../assets/images/suggestion_register1.png");
+const suggestion_register2 = require("../assets/images/suggestion_register2.png");
+const suggestion_register3 = require("../assets/images/suggestion_register3.png");
+const suggestion_cloud = require("../assets/images/suggestion_cloud.png");
+const suggestion_think = require("../assets/images/suggestion_think.png");
+
+const missed_video_call = require("../assets/images/missed_video_call.png");
+const missed_voice_call = require("../assets/images/missed_voice_call.png");
+const out_video_call = require("../assets/images/out_video_call.png");
+const out_voice_call = require("../assets/images/out_voice_call.png");
+
 const walkthrought1 = require("../assets/images/walkthrought1.png");
 const walkthrought2 = require("../assets/images/walkthrought2.png");
 const walkthrought3 = require("../assets/images/walkthrought3.png");
@@ -163,5 +174,14 @@ export default {
   match_icon,
   walkthrought1,
   walkthrought2,
-  walkthrought3
+  walkthrought3,
+  suggestion_register1,
+  suggestion_register2,
+  suggestion_register3,
+  suggestion_cloud,
+  suggestion_think,
+  missed_video_call,
+  missed_voice_call,
+  out_video_call,
+  out_voice_call
 };

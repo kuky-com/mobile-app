@@ -137,11 +137,11 @@ const SampleProfileScreen = ({ navigation, route }) => {
   }, []);
 
   const likeAction = () => {
-    NavigationService.reset('SignUpScreen')
+    NavigationService.reset('RegisterSuggestionScreen')
   };
 
   const rejectAction = () => {
-    NavigationService.reset('SignUpScreen')
+    NavigationService.reset('RegisterSuggestionScreen')
   };
 
   let userDislikes = [];
