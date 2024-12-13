@@ -44,7 +44,21 @@ const ConversationListItem = ({ onPress, conversation, marginBottom, onDisconnec
                     const counter = querySnapshot.docs.length - querySnapshot.docs.filter((item) => item.data().readBy.includes(currentUser?.id)).length
                     setUnreadCount(counter)
                     setTotalUnread((prev) => ({ ...(prev ?? {}), [conversation.conversation_id]: counter }))
-                    setLastMessage(messagesFirestore ? messagesFirestore.text : null);
+
+                    let lastMessage = null
+                    if(messagesFirestore.type === 'missed_video_call') {
+                        lastMessage = 'Missed video call'
+                    } else if(messagesFirestore.type === 'missed_voice_call') {
+                        lastMessage = 'Missed voice call'
+                    } else if(messagesFirestore.type === 'video_call') {
+                        lastMessage = `Video call\n${messagesFirestore.text}`
+                    } else if(messagesFirestore.type === 'voice_call') {
+                        lastMessage = `Voice call\n${messagesFirestore.text}`
+                    } else {
+                        lastMessage = messagesFirestore ? messagesFirestore.text : null
+                    }
+
+                    setLastMessage(lastMessage);
                 }
             });
 
@@ -103,7 +117,7 @@ const ConversationListItem = ({ onPress, conversation, marginBottom, onDisconnec
                 <AvatarImage avatar={conversation?.profile?.avatar} full_name={conversation?.profile?.full_name} style={{ width: 70, height: 70, borderRadius: 35, borderWidth: 1, borderColor: colors.mainColor }} />
                 <View style={{ flex: 1, gap: 8, marginHorizontal: 12 }}>
                     <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>{conversation?.profile?.full_name}</Text>
-                    <Text numberOfLines={2} style={{ fontSize: 12, color: !lastMessageCloud ? colors.mainColor : '#6C6C6C', fontWeight: unreadCount > 0 || !lastMessageCloud ? 'bold' : '300' }}>{lastMessage}</Text>
+                    <Text numberOfLines={2} style={{ fontSize: 12, lineHeight: 18, color: !lastMessageCloud ? colors.mainColor : '#6C6C6C', fontWeight: unreadCount > 0 || !lastMessageCloud ? 'bold' : '300' }}>{lastMessage}</Text>
                 </View>
                 <View style={{ alignItems: 'flex-end', gap: 5 }}>
                     <Text style={{ fontSize: 10, color: '#726E70' }}>{lastDate}</Text>

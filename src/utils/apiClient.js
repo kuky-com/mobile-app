@@ -9,6 +9,8 @@ const apiClient = axios.create({
   timeout: 20000,
 });
 
+export const NODE_ENV = 'development'
+
 apiClient.interceptors.request.use(
   async (config) => {
     const token = await AsyncStorage.getItem("ACCESS_TOKEN");

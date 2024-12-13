@@ -7,6 +7,7 @@ import {
   Alert,
   AppState,
   DeviceEventEmitter,
+  Dimensions,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -43,6 +44,7 @@ import { CALL_PERMISSIONS, usePermissions } from "@/hooks/usePermissions";
 import MessageHeader from "./components/MessageHeader";
 import { formatCallSeconds, isUserReadyForCall } from "../../utils/utils";
 import TypingBubble from "../../components/TypingBubble";
+import { NODE_ENV } from "../../utils/apiClient";
 
 const styles = StyleSheet.create({
   container: {
@@ -349,7 +351,7 @@ const MessageScreen = ({ navigation, route }) => {
   }, [currentConversation, currentUser?.id]);
 
   useEffect(() => {
-    isUserReadyForCall(`${process.env.NODE_ENV}_${conversation.profile?.id}`).then((isReady) => {
+    isUserReadyForCall(`${NODE_ENV}_${conversation.profile?.id}`).then((isReady) => {
       setIsCallAvailable(isReady)
     })
   }, [currentConversation])
@@ -464,7 +466,9 @@ const MessageScreen = ({ navigation, route }) => {
             ((currentMessage.showUserAvatar || currentMessage.isTyping) && currentMessage?.user?._id !== currentUser?.id) && renderAvatar(props)
           }
         </View>
-        <View style={[currentMessage?.user?._id === currentUser?.id ? styles.rightMessageContainer : styles.leftMessageContainer]}>
+        <View style={[currentMessage?.user?._id === currentUser?.id ? styles.rightMessageContainer : styles.leftMessageContainer, {
+          maxWidth: Dimensions.get('screen').width - 28 - (currentMessage?.user?._id !== currentUser?.id ? 45 : 0)
+        }]}>
           {contentView}
         </View>
 
@@ -616,16 +620,31 @@ const MessageScreen = ({ navigation, route }) => {
         readBy: [currentUser?.id],
         type: `missed_${isVideo ? 'video' : 'voice'}_call`
       });
+
+      try {
+        apiClient
+          .post("matches/last-message", {
+            last_message: `Missed ${isVideo ? 'video' : 'voice'} call`,
+            conversation_id: conversation.conversation_id,
+          })
+          .then((res) => {
+            // console.log({ res: res.data })
+          })
+          .catch((error) => {
+            console.log({ error });
+          });
+      } catch (error) { }
   }
 
   const finishCall = (isVideo, duration) => {
+    const text = formatCallSeconds(duration)
     firestore()
       .collection("conversations")
       .doc(conversation.conversation_id)
       .collection("messages")
       .add({
         _id: dayjs().unix.toString(),
-        text: formatCallSeconds(duration),
+        text: text,
         createdAt: new Date(),
         user: {
           _id: currentUser?.id,
@@ -634,13 +653,27 @@ const MessageScreen = ({ navigation, route }) => {
         readBy: [currentUser?.id],
         type: `${isVideo ? 'video' : 'voice'}_call`
       });
+
+      try {
+        apiClient
+          .post("matches/last-message", {
+            last_message: `${`${isVideo ? 'Video' : 'Voice'} call`}\n${text}`,
+            conversation_id: conversation.conversation_id,
+          })
+          .then((res) => {
+            // console.log({ res: res.data })
+          })
+          .catch((error) => {
+            console.log({ error });
+          });
+      } catch (error) { }
   }
 
   const calling = async (isVideoCall) => {
     try {
       await authenticate();
       const callProps = await SendbirdCalls.dial(
-        `${process.env.NODE_ENV}_${conversation.profile?.id}`,
+        `${NODE_ENV}_${conversation.profile?.id}`,
         isVideoCall,
       );
       onNavigate(callProps);
