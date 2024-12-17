@@ -279,7 +279,7 @@ const SampleProfileScreen = ({ navigation, route }) => {
                     <FontAwesome6 name={isMute ? 'volume-xmark' : 'volume-high'} size={20} color='white' />
                   </TouchableOpacity>
                 }
-                {!playing && <View style={styles.tagContainer}>
+                {!(playing || pendingVideo) && <View style={styles.tagContainer}>
                   <Text
                     style={[
                       styles.tagText,

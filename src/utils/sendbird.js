@@ -4,7 +4,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 import messaging from "@react-native-firebase/messaging";
 import RNVoipPushNotification from 'react-native-voip-push-notification';
-import { NODE_ENV } from "./apiClient";
 
 export const authenticate = async () => {
   if (SendbirdCalls.currentUser) {
@@ -29,7 +28,7 @@ export const authenticate = async () => {
   }
   try {
     const user = await SendbirdCalls.authenticate({
-      userId: `${NODE_ENV}_${userId}`,
+      userId: `${process.env.EXPO_PUBLIC_NODE_ENV}_${userId}`,
       accessToken: token,
     });
     console.log({user})

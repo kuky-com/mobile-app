@@ -130,7 +130,6 @@ const ConnectProfileScreen = ({ navigation, route }) => {
         .get(`users/${profile.id}/common-interests`)
         .then((res) => {
           if (res && res.data && res.data.success) {
-            console.log({ interesstjlfkajdddd33: res.data.data });
             setCommonInterests(res.data.data);
           }
         })
@@ -470,7 +469,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                     <FontAwesome6 name={isMute ? 'volume-xmark' : 'volume-high'} size={20} color='white' />
                   </TouchableOpacity>
                 }
-                {!playing && <View style={styles.tagContainer}>
+                {!(playing || pendingVideo) && <View style={styles.tagContainer}>
                   <Text
                     style={[
                       styles.tagText,
@@ -847,10 +846,10 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                           gap: 10,
                         }}
                       >
-                        {commonInterests.filter((item) => item.type === 'like').map((item) => {
+                        {commonInterests.filter((item) => item.type === 'like').map((item, index) => {
                           return (
                             <View
-                              key={item.name}
+                            key={`${item.tag}-${index}`}
                               style={{
                                 flexDirection: "row",
                                 gap: 5,
@@ -893,10 +892,10 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                           gap: 10,
                         }}
                       >
-                        {commonInterests.filter((item) => item.type === 'dislike').map((item) => {
+                        {commonInterests.filter((item) => item.type === 'dislike').map((item, index) => {
                           return (
                             <View
-                              key={item.name}
+                              key={`${item.tag}-${index}`}
                               style={{
                                 flexDirection: "row",
                                 gap: 5,

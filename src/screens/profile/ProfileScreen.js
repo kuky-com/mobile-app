@@ -163,7 +163,7 @@ const ProfileScreen = ({ navigation }) => {
 
     const openEditVideo = async () => {
         const options = [
-            { text: 'Record new video' },
+            { text: 'Update profile Video' },
             { text: 'Remove profile video', color: '#FF8B8B' }
         ]
 

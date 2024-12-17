@@ -394,7 +394,7 @@ const SettingScreen = ({ navigation }) => {
 
             <Text
               style={{
-                fontSize: 13,
+                fontSize: 11,
                 color: "#aaaaaa",
                 fontWeight: "bold",
                 width: "100%",
@@ -402,9 +402,9 @@ const SettingScreen = ({ navigation }) => {
                 lineHeight: 20,
               }}
             >
-              {`Version: ${getVersion()} (Build ${getBuildNumber()})\n`}
+              {`Version: ${getVersion()} (${process.env.EXPO_PUBLIC_NODE_ENV.toUpperCase()} Build ${getBuildNumber()})\n`}
               <Text
-                style={{ color: "#5E30C1", textDecorationLine: "underline" }}
+                style={{ fontSize: 13, color: "#5E30C1", textDecorationLine: "underline" }}
                 onPress={getVersionInfo}
               >{`What's new?`}</Text>
             </Text>

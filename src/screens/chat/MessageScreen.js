@@ -44,7 +44,7 @@ import { CALL_PERMISSIONS, usePermissions } from "@/hooks/usePermissions";
 import MessageHeader from "./components/MessageHeader";
 import { formatCallSeconds, isUserReadyForCall } from "../../utils/utils";
 import TypingBubble from "../../components/TypingBubble";
-import { NODE_ENV } from "../../utils/apiClient";
+import LoadingView from "../../components/LoadingView";
 
 const styles = StyleSheet.create({
   container: {
@@ -351,7 +351,7 @@ const MessageScreen = ({ navigation, route }) => {
   }, [currentConversation, currentUser?.id]);
 
   useEffect(() => {
-    isUserReadyForCall(`${NODE_ENV}_${conversation.profile?.id}`).then((isReady) => {
+    isUserReadyForCall(`${process.env.EXPO_PUBLIC_NODE_ENV}_${conversation.profile?.id}`).then((isReady) => {
       setIsCallAvailable(isReady)
     })
   }, [currentConversation])
@@ -621,19 +621,19 @@ const MessageScreen = ({ navigation, route }) => {
         type: `missed_${isVideo ? 'video' : 'voice'}_call`
       });
 
-      try {
-        apiClient
-          .post("matches/last-message", {
-            last_message: `Missed ${isVideo ? 'video' : 'voice'} call`,
-            conversation_id: conversation.conversation_id,
-          })
-          .then((res) => {
-            // console.log({ res: res.data })
-          })
-          .catch((error) => {
-            console.log({ error });
-          });
-      } catch (error) { }
+    try {
+      apiClient
+        .post("matches/last-message", {
+          last_message: `Missed ${isVideo ? 'video' : 'voice'} call`,
+          conversation_id: conversation.conversation_id,
+        })
+        .then((res) => {
+          // console.log({ res: res.data })
+        })
+        .catch((error) => {
+          console.log({ error });
+        });
+    } catch (error) { }
   }
 
   const finishCall = (isVideo, duration) => {
@@ -654,26 +654,26 @@ const MessageScreen = ({ navigation, route }) => {
         type: `${isVideo ? 'video' : 'voice'}_call`
       });
 
-      try {
-        apiClient
-          .post("matches/last-message", {
-            last_message: `${`${isVideo ? 'Video' : 'Voice'} call`}\n${text}`,
-            conversation_id: conversation.conversation_id,
-          })
-          .then((res) => {
-            // console.log({ res: res.data })
-          })
-          .catch((error) => {
-            console.log({ error });
-          });
-      } catch (error) { }
+    try {
+      apiClient
+        .post("matches/last-message", {
+          last_message: `${`${isVideo ? 'Video' : 'Voice'} call`}\n${text}`,
+          conversation_id: conversation.conversation_id,
+        })
+        .then((res) => {
+          // console.log({ res: res.data })
+        })
+        .catch((error) => {
+          console.log({ error });
+        });
+    } catch (error) { }
   }
 
   const calling = async (isVideoCall) => {
     try {
       await authenticate();
       const callProps = await SendbirdCalls.dial(
-        `${NODE_ENV}_${conversation.profile?.id}`,
+        `${process.env.EXPO_PUBLIC_NODE_ENV}_${conversation.profile?.id}`,
         isVideoCall,
       );
       onNavigate(callProps);
@@ -824,30 +824,38 @@ const MessageScreen = ({ navigation, route }) => {
   };
 
   const likeAction = () => {
+    setLoading(true)
     apiClient
       .post("matches/accept", { friend_id: conversation.profile?.id })
       .then((res) => {
-        console.log({ res })
+        console.log({ res1111: res })
+        setLoading(false)
         DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS);
         if (res && res.data && res.data.success && res.data.data) {
           setCurrentConversation(res.data.data);
           NavigationService.replace("GetMatchScreen", { match: res.data.data });
+        } else if(res && res.data && res.data.message) {
+          showAlert('Hold on', res.data.message)
         }
       })
       .catch((error) => {
+        setLoading(false)
         console.log({ error });
       });
   };
 
   const rejectAction = () => {
+    setLoading(true)
     apiClient
       .post("matches/reject", { friend_id: conversation.profile?.id })
       .then((res) => {
         // console.log({ res })
+        setLoading(false)
         DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS);
       })
       .catch((error) => {
         console.log({ error });
+        setLoading(false)
       });
     setTimeout(() => {
       navigation.goBack();
@@ -1061,14 +1069,7 @@ const MessageScreen = ({ navigation, route }) => {
         alwaysShowSend
       />
       {loading && (
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: "#000000ee", alignItems: "center", justifyContent: "center" },
-          ]}
-        >
-          <ActivityIndicator color="white" />
-        </View>
+        <LoadingView />
       )}
     </View>
   );

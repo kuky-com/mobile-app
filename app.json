@@ -60,7 +60,8 @@
             "Microphone"
           ]
         }
-      ]
+      ],
+      "expo-tracking-transparency"
     ]
   }
 }

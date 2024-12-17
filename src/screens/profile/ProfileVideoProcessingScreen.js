@@ -19,7 +19,6 @@ import { getVideoResizeDimensions } from '../../utils/utils'
 import { useAtomValue } from 'jotai'
 import { userAtom } from '../../actions/global'
 import { useAlertWithIcon } from '../../components/AlertIconProvider'
-import { NODE_ENV } from '../../utils/apiClient'
 
 const ProfileVideoProcessingScreen = ({ navigation, route }) => {
     const insets = useSafeAreaInsets()
@@ -51,7 +50,7 @@ const ProfileVideoProcessingScreen = ({ navigation, route }) => {
             const responseAudio = await fetch(outputAudioUri);
 
             const blobAudio = await responseAudio.blob();
-            const audioFileName = `audio-${NODE_ENV}-${currentUser?.id}-${dayjs().unix()}.m4a`
+            const audioFileName = `audio-${process.env.EXPO_PUBLIC_NODE_ENV}-${currentUser?.id}-${dayjs().unix()}.m4a`
 
             await uploadData({
                 path: `public/${audioFileName}`,
@@ -91,7 +90,7 @@ const ProfileVideoProcessingScreen = ({ navigation, route }) => {
                     const responseVideo = await fetch(outputVideoUri);
 
                     const blobVideo = await responseVideo.blob();
-                    const videoFileName = `video-${NODE_ENV}-${currentUser?.id}-${dayjs().unix()}.mp4`
+                    const videoFileName = `video-${process.env.EXPO_PUBLIC_NODE_ENV}-${currentUser?.id}-${dayjs().unix()}.mp4`
 
                     await uploadData({
                         path: `public/${videoFileName}`,
