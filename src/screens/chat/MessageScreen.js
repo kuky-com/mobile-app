@@ -7,6 +7,7 @@ import {
   Alert,
   AppState,
   DeviceEventEmitter,
+  Dimensions,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -16,7 +17,7 @@ import {
   GiftedChat,
   Bubble,
   InputToolbar,
-  Actions,
+  Message,
   Send,
   Composer,
   Time,
@@ -41,6 +42,10 @@ import { SendbirdCalls, SoundType } from "@sendbird/calls-react-native";
 import { authenticate } from "../../utils/sendbird";
 import { CALL_PERMISSIONS, usePermissions } from "@/hooks/usePermissions";
 import MessageHeader from "./components/MessageHeader";
+import { formatCallSeconds } from "../../utils/utils";
+import TypingBubble from "../../components/TypingBubble";
+import LoadingView from "../../components/LoadingView";
+import { NODE_ENV } from "../../utils/apiClient";
 
 const styles = StyleSheet.create({
   container: {
@@ -147,7 +152,29 @@ const styles = StyleSheet.create({
     color: "black",
     textAlignVertical: "top",
   },
+  rightMessageContainer: {
+    backgroundColor: "#E0E1DD",
+    borderBottomRightRadius: 2.5,
+    borderBottomLeftRadius: 10,
+    borderTopRightRadius: 10,
+    borderTopLeftRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginBottom: 15,
+  },
+  leftMessageContainer: {
+    backgroundColor: "#CFC7F7",
+    borderBottomRightRadius: 10,
+    borderBottomLeftRadius: 2.5,
+    borderTopRightRadius: 10,
+    borderTopLeftRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginBottom: 15,
+  }
 });
+
+const typingMessageId = 'typing_indicator'
 
 const MessageScreen = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
@@ -158,6 +185,10 @@ const MessageScreen = ({ navigation, route }) => {
   const appState = useRef(AppState.currentState);
   const [loading, setLoading] = useState(false);
   const showAlert = useAlert();
+  const typingTimeoutRef = useRef(null)
+  const [isTyping, setIsTyping] = useState(false);
+  const [isCallAvailable, setIsCallAvailable] = useState(false)
+
   usePermissions(CALL_PERMISSIONS);
 
   const loadSubscriptionInfo = async () => {
@@ -261,7 +292,8 @@ const MessageScreen = ({ navigation, route }) => {
           const messagesFirestore = [];
           let hadSend = false;
           let hadRead = false;
-          querySnapshot.docs.forEach((doc) => {
+          let lastId = null
+          querySnapshot.docs.forEach((doc, index) => {
             try {
               const firebaseData = doc.data();
               const data = {
@@ -275,11 +307,14 @@ const MessageScreen = ({ navigation, route }) => {
                 },
                 readBy: firebaseData.readBy || [],
                 sent: !hadSend,
+                type: firebaseData.type,
                 received:
                   !hadRead &&
                   (firebaseData.readBy || []).includes(currentConversation?.profile?.id),
-                showUserAvatar: true,
+                showUserAvatar: lastId !== (firebaseData.user ? firebaseData.user?._id : 0)
               };
+
+              lastId = firebaseData.user ? firebaseData.user?._id : 0
 
               hadSend = true;
               if ((firebaseData.readBy || []).includes(currentConversation?.profile?.id)) {
@@ -316,31 +351,164 @@ const MessageScreen = ({ navigation, route }) => {
     return () => unsubscribe();
   }, [currentConversation, currentUser?.id]);
 
+  useEffect(() => {
+    const getCallStatus = async () => {
+      try {
+        const res = await apiClient.get(`users/${NODE_ENV}_${conversation.profile?.id}/readyForCall`)
+        console.log({res})
+        if(res && res.data && res.data.success) {
+          setIsCallAvailable(true)
+        } else {
+          setIsCallAvailable(false)
+        }
+      } catch (error) {
+        console.log({error})
+        setIsCallAvailable(false)
+      }
+    }
+
+    getCallStatus()
+  }, [])
+
+  useEffect(() => {
+
+
+    const typingRef = firestore()
+      .collection('conversations')
+      .doc(conversation.conversation_id)
+      .collection('typing')
+      .doc(conversation.profile?.id.toString())
+
+    const unsubscribe = typingRef.onSnapshot((doc) => {
+      if (doc.exists) {
+        const isUserTyping = doc.data().isTyping;
+        setIsTyping(isUserTyping);
+
+        if (isUserTyping) {
+          setMessages((prevMessages) => {
+            if (!prevMessages.find((msg) => msg._id === typingMessageId)) {
+              return GiftedChat.append(prevMessages, [
+                {
+                  _id: typingMessageId,
+                  text: '',
+                  createdAt: new Date(),
+                  user: { _id: conversation.profile?.id },
+                  isTyping: true
+                },
+              ]);
+            }
+            return prevMessages;
+          });
+        } else {
+          setMessages((prevMessages) =>
+            prevMessages.filter((msg) => msg._id !== typingMessageId)
+          );
+        }
+      }
+    })
+
+    return () => unsubscribe();
+  }, [currentConversation, currentUser?.id]);
+
+  const renderMessage = (props) => {
+    const { currentMessage } = props
+    // if (currentMessage.type === 'missed_voice_call' || currentMessage.type === 'missed_video_call' || currentMessage.type === 'voice_call' || currentMessage.type === 'video_call') {
+    let contentView = null
+
+    if (currentMessage.isTyping) {
+      contentView = (<TypingBubble />)
+    } else if (currentMessage.type === 'missed_voice_call') {
+      contentView = (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Image source={currentMessage?.user?._id === currentUser?.id ? images.out_voice_call : images.missed_voice_call}
+            style={{ width: 30, height: 30 }} contentFit="contain" />
+          <TouchableOpacity onPress={() => calling(true)} style={{ gap: 1 }}>
+            <Text style={{ fontSize: 13, fontWeight: 'bold', lineHeight: 20, color: 'black' }}>{currentMessage?.user?._id === currentUser?.id ? 'Voice call' : 'Missed voice call'}</Text>
+            <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
+              <Text style={{ fontSize: 13, color: '#4c4c4c', lineHeight: 20 }}>{currentMessage?.user?._id === currentUser?.id ? 'No answer' : 'tap to call back'}</Text>
+              <Text style={{ color: '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+      )
+    } else if (currentMessage.type === 'missed_video_call') {
+      contentView = (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Image source={currentMessage?.user?._id === currentUser?.id ? images.out_video_call : images.missed_video_call}
+            style={{ width: 30, height: 30 }} contentFit="contain" />
+          <TouchableOpacity onPress={() => calling(true)} style={{ gap: 1 }}>
+            <Text style={{ fontSize: 13, fontWeight: 'bold', lineHeight: 20, color: 'black' }}>{currentMessage?.user?._id === currentUser?.id ? 'Video call' : 'Missed video call'}</Text>
+            <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
+              <Text style={{ fontSize: 13, color: '#4c4c4c', lineHeight: 20 }}>{currentMessage?.user?._id === currentUser?.id ? 'No answer' : 'tap to call back'}</Text>
+              <Text style={{ color: '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+      )
+    } else if (currentMessage.type === 'video_call' || currentMessage.type === 'voice_call') {
+      contentView = (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Image source={currentMessage.type === 'video_call' ? images.out_video_call : images.out_voice_call}
+            style={{ width: 30, height: 30 }} contentFit="contain" />
+          <View style={{ gap: 1 }}>
+            <Text style={{ fontSize: 13, fontWeight: 'bold', lineHeight: 20, color: 'black' }}>{currentMessage.type === 'video_call' ? 'Video call' : 'Voice call'}</Text>
+            <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
+              <Text style={{ fontSize: 13, color: '#4c4c4c', lineHeight: 20 }}>{currentMessage?.text}</Text>
+              <Text style={{ color: '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
+            </View>
+          </View>
+        </View>
+      )
+    } else {
+      contentView = (
+        <View style={{ gap: 1, alignItems: 'flex-end' }}>
+          <Text style={{ fontSize: 13, color: 'black', lineHeight: 20 }}>{currentMessage?.text}</Text>
+          <Text style={{ color: '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
+        </View>
+      )
+    }
+
+    return (
+      <View style={{
+        width: '100%', paddingHorizontal: 8,
+        flexDirection: 'row', alignItems: 'center',
+        justifyContent: currentMessage?.user?._id === currentUser?.id ? 'flex-end' : 'flex-start',
+        gap: 8, paddingBottom: 3
+      }}>
+        <View style={{ width: 45 }}>
+          {
+            ((currentMessage.showUserAvatar || currentMessage.isTyping) && currentMessage?.user?._id !== currentUser?.id) && renderAvatar(props)
+          }
+        </View>
+        <View style={[currentMessage?.user?._id === currentUser?.id ? styles.rightMessageContainer : styles.leftMessageContainer, {
+          maxWidth: Dimensions.get('screen').width - 28 - (currentMessage?.user?._id !== currentUser?.id ? 45 : 0)
+        }]}>
+          {contentView}
+        </View>
+
+        <View style={{ position: 'absolute', bottom: 6, right: 8 }}>
+          {!!currentMessage.received && currentMessage.user._id === currentUser?.id && currentUser?.id && (
+            <Text style={{ color: "#6C6C6C", fontWeight: "bold", fontSize: 8 }}>Read</Text>
+          )}
+          {!!currentMessage.sent &&
+            !currentMessage.received &&
+            currentMessage.user._id === currentUser?.id &&
+            currentUser?.id && <Text style={{ color: "#6C6C6C", fontSize: 8 }}>Delivered</Text>}
+        </View>
+      </View>
+    )
+    // }
+
+    // return <Message {...props} />
+  }
+
   const renderBubble = (bubbleProps) => {
     return (
       <Bubble
         {...bubbleProps}
         wrapperStyle={{
-          right: {
-            backgroundColor: "#E0E1DD",
-            borderBottomRightRadius: 2.5,
-            borderBottomLeftRadius: 10,
-            borderTopRightRadius: 10,
-            borderTopLeftRadius: 10,
-            paddingHorizontal: 10,
-            paddingVertical: 6,
-            marginBottom: 15,
-          },
-          left: {
-            backgroundColor: "#CFC7F7",
-            borderBottomRightRadius: 10,
-            borderBottomLeftRadius: 2.5,
-            borderTopRightRadius: 10,
-            borderTopLeftRadius: 10,
-            paddingHorizontal: 10,
-            paddingVertical: 6,
-            marginBottom: 15,
-          },
+          right: styles.rightMessageContainer,
+          left: styles.leftMessageContainer,
         }}
         textStyle={{
           right: {
@@ -375,7 +543,7 @@ const MessageScreen = ({ navigation, route }) => {
         {...props}
         containerStyle={[
           styles.toolbarContainer,
-          { marginBottom: insets.bottom + 16, borderTopWidth: 2, borderTopColor: "black" },
+          { marginBottom: insets.bottom, borderTopWidth: 2, borderTopColor: "black" },
         ]}
         primaryStyle={{ alignItems: "center" }}
         wrapperStyle={{ borderWidth: 0 }}
@@ -417,6 +585,7 @@ const MessageScreen = ({ navigation, route }) => {
           createdAt,
           user,
           readBy: [user._id],
+          type: 'text'
         });
 
       try {
@@ -437,17 +606,88 @@ const MessageScreen = ({ navigation, route }) => {
   );
   const onNavigate = (callProps) => {
     if (callProps.isVideoCall) {
-      navigation.navigate("VideoCallScreen", { callId: callProps.callId, conversation });
+      navigation.navigate("VideoCallScreen", {
+        callId: callProps.callId,
+        conversation, onMiss: () => missCall(true), onFinish: (duration) => finishCall(true, duration)
+      });
     } else {
-      navigation.navigate("VoiceCallScreen", { callId: callProps.callId, conversation });
+      navigation.navigate("VoiceCallScreen", {
+        callId: callProps.callId, conversation,
+        onMiss: () => missCall(false), onFinish: (duration) => finishCall(false, duration)
+      });
     }
   };
+
+  const missCall = (isVideo) => {
+    firestore()
+      .collection("conversations")
+      .doc(conversation.conversation_id)
+      .collection("messages")
+      .add({
+        _id: dayjs().unix.toString(),
+        text: `Missed ${isVideo ? 'video' : 'voice'} call`,
+        createdAt: new Date(),
+        user: {
+          _id: currentUser?.id,
+          name: currentUser?.full_name ?? "",
+        },
+        readBy: [currentUser?.id],
+        type: `missed_${isVideo ? 'video' : 'voice'}_call`
+      });
+
+    try {
+      apiClient
+        .post("matches/last-message", {
+          last_message: `Missed ${isVideo ? 'video' : 'voice'} call`,
+          conversation_id: conversation.conversation_id,
+        })
+        .then((res) => {
+          // console.log({ res: res.data })
+        })
+        .catch((error) => {
+          console.log({ error });
+        });
+    } catch (error) { }
+  }
+
+  const finishCall = (isVideo, duration) => {
+    const text = formatCallSeconds(duration)
+    firestore()
+      .collection("conversations")
+      .doc(conversation.conversation_id)
+      .collection("messages")
+      .add({
+        _id: dayjs().unix.toString(),
+        text: text,
+        createdAt: new Date(),
+        user: {
+          _id: currentUser?.id,
+          name: currentUser?.full_name ?? "",
+        },
+        readBy: [currentUser?.id],
+        type: `${isVideo ? 'video' : 'voice'}_call`
+      });
+
+    try {
+      apiClient
+        .post("matches/last-message", {
+          last_message: `${`${isVideo ? 'Video' : 'Voice'} call`}\n${text}`,
+          conversation_id: conversation.conversation_id,
+        })
+        .then((res) => {
+          // console.log({ res: res.data })
+        })
+        .catch((error) => {
+          console.log({ error });
+        });
+    } catch (error) { }
+  }
 
   const calling = async (isVideoCall) => {
     try {
       await authenticate();
       const callProps = await SendbirdCalls.dial(
-        `${process.env.NODE_ENV}_${conversation.profile?.id}`,
+        `${NODE_ENV}_${conversation.profile?.id}`,
         isVideoCall,
       );
       onNavigate(callProps);
@@ -598,30 +838,38 @@ const MessageScreen = ({ navigation, route }) => {
   };
 
   const likeAction = () => {
+    setLoading(true)
     apiClient
       .post("matches/accept", { friend_id: conversation.profile?.id })
       .then((res) => {
-        console.log({ res })
+        console.log({ res1111: res })
+        setLoading(false)
         DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS);
         if (res && res.data && res.data.success && res.data.data) {
           setCurrentConversation(res.data.data);
           NavigationService.replace("GetMatchScreen", { match: res.data.data });
+        } else if(res && res.data && res.data.message) {
+          showAlert('Hold on', res.data.message)
         }
       })
       .catch((error) => {
+        setLoading(false)
         console.log({ error });
       });
   };
 
   const rejectAction = () => {
+    setLoading(true)
     apiClient
       .post("matches/reject", { friend_id: conversation.profile?.id })
       .then((res) => {
         // console.log({ res })
+        setLoading(false)
         DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS);
       })
       .catch((error) => {
         console.log({ error });
+        setLoading(false)
       });
     setTimeout(() => {
       navigation.goBack();
@@ -629,7 +877,7 @@ const MessageScreen = ({ navigation, route }) => {
   };
 
   const renderHeaderView = () => {
-    return(
+    return (
       <MessageHeader conversation={currentConversation} rejectAction={rejectAction} likeAction={likeAction} />
     )
   };
@@ -649,6 +897,53 @@ const MessageScreen = ({ navigation, route }) => {
       </TouchableOpacity>
     );
   };
+
+  const updateTypingStatus = async (isTyping) => {
+    try {
+      await firestore()
+        .collection('conversations')
+        .doc(conversation?.conversation_id)
+        .collection('typing')
+        .doc(`${currentUser?.id}`)
+        .set({ isTyping }, { merge: true });
+    } catch (error) {
+      console.log({ error });
+    }
+  }
+
+  const handleTyping = (text) => {
+    if (text.length > 0) {
+      updateTypingStatus(true)
+    } else {
+      updateTypingStatus(false)
+    }
+    // try {
+    //   if (text && text.length > 0) {
+    //     updateTypingStatus(true)
+    //     clearTimeout(typingTimeoutRef.current);
+    //     typingTimeoutRef.current = setTimeout(() => {
+    //       updateTypingStatus(false)
+    //     }, 2000);
+    //   } else {
+    //     updateTypingStatus(false)
+    //   }
+    // } catch (error) {
+    //   console.log({ error })
+    // }
+  }
+
+  // const renderFooter = () => {
+  //   if (isTypingUsers.length > 0) {
+  //     return (
+  //       <View style={{ padding: 10 }}>
+  //         <Text style={{ fontSize: 11, fontStyle: 'italic', color: 'gray' }}>
+  //           {isTypingUsers.join(', ')} {isTypingUsers.length > 1 ? 'are' : 'is'} typing...
+  //         </Text>
+  //       </View>
+  //     );
+  //   }
+  //   return null;
+  // }
 
   const openProfile = () => {
     navigation.push("ConnectProfileScreen", {
@@ -711,18 +1006,22 @@ const MessageScreen = ({ navigation, route }) => {
             gap: 12,
           }}
         >
-          {/* <TouchableOpacity
-            onPress={() => calling(false)}
-            style={{ width: 30, height: 30, alignItems: "center", justifyContent: "center" }}
-          >
-            <CallIcon />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => calling(true)}
-            style={{ width: 30, height: 30, alignItems: "center", justifyContent: "center" }}
-          >
-            <VideoIcon />
-          </TouchableOpacity> */}
+          {messages.length > 3 && isCallAvailable &&
+            <>
+              <TouchableOpacity
+                onPress={() => calling(false)}
+                style={{ width: 30, height: 30, alignItems: "center", justifyContent: "center" }}
+              >
+                <CallIcon />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => calling(true)}
+                style={{ width: 30, height: 30, alignItems: "center", justifyContent: "center" }}
+              >
+                <VideoIcon />
+              </TouchableOpacity>
+            </>
+          }
           <TouchableOpacity
             onPress={moreAction}
             style={{ width: 30, height: 30, alignItems: "center", justifyContent: "center" }}
@@ -744,21 +1043,20 @@ const MessageScreen = ({ navigation, route }) => {
         renderComposer={renderComposer}
         renderSend={renderSend}
         renderAvatar={renderAvatar}
-        renderTicks={(currentMessage) => {
-          const tickedUser = currentMessage.user._id;
-          console.log({ currentMessage });
-          return (
-            <View style={{ position: "absolute", bottom: -20, right: -8 }}>
-              {!!currentMessage.received && tickedUser === currentUser?.id && currentUser?.id && (
-                <Text style={{ color: "#6C6C6C", fontWeight: "bold", fontSize: 8 }}>Read</Text>
-              )}
-              {!!currentMessage.sent &&
-                !currentMessage.received &&
-                tickedUser === currentUser?.id &&
-                currentUser?.id && <Text style={{ color: "#6C6C6C", fontSize: 8 }}>Delivered</Text>}
-            </View>
-          );
-        }}
+        // renderTicks={(currentMessage) => {
+        //   const tickedUser = currentMessage.user._id;
+        //   return (
+        //     <View style={{ position: "absolute", bottom: -20, right: -8 }}>
+        //       {!!currentMessage.received && tickedUser === currentUser?.id && currentUser?.id && (
+        //         <Text style={{ color: "#6C6C6C", fontWeight: "bold", fontSize: 8 }}>Read</Text>
+        //       )}
+        //       {!!currentMessage.sent &&
+        //         !currentMessage.received &&
+        //         tickedUser === currentUser?.id &&
+        //         currentUser?.id && <Text style={{ color: "#6C6C6C", fontSize: 8 }}>Delivered</Text>}
+        //     </View>
+        //   );
+        // }}
         renderTime={(props) => (
           <Time
             {...props}
@@ -774,22 +1072,18 @@ const MessageScreen = ({ navigation, route }) => {
             }}
           />
         )}
+        renderMessage={renderMessage}
         renderBubble={renderBubble}
         user={{
           _id: currentUser?.id,
           name: currentUser?.full_name ?? "",
         }}
+        onInputTextChanged={handleTyping}
+        // renderFooter={renderFooter}
         alwaysShowSend
       />
       {loading && (
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: "#000000ee", alignItems: "center", justifyContent: "center" },
-          ]}
-        >
-          <ActivityIndicator color="white" />
-        </View>
+        <LoadingView />
       )}
     </View>
   );

@@ -1,3 +1,5 @@
+import { SendbirdCalls } from "@sendbird/calls-react-native";
+import dayjs from "dayjs";
 import { FFprobeKit } from "ffmpeg-kit-react-native";
 import { Platform } from "react-native";
 
@@ -10,7 +12,7 @@ export const getUnit = (unit) => {
     return Platform.isPad ? (unit * 1.2) : unit
 }
 
-export const getAuthenScreen = (currentUser, skipVideo = false) =>{
+export const getAuthenScreen = (currentUser, skipVideo = false) => {
     if (!currentUser?.full_name) {
         return 'NameUpdateScreen'
     } else if (!currentUser?.video_intro && !skipVideo) {
@@ -70,4 +72,21 @@ export const getVideoResizeDimensions = async (filePath) => {
             }
         });
     });
+};
+
+export const formatCallSeconds = (milliseconds) => {
+    const durationObj = dayjs.duration(milliseconds, 'milliseconds');
+
+    const hours = Math.floor(durationObj.asHours()); // Use asHours() to handle durations > 24 hours
+    const minutes = durationObj.minutes();
+    const seconds = durationObj.seconds();
+
+    const parts = [];
+    if (hours) parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
+    if (minutes) parts.push(`${minutes} minute${minutes > 1 ? 's' : ''}`);
+    if (seconds || (!hours && !minutes)) {
+        parts.push(`${seconds} second${seconds > 1 ? 's' : ''}`);
+    }
+
+    return parts.join(', ');
 };

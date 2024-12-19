@@ -26,6 +26,7 @@ import { Amplify } from "aws-amplify";
 import amplifyconfig from "./src/amplifyconfiguration.json";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import analytics from '@react-native-firebase/analytics'
+import duration from 'dayjs/plugin/duration'
 
 Amplify.configure(amplifyconfig);
 SendbirdCalls.initialize("9BE43E57-7AA4-4D1A-A59A-A567330F0095");
@@ -44,6 +45,7 @@ import { AlertIconProvider } from "./src/components/AlertIconProvider";
 dayjs.extend(advancedFormat);
 dayjs.extend(relativeTime);
 dayjs.extend(customParseFormat);
+dayjs.extend(duration)
 
 const queryClient = new QueryClient();
 

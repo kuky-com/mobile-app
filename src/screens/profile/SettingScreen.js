@@ -17,6 +17,7 @@ import { getBuildNumber, getVersion } from "react-native-device-info";
 import Purchases from "react-native-purchases";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import { NODE_ENV } from "../../utils/apiClient";
 
 const styles = StyleSheet.create({
   container: {
@@ -394,7 +395,7 @@ const SettingScreen = ({ navigation }) => {
 
             <Text
               style={{
-                fontSize: 13,
+                fontSize: 11,
                 color: "#aaaaaa",
                 fontWeight: "bold",
                 width: "100%",
@@ -402,9 +403,9 @@ const SettingScreen = ({ navigation }) => {
                 lineHeight: 20,
               }}
             >
-              {`Version: ${getVersion()} (Build ${getBuildNumber()})\n`}
+              {`Version: ${getVersion()} (${NODE_ENV.toUpperCase()} Build ${getBuildNumber()})\n`}
               <Text
-                style={{ color: "#5E30C1", textDecorationLine: "underline" }}
+                style={{ fontSize: 13, color: "#5E30C1", textDecorationLine: "underline" }}
                 onPress={getVersionInfo}
               >{`What's new?`}</Text>
             </Text>

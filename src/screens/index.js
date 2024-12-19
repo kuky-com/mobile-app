@@ -30,6 +30,7 @@ import OnboardingCompleteScreen from "./onboarding/OnboardingCompleteScreen";
 import ProfileTagScreen from "./onboarding/ProfileTagScreen";
 import PronounsUpdateScreen from "./onboarding/PronounsUpdateScreen";
 import OnboardingReviewProfileScreen from "./onboarding/OnboardingReviewProfileScreen";
+import RegisterSuggestionScreen from "./onboarding/RegisterSuggestionScreen";
 import SettingScreen from "./profile/SettingScreen";
 import { deviceIdAtom, pushTokenAtom, userAtom } from "@/actions/global";
 import DeviceInfo from "react-native-device-info";
@@ -664,6 +665,7 @@ const AppStack = ({ navgation }) => {
       <Stack.Screen name="SampleExploreScreen" component={SampleExploreScreen} />
       <Stack.Screen name="SampleProfileScreen" component={SampleProfileScreen} />
       <Stack.Screen name="OnboardingVideoWalkthroughtScreen" component={OnboardingVideoWalkthroughtScreen} />
+      <Stack.Screen name="RegisterSuggestionScreen" component={RegisterSuggestionScreen} />
     </Stack.Navigator>
   );
 };

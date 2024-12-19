@@ -10,6 +10,7 @@ export const useDirectCall = (callId) => {
   const [call, setCall] = useState();
   const [status, setStatus] = useState("pending");
   const [currentAudioDeviceIOS, setCurrentAudioDeviceIOS] = useState({ inputs: [], outputs: [] });
+  const [finalCallLog, setFinalCallLog] = useState(null)
 
   useEffectAsync(async () => {
     const directCall = await SendbirdCalls.getDirectCall(callId);
@@ -30,6 +31,8 @@ export const useDirectCall = (callId) => {
       },
       onEnded({ callId, callLog }) {
         // callLog && CallHistoryManager.add(callId, callLog);
+        // console.log({callId, callLog})
+        setFinalCallLog(callLog)
         setStatus("ended");
       },
       onAudioDeviceChanged(_, { platform, data }) {
@@ -66,5 +69,5 @@ export const useDirectCall = (callId) => {
     });
   }, []);
 
-  return { call, status, currentAudioDeviceIOS };
+  return { call, status, currentAudioDeviceIOS, callLog: finalCallLog };
 };

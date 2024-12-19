@@ -19,6 +19,7 @@ import { getVideoResizeDimensions } from '../../utils/utils'
 import { useAtomValue } from 'jotai'
 import { userAtom } from '../../actions/global'
 import { useAlertWithIcon } from '../../components/AlertIconProvider'
+import { NODE_ENV } from '../../utils/apiClient'
 
 const OnboardingVideoProcessingScreen = ({ navigation, route }) => {
     const insets = useSafeAreaInsets()
@@ -62,7 +63,7 @@ const OnboardingVideoProcessingScreen = ({ navigation, route }) => {
             const responseAudio = await fetch(outputAudioUri);
 
             const blobAudio = await responseAudio.blob();
-            const audioFileName = `audio-${process.env.NODE_ENV}-${currentUser?.id}-${dayjs().unix()}.m4a`
+            const audioFileName = `audio-${NODE_ENV}-${currentUser?.id}-${dayjs().unix()}.m4a`
 
             await uploadData({
                 path: `public/${audioFileName}`,
@@ -95,12 +96,12 @@ const OnboardingVideoProcessingScreen = ({ navigation, route }) => {
                 const returnCode = await session.getReturnCode();
                 if (returnCode.isValueSuccess()) {
                     console.log('Conversion successful');
-                    setProgress(100)
+                    setProgress(95)
 
                     const responseVideo = await fetch(outputVideoUri);
 
                     const blobVideo = await responseVideo.blob();
-                    const videoFileName = `video-${process.env.NODE_ENV}-${currentUser?.id}-${dayjs().unix()}.mp4`
+                    const videoFileName = `video-${NODE_ENV}-${currentUser?.id}-${dayjs().unix()}.mp4`
 
                     await uploadData({
                         path: `public/${videoFileName}`,
@@ -149,7 +150,7 @@ const OnboardingVideoProcessingScreen = ({ navigation, route }) => {
         const totalDuration = (endPosition - startPosition)
 
         const progressPercent = Math.min((seconds / totalDuration) * 100, 100);
-        setProgress(Math.round(progressPercent));
+        setProgress(Math.round(progressPercent * 0.95));
     }
 
     const processAudio = async () => {

@@ -194,6 +194,7 @@ const SignUpEmailScreen = ({ navigation }) => {
       .post("auth/register", { full_name: fullName, email, password })
       .then((res) => {
         setLoading(false);
+        console.log({res: res.data})
         if (res && res.data && res.data.success) {
           navigation.navigate("EmailVerificationScreen", { email: email });
           Toast.show({ text1: res.data.message, type: "success" });
