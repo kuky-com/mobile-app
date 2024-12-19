@@ -42,9 +42,10 @@ import { SendbirdCalls, SoundType } from "@sendbird/calls-react-native";
 import { authenticate } from "../../utils/sendbird";
 import { CALL_PERMISSIONS, usePermissions } from "@/hooks/usePermissions";
 import MessageHeader from "./components/MessageHeader";
-import { formatCallSeconds, isUserReadyForCall } from "../../utils/utils";
+import { formatCallSeconds } from "../../utils/utils";
 import TypingBubble from "../../components/TypingBubble";
 import LoadingView from "../../components/LoadingView";
+import { NODE_ENV } from "../../utils/apiClient";
 
 const styles = StyleSheet.create({
   container: {
@@ -351,10 +352,23 @@ const MessageScreen = ({ navigation, route }) => {
   }, [currentConversation, currentUser?.id]);
 
   useEffect(() => {
-    isUserReadyForCall(`${process.env.EXPO_PUBLIC_NODE_ENV}_${conversation.profile?.id}`).then((isReady) => {
-      setIsCallAvailable(isReady)
-    })
-  }, [currentConversation])
+    const getCallStatus = async () => {
+      try {
+        const res = await apiClient.get(`users/${NODE_ENV}_${conversation.profile?.id}/readyForCall`)
+        console.log({res})
+        if(res && res.data && res.data.success) {
+          setIsCallAvailable(true)
+        } else {
+          setIsCallAvailable(false)
+        }
+      } catch (error) {
+        console.log({error})
+        setIsCallAvailable(false)
+      }
+    }
+
+    getCallStatus()
+  }, [])
 
   useEffect(() => {
 
@@ -673,7 +687,7 @@ const MessageScreen = ({ navigation, route }) => {
     try {
       await authenticate();
       const callProps = await SendbirdCalls.dial(
-        `${process.env.EXPO_PUBLIC_NODE_ENV}_${conversation.profile?.id}`,
+        `${NODE_ENV}_${conversation.profile?.id}`,
         isVideoCall,
       );
       onNavigate(callProps);

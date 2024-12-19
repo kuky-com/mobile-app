@@ -90,30 +90,3 @@ export const formatCallSeconds = (milliseconds) => {
 
     return parts.join(', ');
 };
-
-export const isUserReadyForCall = async (userId) => {
-    const APP_ID = '9BE43E57-7AA4-4D1A-A59A-A567330F0095';
-    const API_TOKEN = process.env.EXPO_PUBLIC_SENDBIRD_API_TOKEN
-
-    try {
-        const response = await fetch(`https://api-${APP_ID}.sendbird.com/v3/users/${userId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Api-Token': API_TOKEN,
-            },
-        });
-
-        if (response.ok) {
-            const user = await response.json();
-            console.log('User exists:', user);
-            return true;
-        } else {
-            console.log('User not found:', await response.json());
-            return false;
-        }
-    } catch (error) {
-        console.error('Error fetching user:', error);
-        return false;
-    }
-};
