@@ -77,6 +77,11 @@ const suggestion_think = require("../assets/images/suggestion_think.png");
 const next_arrow = require("../assets/images/next_arrow.png");
 const back_button = require("../assets/images/back_button.png");
 const next_button = require("../assets/images/next_button.png");
+const unselect_plan = require("../assets/images/unselect_plan.png");
+const selected_plan = require("../assets/images/selected_plan.png");
+const premium_list_icon = require("../assets/images/premium_list_icon.png");
+
+const subscription_bg = require("../assets/images/subscription_bg.jpg");
 
 const missed_video_call = require("../assets/images/missed_video_call.png");
 const missed_voice_call = require("../assets/images/missed_voice_call.png");
@@ -189,5 +194,9 @@ export default {
   out_voice_call,
   next_arrow,
   next_button,
-  back_button
+  back_button,
+  subscription_bg,
+  selected_plan,
+  unselect_plan,
+  premium_list_icon
 };

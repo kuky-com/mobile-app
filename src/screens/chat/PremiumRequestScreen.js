@@ -30,6 +30,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#725ED4",
     gap: 16,
+    paddingHorizontal: 16
   },
 });
 
@@ -122,115 +123,42 @@ const PremiumRequestScreen = ({ navigation, route }) => {
     Linking.openURL("https://www.kuky.com/privacy-policy");
   };
 
-  const cancelSubscription = () => {};
+  const cancelSubscription = () => { };
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
-      <Image
-        source={images.subscriptions_bg}
-        style={{
-          width: "100%",
-          height: Dimensions.get("screen").height * 0.25,
-          borderBottomLeftRadius: 50,
-          borderBottomRightRadius: 50,
-        }}
-        contentFit="cover"
-      />
+    <ImageBackground style={[styles.container, { paddingBottom: insets.bottom, paddingTop: insets.top + 32 }]} source={images.subscription_bg} contentFit="cover">
       <TouchableOpacity
         onPress={() => navigation.goBack()}
         style={{
           position: "absolute",
           right: 16,
           top: insets.top + 8,
-          width: 40,
-          height: 40,
-          borderRadius: 20,
-          backgroundColor: "#E8FF58",
           alignItems: "center",
           justifyContent: "center",
         }}
       >
         <Image
           source={images.close_icon}
-          style={{ width: getUnit(18), height: getUnit(18), tintColor: "#725ED4" }}
+          style={{ width: getUnit(15), height: getUnit(15), tintColor: "#725ED4" }}
         />
       </TouchableOpacity>
       <ScrollView style={{ flex: 1, width: "100%" }} showsVerticalScrollIndicator={false}>
         <View
           style={{
-            paddingHorizontal: getUnit(16),
             flex: 1,
             alignItems: "center",
-            width: "100%",
+            width: Platform.isPad ? 600 : '100%',
             gap: 8,
+            alignSelf: 'center'
           }}
         >
-          {/* <Text style={{ color: '#E8FF58', fontSize: 24, fontWeight: 'bold' }}>{'Unlock Messaging'}</Text>
-                <Text style={{ color: 'white', fontSize: 14, fontWeight: '500', textAlign: 'center', lineHeight: 18 }}>{'To begin chatting and start building your connection, please upgrade to a premium plan'}</Text> */}
-          <Text style={{ color: "#E8FF58", fontSize: getUnit(24), fontWeight: "bold" }}>
-            {"Premium subscription"}
+          <Text style={{ color: '#E8FF58', width: '100%', fontSize: 15, fontWeight: 'bold' }}>{'Upgrade to Premium'}</Text>
+          <Text style={{ color: "white", width: '100%', fontSize: getUnit(24), lineHeight: getUnit(32), fontWeight: "400" }}>
+            {"Build more connections and enjoy unlimited interactions"}
           </Text>
-
-          <View style={{ gap: 8, marginVertical: getUnit(16) }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <Image
-                style={{ width: getUnit(20), height: getUnit(20) }}
-                source={images.best_price}
-                contentFit="contain"
-              />
-              <Text
-                style={{
-                  color: "white",
-                  fontSize: getUnit(14),
-                  fontWeight: "500",
-                  textAlign: "center",
-                  lineHeight: getUnit(18),
-                }}
-              >
-                {"Unlimited match connections!"}
-              </Text>
-            </View>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <Image
-                style={{ width: getUnit(20), height: getUnit(20) }}
-                source={images.best_price}
-                contentFit="contain"
-              />
-              <Text
-                style={{
-                  color: "white",
-                  fontSize: getUnit(14),
-                  fontWeight: "500",
-                  textAlign: "center",
-                  lineHeight: getUnit(18),
-                }}
-              >
-                {"Unlock messaging!"}
-              </Text>
-            </View>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <Image
-                style={{ width: getUnit(20), height: getUnit(20) }}
-                source={images.best_price}
-                contentFit="contain"
-              />
-              <Text
-                style={{
-                  color: "white",
-                  fontSize: getUnit(14),
-                  fontWeight: "500",
-                  textAlign: "center",
-                  lineHeight: getUnit(18),
-                }}
-              >
-                {"Enjoy more features!"}
-              </Text>
-            </View>
-          </View>
 
           <View
             style={{
-              paddingBottom: 32,
               flex: 1,
               width: "100%",
               alignItems: "center",
@@ -238,17 +166,37 @@ const PremiumRequestScreen = ({ navigation, route }) => {
               gap: 16,
             }}
           >
-            <Text style={{ color: "#E8FF58", fontSize: getUnit(24), fontWeight: "bold" }}>
-              {"3-month free trial then"}
-            </Text>
+            <View style={{ gap: 8, marginVertical: getUnit(16) }}>
+              {
+                ['Unlimited matching!', 'Unlock messaging!', 'Cancel anytime!'].map((item) => {
+                  return (
+                    <View key={item} style={{ width: '100%', flexDirection: "row", alignItems: "center", gap: 8 }}>
+                      <Image
+                        style={{ width: getUnit(20), height: getUnit(20) }}
+                        source={images.premium_list_icon}
+                        contentFit="contain"
+                      />
+                      <Text
+                        style={{
+                          color: "#E8FF58",
+                          fontSize: getUnit(20),
+                          fontWeight: "500",
+                          lineHeight: getUnit(30),
+                          flex: 1
+                        }}
+                      >
+                        {item}
+                      </Text>
+                    </View>
+                  )
+                })
+              }
+            </View>
             <View
               style={{
                 width: "100%",
-                flexWrap: "wrap",
-                gap: getUnit(24),
-                flexDirection: "row",
-                alignItems: "flex-end",
-                justifyContent: "center",
+                gap: getUnit(10),
+                alignItems: "center",
               }}
             >
               {subscriptions.map((item, index) => {
@@ -260,90 +208,54 @@ const PremiumRequestScreen = ({ navigation, route }) => {
                 if (item.title.split(" ").length >= 2) {
                   title = `${item.title.split(" ")[0]} ${item.title.split(" ")[1]}`;
                 }
-                let periods = item.subscriptionPeriod;
-                if (item.subscriptionPeriod === "P1M") {
-                  periods = "(per 1 month)";
-                } else if (item.subscriptionPeriod === "P6M") {
-                  periods = "(per 6 months)";
-                } else if (item.subscriptionPeriod === "P1Y") {
-                  periods = "(per 1 year)";
-                }
 
                 return (
                   <TouchableOpacity
                     key={`product-${item.identifier}`}
                     onPress={() => setPlanIndex(index)}
                     style={{
-                      minWidth: getUnit(90),
                       borderRadius: getUnit(10),
-                      backgroundColor: planIndex === index ? "#E8FF58" : "#F0F0F0",
+                      gap: getUnit(12),
+                      paddingHorizontal: getUnit(16),
+                      height: getUnit(70),
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: "#725ED4",
+                      flexDirection: "row",
+                      width: Platform.isPad ? 600 : '100%'
                     }}
                   >
-                    <View
+                    <Image
+                      style={{ width: getUnit(25), height: getUnit(25) }}
+                      source={planIndex === index ? images.selected_plan : images.unselect_plan}
+                      contentFit="contain"
+                    />
+                    <Text
                       style={{
-                        width: "100%",
-                        height: getUnit(22),
-                        alignItems: "center",
-                        justifyContent: "center",
+                        fontSize: getUnit(18),
+                        fontWeight: "400",
+                        lineHeight: 24,
+                        color: "white",
+                        flex: 1
                       }}
-                    >
-                      {hasOff && (
-                        <Text style={{ fontSize: getUnit(10), fontWeight: "500", color: "black" }}>
-                          {hasOff}
-                        </Text>
-                      )}
-                    </View>
-                    <View
-                      style={{
-                        borderRadius: getUnit(10),
-                        gap: getUnit(12),
-                        paddingHorizontal: getUnit(8),
-                        paddingVertical: getUnit(20),
-                        paddingTop: 32,
-                        alignItems: "center",
-                        justifyContent: "center",
-                        borderWidth: 1,
-                        borderColor: planIndex === index ? "#E8FF58" : "#F0F0F0",
-                        backgroundColor: "#725ED4",
-                      }}
-                    >
+                    >{`${title} `}
                       <Text
                         style={{
-                          textAlign: "center",
-                          fontSize: getUnit(13),
-                          fontWeight: "bold",
-                          lineHeight: 20,
-                          color: "white",
-                        }}
-                      >{`${title} plan`}</Text>
-                      <Text
-                        style={{
-                          fontSize: item.priceString.length > 7 ? getUnit(16) : getUnit(20),
-                          fontWeight: "bold",
-                          color: "white",
+                          fontWeight: 'bold'
                         }}
                       >
                         {item.priceString}
                       </Text>
-                      <Text
-                        style={{
-                          fontSize: item.priceString.length > 7 ? getUnit(11) : getUnit(12),
-                          fontWeight: "bold",
-                          color: "white",
-                        }}
-                      >
-                        {periods}
-                      </Text>
-                      {planIndex === index && (
-                        <View style={{ position: "absolute", top: 5, right: 5 }}>
-                          <Image
-                            style={{ width: getUnit(20), height: getUnit(20) }}
-                            source={images.best_price}
-                            contentFit="contain"
-                          />
-                        </View>
-                      )}
-                    </View>
+                    </Text>
+
+
+                    {hasOff && (
+                      <View style={{ height: 40, borderRadius: 20, alignItems: 'center', width: getUnit(80), justifyContent: 'center', backgroundColor: '#E8FF58' }}>
+                        <Text style={{ fontSize: getUnit(12), fontWeight: 'bold', color: "black" }}>
+                          {hasOff}
+                        </Text>
+                      </View>
+                    )}
                   </TouchableOpacity>
                 );
               })}
@@ -356,58 +268,56 @@ const PremiumRequestScreen = ({ navigation, route }) => {
                 style={{ color: "white", fontSize: 15, fontWeight: "bold" }}
               >{`Expired at: ${dayjs(customerInfo.latestExpirationDate).format("HH:mm DD MMM YYYY")}`}</Text>
             )}
-          {customerInfo &&
-          customerInfo.latestExpirationDate &&
-          dayjs().isBefore(dayjs(customerInfo.latestExpirationDate)) ? (
-            <ButtonWithLoading
-              text={loading ? "Processing..." : `Upgrade plan`}
-              loading={loading}
-              onPress={onContinue}
-              disabled={planIndex === null}
-            />
-          ) : (
-            <ButtonWithLoading
-              text={loading ? "Processing..." : "Start Free Trial"}
-              loading={loading}
-              onPress={onContinue}
-              disabled={planIndex === null}
-            />
-          )}
-          {/* {false &&
-            customerInfo &&
-            customerInfo.latestExpirationDate &&
-            dayjs().isBefore(dayjs(customerInfo.latestExpirationDate)) && (
-              <Text
-                onPress={cancelSubscription}
-                style={{ color: "#FF8B8B", fontSize: 12, fontWeight: "bold" }}
-              >
-                {"Cancel subscription"}
-              </Text>
-            )} */}
-          <Text
-            style={{
-              fontSize: 12,
-              marginTop: 5,
-              fontWeight: "500",
-              color: "#333333",
-              textAlign: "center",
-            }}
-          >
-            {`By subscribing, you agree to our `}
-            <Text
-              onPress={openPolicy}
-              style={{ textDecorationLine: "underline", fontWeight: "bold" }}
-            >{`Privacy Policy`}</Text>
-            {` and `}
-            <Text
-              onPress={openTerms}
-              style={{ textDecorationLine: "underline", fontWeight: "bold" }}
-            >{`Terms of Use`}</Text>
-            {`. Subscriptions auto-renew until cancelled, as described in the Terms. You can cancel the subscription anytime.`}
-          </Text>
+
         </View>
       </ScrollView>
-    </View>
+
+<Text style={{fontSize: 15, color: 'white', width: '100%', textAlign: "center"}}>Includes 7 Days Free Trial</Text>
+      {customerInfo &&
+        customerInfo.latestExpirationDate &&
+        dayjs().isBefore(dayjs(customerInfo.latestExpirationDate)) ? (
+        <ButtonWithLoading
+          text={loading ? "Processing..." : `Subscribe Now`}
+          loading={loading}
+          onPress={onContinue}
+          disabled={planIndex === null}
+          textStyle={{ color: colors.mainColor, fontWeight: 'bold' }}
+          style={{ backgroundColor: '#E8FF58' }}
+        />
+      ) : (
+        <ButtonWithLoading
+          text={loading ? "Processing..." : "Subscribe Now"}
+          loading={loading}
+          onPress={onContinue}
+          disabled={planIndex === null}
+          textStyle={{ color: colors.mainColor, fontWeight: 'bold' }}
+          style={{ backgroundColor: '#E8FF58' }}
+        />
+      )}
+      <Text
+        style={{
+          fontSize: 11,
+          lineHeight: 18,
+          marginTop: 5,
+          fontWeight: "500",
+          color: "#eeeeee",
+          textAlign: "center",
+          width: Platform.isPad ? 600 : '100%'
+        }}
+      >
+        {`By subscribing, you agree to our `}
+        <Text
+          onPress={openPolicy}
+          style={{ textDecorationLine: "underline", fontWeight: "bold" }}
+        >{`Privacy Policy`}</Text>
+        {` and `}
+        <Text
+          onPress={openTerms}
+          style={{ textDecorationLine: "underline", fontWeight: "bold" }}
+        >{`Terms of Use`}</Text>
+        {`. Subscriptions auto-renew until cancelled, as described in the Terms. You can cancel the subscription anytime.`}
+      </Text>
+    </ImageBackground>
   );
 };
 

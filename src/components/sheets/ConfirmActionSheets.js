@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { Dimensions, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Dimensions, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import ActionSheet, { SheetManager, useScrollHandlers } from "react-native-actions-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Text from "@/components/Text";
@@ -98,7 +98,7 @@ function ConfirmActionSheets(props) {
       containerStyle={{ backgroundColor: "#725ED4" }}
     >
       <ScrollView {...scrollHandlers} style={{ maxHeight: Dimensions.get("screen").height * 0.7 }}>
-        <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+        <View style={[styles.container, { paddingBottom: insets.bottom, paddingHorizontal: Platform.isPad ? '20%' : 16 }]}>
           {!!props.payload?.header && <Text style={styles.titleText}>{props.payload?.header}</Text>}
           {!!props.payload?.title && <Text style={styles.messageText}>{props.payload?.title}</Text>}
           {!!props.payload?.message && (

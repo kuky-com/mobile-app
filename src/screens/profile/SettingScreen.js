@@ -35,6 +35,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 20,
     alignItems: "center",
+    width: Platform.isPad ? 600 : '100%'
   },
 });
 
@@ -306,7 +307,7 @@ const SettingScreen = ({ navigation }) => {
           showsVerticalScrollIndicator={false}
           style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 16, paddingTop: 24 }}
         >
-          <View style={{ flex: 1, gap: 16, marginBottom: insets.bottom + 120 }}>
+          <View style={{ flex: 1, gap: 16, marginBottom: insets.bottom + 120, alignItems: 'center' }}>
             {/* <TouchableOpacity style={[styles.buttonContainer]}>
                             <Text style={{ color: '#333333', fontSize: 16, fontWeight: 'bold', flex: 1 }}>My Subscription</Text>
                             <Image source={images.next_icon} style={{ width: 18, height: 18 }} contentFit='contain' />

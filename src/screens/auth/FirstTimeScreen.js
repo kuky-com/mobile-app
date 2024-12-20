@@ -86,8 +86,8 @@ const FirstTimeScreen = ({ navigation }) => {
         <ImageBackground contentFit="contain"
           source={images.splash_bg}
           style={{
-            width: Dimensions.get("screen").width - 32,
-            height: Dimensions.get("screen").width - 32,
+            width: Math.min(Dimensions.get("screen").width - 32, 600),
+            height: Math.min(Dimensions.get("screen").width - 32, 600),
             alignItems: 'center', justifyContent: 'center'
           }}>
           <Image

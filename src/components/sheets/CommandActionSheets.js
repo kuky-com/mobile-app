@@ -6,6 +6,7 @@ import {
     ScrollView,
     TouchableOpacity,
     View,
+    Platform,
 } from 'react-native';
 import ActionSheet, {
     useScrollHandlers,
@@ -104,7 +105,7 @@ function CommandActionSheets(props) {
                     backgroundColor: '#725ED4',
                 }}
                 keyboardShouldPersistTaps={'handled'}>
-                <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+                <View style={[styles.container, { paddingBottom: insets.bottom, paddingHorizontal: Platform.isPad ? '20%' : 16 }]}>
                     {(props.payload?.header ?? '').length > 0 && (
                         <View style={{ padding: 16, width: '100%'}}>
                             <Text style={{ fontSize: 20, color: '#E8FF58', textAlign: 'center', fontWeight: 'bold' }}>{(props.payload?.title ?? '')}</Text>

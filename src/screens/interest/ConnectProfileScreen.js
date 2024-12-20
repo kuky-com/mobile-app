@@ -143,7 +143,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
     }
   };
 
-  console.log({currentProfile: currentProfile.id, currentUser: currentUser.id})
+  console.log({ currentProfile: currentProfile.id, currentUser: currentUser.id })
 
   useEffect(() => {
     if (isStringInteger(currentProfile.id) && currentProfile.id !== currentUser.id) {
@@ -968,7 +968,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                   Discuss your shared love for these common
                 </Text>
                 {showAcceptReject && currentUser.id !== currentProfile.id && !matchInfo && (
-                  <ButtonWithLoading text="Connect" onPress={likeAction} loading={loading} />
+                  <ButtonWithLoading style={{ width: Platform.isPad ? 500 : '100%' }} text="Connect" onPress={likeAction} loading={loading} />
                 )}
               </View>
             )}

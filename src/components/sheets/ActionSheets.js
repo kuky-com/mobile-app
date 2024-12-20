@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   View,
+  Platform,
 } from 'react-native';
 import ActionSheet, {
   useScrollHandlers,
@@ -25,7 +26,9 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       paddingHorizontal: 16,
       gap: 16,
-      alignItems: 'center'
+      alignItems: 'center',
+      borderBottomColor: '#eeeeee',
+      borderBottomWidth: 0.5
     },
     text: {
       flex: 1,
@@ -78,7 +81,7 @@ function ActionSheets(props) {
           maxHeight: Dimensions.get('screen').height * 0.8,
         }}
         keyboardShouldPersistTaps={'handled'}>
-        <View style={[styles.container, {paddingBottom: insets.bottom}]}>
+        <View style={[styles.container, { paddingBottom: insets.bottom, paddingHorizontal: Platform.isPad ? '20%' : 16 }]}>
         {(props.payload?.title ?? '').length > 0 && (
             <View style={{padding: 16, width: '100%', borderBottomWidth: 0.5,  borderBottomColor: '#eeeeee'}}>
               <Text style={{fontSize: 16, color: 'black', fontWeight: 'bold'}}>{(props.payload?.title ?? '')}</Text>
