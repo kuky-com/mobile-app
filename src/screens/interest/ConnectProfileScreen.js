@@ -13,7 +13,7 @@ import dayjs from "dayjs";
 import { ResizeMode, Video } from "expo-av";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import React, { useEffect, useRef, useState } from "react";
 import { SectionCard } from "@/components/SectionCard";
 import {
@@ -37,6 +37,7 @@ import colors from "../../utils/colors";
 import { Rating } from "@/components/Rating";
 import ShareModal from "../../components/ShareModal";
 import { FontAwesome6 } from "@expo/vector-icons";
+import { isStringInteger } from "../../utils/utils";
 
 const styles = StyleSheet.create({
   container: {
@@ -71,7 +72,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
   const [loading, setLoading] = useState(false);
   const [currentProfile, setCurrentProfile] = useState(profile);
   const [matchInfo, setMatchInfo] = useState(null);
-  const currentUser = useAtom(userAtom);
+  const currentUser = useAtomValue(userAtom);
   const showAlert = useAlert();
   const [commonPurposes, setCommonPurposes] = useState(null);
   const [commonInterests, setCommonInterests] = useState([]);
@@ -114,11 +115,42 @@ const ConnectProfileScreen = ({ navigation, route }) => {
           setLoading(false);
         });
 
+      if (isStringInteger(currentProfile.id) && currentProfile.id !== currentUser.id) {
+        apiClient
+          .get(`users/${profile.id}/journey`)
+          .then((res) => {
+            if (res && res.data && res.data.success) {
+              setCommonPurposes(res.data.data);
+            }
+          })
+          .catch((error) => {
+            console.log({ error });
+          });
+
+        apiClient
+          .get(`users/${profile.id}/common-interests`)
+          .then((res) => {
+            if (res && res.data && res.data.success) {
+              setCommonInterests(res.data.data);
+            }
+          })
+          .catch((error) => {
+            console.log({ error });
+          });
+      }
+    } catch (error) {
+      setLoading(false);
+    }
+  };
+
+  console.log({currentProfile: currentProfile.id, currentUser: currentUser.id})
+
+  useEffect(() => {
+    if (isStringInteger(currentProfile.id) && currentProfile.id !== currentUser.id) {
       apiClient
         .get(`users/${profile.id}/journey`)
         .then((res) => {
           if (res && res.data && res.data.success) {
-            console.log({ interesstjlfkajd: res.data.data });
             setCommonPurposes(res.data.data);
           }
         })
@@ -136,10 +168,8 @@ const ConnectProfileScreen = ({ navigation, route }) => {
         .catch((error) => {
           console.log({ error });
         });
-    } catch (error) {
-      setLoading(false);
     }
-  };
+  }, [currentProfile])
 
   useEffect(() => {
     onRefresh();
@@ -288,10 +318,12 @@ const ConnectProfileScreen = ({ navigation, route }) => {
 
   const moreAction = async () => {
     try {
-      const options = [
+      const options = currentProfile.id === currentUser.id ? [
+        { text: "Share Profile", image: images.share_profile }
+      ] : [
         { text: "Share Profile", image: images.share_profile },
         { text: "Block Users", image: images.delete_icon },
-      ];
+      ]
 
       await SheetManager.show("action-sheets", {
         payload: {
@@ -387,19 +419,19 @@ const ConnectProfileScreen = ({ navigation, route }) => {
         >
           {
             commonPurposes && commonPurposes.message &&
-            <View style={{gap: 12, flexDirection: 'row', alignItems: 'center', width: '100%', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10, backgroundColor: '#E9E5FF'}}>
-              <Image source={images.match_icon} style={{width: 40, height: 40}} contentFit='contain' />
-              <Text style={{fontSize: 13, fontWeight: 'bold', flex: 1
+            <View style={{ gap: 12, flexDirection: 'row', alignItems: 'center', width: '100%', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10, backgroundColor: '#E9E5FF' }}>
+              <Image source={images.match_icon} style={{ width: 40, height: 40 }} contentFit='contain' />
+              <Text style={{
+                fontSize: 13, fontWeight: 'bold', flex: 1
               }}>{commonPurposes.message}</Text>
-              </View>
+            </View>
           }
           <View
             style={{
               width: "100%",
               height: Math.min(
                 700,
-                Dimensions.get("screen").height - insets.top - insets.bottom - 220,
-                (Dimensions.get("screen").width - 32) * 1.4,
+                Dimensions.get("screen").height - insets.top - insets.bottom - 80 - (commonPurposes && commonPurposes.message ? 60 : 0),
               ),
               borderWidth: 8,
               borderColor: "white",
@@ -521,7 +553,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                     paddingHorizontal: 9,
                   }}
                 >
-                  {showAcceptReject && currentUser.id !== profile.id && !matchInfo && (
+                  {showAcceptReject && currentUser.id !== currentProfile.id && !matchInfo && (
                     <View style={{ alignItems: "center", gap: 13 }}>
                       <TouchableOpacity
                         disabled={loading}
@@ -606,7 +638,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                       </Text>
                     </View>
                   )}
-                  {showAcceptReject && currentUser.id !== profile.id && !matchInfo && (
+                  {showAcceptReject && currentUser.id !== currentProfile.id && !matchInfo && (
                     <View style={{ alignItems: "center", gap: 13 }}>
                       <TouchableOpacity
                         disabled={loading}
@@ -849,7 +881,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                         {commonInterests.filter((item) => item.type === 'like').map((item, index) => {
                           return (
                             <View
-                            key={`${item.tag}-${index}`}
+                              key={`${item.tag}-${index}`}
                               style={{
                                 flexDirection: "row",
                                 gap: 5,
@@ -935,7 +967,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                 <Text style={{ color: "white", fontSize: 14, fontWeight: "bold" }}>
                   Discuss your shared love for these common
                 </Text>
-                {showAcceptReject && currentUser.id !== profile.id && !matchInfo && (
+                {showAcceptReject && currentUser.id !== currentProfile.id && !matchInfo && (
                   <ButtonWithLoading text="Connect" onPress={likeAction} loading={loading} />
                 )}
               </View>
@@ -1147,18 +1179,21 @@ const ConnectProfileScreen = ({ navigation, route }) => {
               Share it!
             </Text>
 
-            <Text
-              onPress={onBlock}
-              style={{
-                marginTop: 40,
-                lineHeight: 25,
-                color: "#CB3729",
-                fontSize: 14,
-                fontWeight: "bold",
-              }}
-            >
-              Block
-            </Text>
+            {
+              currentProfile.id !== currentUser.id &&
+              <Text
+                onPress={onBlock}
+                style={{
+                  marginTop: 40,
+                  lineHeight: 25,
+                  color: "#CB3729",
+                  fontSize: 14,
+                  fontWeight: "bold",
+                }}
+              >
+                Block
+              </Text>
+            }
           </View>
         </View>
       </ScrollView>

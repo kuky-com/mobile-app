@@ -136,7 +136,10 @@ const DirectCallControllerView = ({ status, call, ios_audioDevice }) => {
                 />
               </Pressable>
 
-              <Pressable onPress={() => call.end()}>
+              <Pressable onPress={() => {
+                console.log('end call')
+                call.end()
+              }}>
                 <CallIcon icon={"btnCallEnd"} size={64} />
               </Pressable>
             </View>
@@ -152,7 +155,10 @@ const DirectCallControllerView = ({ status, call, ios_audioDevice }) => {
                   <Text style={styles.responseText}>Decline</Text>
                 </Pressable>
 
-                <Pressable style={styles.bottomButton} onPress={() => call.end()}>
+                <Pressable style={styles.bottomButton} onPress={() => {
+                  console.log('end call')
+                  call.end()
+                }}>
                   <CallIcon icon={"btnCallDecline"} size={64} />
                   <Text style={styles.responseText}>Accept</Text>
                 </Pressable>

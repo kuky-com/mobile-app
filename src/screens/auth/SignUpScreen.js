@@ -15,12 +15,20 @@ import { getAuthenScreen } from "@/utils/utils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import LoadingView from "@/components/LoadingView";
 import { authenticate, registerToken } from "../../utils/sendbird";
+import { FontAwesome5 } from "@expo/vector-icons";
+import colors from "../../utils/colors";
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#eeeeee",
   },
+  shadow: {
+    shadowOffset: { width: 1, height: 1 },
+    shadowOpacity: 0.25,
+    elevation: 1,
+    shadowColor: '#000000',
+  }
 });
 
 const SignUpScreen = ({ navigation }) => {
@@ -29,6 +37,7 @@ const SignUpScreen = ({ navigation }) => {
   const setToken = useSetAtom(tokenAtom);
   const pushToken = useAtomValue(pushTokenAtom);
   const [loading, setLoading] = useState(false);
+  const [accepted, setAccepted] = useState(false)
 
   useEffect(() => {
     GoogleSignin.configure({
@@ -56,7 +65,7 @@ const SignUpScreen = ({ navigation }) => {
       registerToken();
       apiClient
         .post("users/update-token", { session_token: pushToken })
-        .then((res) => {})
+        .then((res) => { })
         .catch((error) => {
           console.log({ error });
         });
@@ -203,6 +212,7 @@ const SignUpScreen = ({ navigation }) => {
       >
         <TouchableOpacity
           onPress={onSignUp}
+          disabled={!accepted}
           style={{
             width: Platform.isPad ? 600 : "100%",
             alignSelf: "center",
@@ -210,7 +220,7 @@ const SignUpScreen = ({ navigation }) => {
             borderRadius: 30,
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: "#333333",
+            backgroundColor: accepted ? "#333333" : '#999999',
           }}
         >
           <Text style={{ fontSize: 18, fontWeight: "700", color: "white" }}>
@@ -218,49 +228,61 @@ const SignUpScreen = ({ navigation }) => {
           </Text>
         </TouchableOpacity>
         <View
-          style={{ alignItems: "center", justifyContent: "center", gap: 10, flexDirection: "row" }}
+          style={{ alignItems: "center", justifyContent: "center", gap: 16, flexDirection: "row" }}
         >
           {Platform.OS === "ios" && (
             <TouchableOpacity
               onPress={onApple}
-              style={{
+              disabled={!accepted}
+              style={[{
                 height: 54,
                 borderRadius: 25,
                 alignItems: "center",
                 justifyContent: "center",
                 width: 80,
                 backgroundColor: "#EEEEEE",
-              }}
+              }, styles.shadow]}
             >
               <Image
                 source={images.apple_icon}
-                style={{ width: 20, height: 20 }}
+                style={{ width: 20, height: 20, tintColor: accepted ? "#333333" : '#999999' }}
                 contentFit="contain"
               />
             </TouchableOpacity>
           )}
           <TouchableOpacity
             onPress={onGoogle}
-            style={{
+            disabled={!accepted}
+            style={[{
               height: 54,
               borderRadius: 25,
               alignItems: "center",
               justifyContent: "center",
               width: 80,
               backgroundColor: "#EEEEEE",
-            }}
+            }, styles.shadow]}
           >
             <Image
               source={images.google_icon}
-              style={{ width: 20, height: 20 }}
+              style={{ width: 20, height: 20, tintColor: accepted ? "#333333" : '#999999' }}
               contentFit="contain"
             />
           </TouchableOpacity>
         </View>
+
+        <View style={{ alignSelf: "center", width: Platform.isPad ? 600 : "100%", flexDirection: 'row', alignItems: 'flex-start', gap: 4, paddingHorizontal: 8 }}>
+          <TouchableOpacity onPress={() => setAccepted(old => !old)} style={{ width: 20, height: 20, marginTop: 3 }}>
+            <FontAwesome5 name={accepted ? 'check-square' : 'square'} solid={accepted} size={20} color={colors.mainColor} />
+          </TouchableOpacity>
+          <Text style={{ flex: 1, fontSize: 14, fontWeight: 'bold', color: 'black', lineHeight: 25 }}>{`I acknowledge that Kuky is not a substitute for professional mental health services or advice. I understand that Kuky's content is for informational and supportive purposes only.`}</Text>
+        </View>
+
         <Text onPress={onSignIn} style={{ fontSize: 20, fontWeight: "700", color: "#6900D3" }}>
           Sign in
         </Text>
-        <Text style={{ fontSize: 12, textAlign: "center", fontWeight: "500", lineHeight: 17 }}>
+
+        <View style={{ width: '100%', height: 1, backgroundColor: '#726E7030' }} />
+        <Text style={{ color: '#666666', fontSize: 12, textAlign: "center", fontWeight: "500", lineHeight: 17 }}>
           {`By tapping Sign Up / Login, you agree to our `}
           <Text style={{ textDecorationLine: "underline", fontWeight: "bold" }}>Terms</Text>
           {` .\nLearn how we process your data in our  `}

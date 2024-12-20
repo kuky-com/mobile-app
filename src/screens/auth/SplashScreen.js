@@ -31,7 +31,7 @@ const SplashScreen = ({ navigation }) => {
   const [alreadyLoad, setAlreadyLoad] = useState(true);
 
   const openGetStart = () => {
-    NavigationService.reset("GetStartScreen");
+    NavigationService.reset("LetDiscoverScreen");
   };
 
   const getRoute = async () => {

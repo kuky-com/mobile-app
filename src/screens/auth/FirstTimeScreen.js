@@ -7,11 +7,12 @@ import images from "@/utils/images";
 import NavigationService from "@/utils/NavigationService";
 import { getAuthenScreen } from "@/utils/utils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Image } from "expo-image";
+import { Image, ImageBackground } from "expo-image";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Dimensions, StyleSheet, View } from "react-native";
 import { registerToken } from "../../utils/sendbird";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const styles = StyleSheet.create({
   container: {
@@ -19,7 +20,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 16,
-    backgroundColor: colors.mainColor,
+    backgroundColor: 'white',
     paddingHorizontal: 16,
   },
 });
@@ -29,9 +30,10 @@ const FirstTimeScreen = ({ navigation }) => {
   const setToken = useSetAtom(tokenAtom);
   const pushToken = useAtomValue(pushTokenAtom);
   const [isFirstTime, setIsFirstTime] = useState(true);
+  const insets = useSafeAreaInsets()
 
   const openGetStart = () => {
-    NavigationService.reset("GetStartScreen");
+    NavigationService.reset("LetDiscoverScreen");
   };
 
   const getRoute = async () => {
@@ -73,34 +75,40 @@ const FirstTimeScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {paddingTop: insets.top + 16, paddingBottom: insets.bottom + 8}]}>
       <Image
         contentFit="contain"
         source={images.logo_text}
-        style={{ height: 80, width: 150, tintColor: "white" }}
+        style={{ height: 80, width: 150, tintColor: "black" }}
       />
-      <Text style={{ fontSize: 24, fontWeight: "700", color: "white" }}>Better Together</Text>
-      <View style={{ paddingVertical: 16 }}>
-        <Image
-          contentFit="contain"
+      <Text style={{ fontSize: 20, fontWeight: "700", color: "#6C6C6C" }}>Better Together</Text>
+      <View style={{ flex: 1, alignItems: "center", justifyContent: 'center' }}>
+        <ImageBackground contentFit="contain"
           source={images.splash_bg}
           style={{
             width: Dimensions.get("screen").width - 32,
             height: Dimensions.get("screen").width - 32,
-          }}
-        />
+            alignItems: 'center', justifyContent: 'center'
+          }}>
+          <Image
+            contentFit="contain"
+            source={images.logo_icon}
+            style={{
+              width: 50,
+              height: 50,
+              tintColor: '#6C6C6C'
+            }}
+          />
+        </ImageBackground>
       </View>
       <Text
-        style={{ fontSize: 20, fontWeight: "500", textAlign: "center", color: "white" }}
-      >{`Let Our AI Connect You`}</Text>
+        style={{ fontSize: 16, fontWeight: "500", textAlign: "center", color: "#4C4C4C" }}
+      >{`Connect with people who`}</Text>
       <Text
-        style={{ fontSize: 20, fontWeight: "500", textAlign: "center", color: "white" }}
-      >{`with People Who Understand`}</Text>
-      <Text
-        style={{ fontSize: 20, fontWeight: "500", textAlign: "center", color: "white" }}
-      >{`You!`}</Text>
+        style={{ fontSize: 20, fontWeight: "500", textAlign: "center", color: "#4C4C4C" }}
+      >{`Understand You!`}</Text>
       {!isFirstTime && <ActivityIndicator size="large" color={"white"} />}
-      {isFirstTime && <ButtonWithLoading text="Start Your Journey" onPress={getRoute} />}
+      {isFirstTime && <ButtonWithLoading text="Let’s get started" onPress={getRoute} />}
     </View>
   );
 };

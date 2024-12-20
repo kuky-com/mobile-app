@@ -37,11 +37,11 @@ const styles = StyleSheet.create({
     }
 })
 
-const RegisterSuggestionScreen = ({ navigation, route }) => {
+const RegisterSuccessScreen = ({ navigation, route }) => {
     const insets = useSafeAreaInsets()
 
     const onContinue = () => {
-        NavigationService.reset('SignUpScreen')
+        NavigationService.reset('OnboardingVideoTutorialScreen')
     }
 
     return (
@@ -56,7 +56,7 @@ const RegisterSuggestionScreen = ({ navigation, route }) => {
                 </View>
                 <ScrollView style={{ flex: 1, width: '100%' }} showsVerticalScrollIndicator={false}>
                     <View style={{ flex: 1, gap: 32, width: '100%' }}>
-                        <Text style={{ fontSize: 32, lineHeight: 40, fontWeight: '600', color: '#4C4C4C', maxWidth: 250 }}>{`Here's how you can become part of Kuky! `}
+                        <Text style={{ fontSize: 32, lineHeight: 40, fontWeight: '600', color: '#4C4C4C', maxWidth: 320 }}>{`Here's how you can become part of Kuky! `}
                             <Image source={images.suggestion_think} style={{ width: 25, height: 25, marginBottom: 5 }} contentFit='contain' />
                         </Text>
 
@@ -89,10 +89,10 @@ const RegisterSuggestionScreen = ({ navigation, route }) => {
                 <Image source={images.suggestion_cloud} contentFit='contain' style={{ width: 72, height: 72 }} />
             </View>
             <TouchableOpacity onPress={onContinue} style={{ width: Platform.isPad ? 600 : '100%', alignSelf: 'center', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333', }}>
-                <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>{'Let’s get started!'}</Text>
+                <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>{'Let’s Do This!'}</Text>
             </TouchableOpacity>
         </View>
     )
 }
 
-export default RegisterSuggestionScreen
+export default RegisterSuccessScreen

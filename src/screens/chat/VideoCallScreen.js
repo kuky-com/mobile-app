@@ -5,8 +5,11 @@ import DirectCallVideoContentView from "@/components/DirectCallVideoContentView"
 import { useDirectCall } from "@/hooks/useDirectCall";
 import AvatarImage from "@/components/AvatarImage";
 import { BlurView } from "expo-blur";
+import { useKeepAwake } from 'expo-keep-awake'
+
 export const VideoCallScreen = ({ route, navigation }) => {
   const { call, status, currentAudioDeviceIOS, callLog } = useDirectCall(route.params.callId);
+  useKeepAwake()
 
   useEffect(() => {
     if (status === "ended") {

@@ -74,6 +74,9 @@ const suggestion_register2 = require("../assets/images/suggestion_register2.png"
 const suggestion_register3 = require("../assets/images/suggestion_register3.png");
 const suggestion_cloud = require("../assets/images/suggestion_cloud.png");
 const suggestion_think = require("../assets/images/suggestion_think.png");
+const next_arrow = require("../assets/images/next_arrow.png");
+const back_button = require("../assets/images/back_button.png");
+const next_button = require("../assets/images/next_button.png");
 
 const missed_video_call = require("../assets/images/missed_video_call.png");
 const missed_voice_call = require("../assets/images/missed_voice_call.png");
@@ -183,5 +186,8 @@ export default {
   missed_video_call,
   missed_voice_call,
   out_video_call,
-  out_voice_call
+  out_voice_call,
+  next_arrow,
+  next_button,
+  back_button
 };

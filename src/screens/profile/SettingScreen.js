@@ -76,7 +76,7 @@ const SettingScreen = ({ navigation }) => {
         }
         setToken(null);
         setUser(null);
-        NavigationService.reset("GetStartScreen");
+        NavigationService.reset("LetDiscoverScreen");
         console.log({ res });
       })
       .catch(async (error) => {
@@ -90,7 +90,7 @@ const SettingScreen = ({ navigation }) => {
         }
         setToken(null);
         setUser(null);
-        NavigationService.reset("GetStartScreen");
+        NavigationService.reset("LetDiscoverScreen");
         console.log({ error });
       });
   };
@@ -141,7 +141,7 @@ const SettingScreen = ({ navigation }) => {
                         }
                         setToken(null);
                         setUser(null);
-                        NavigationService.reset("GetStartScreen");
+                        NavigationService.reset("LetDiscoverScreen");
                       } else {
                         Toast.show({
                           text1: res?.data?.message ?? "Block action failed!",
@@ -201,7 +201,7 @@ const SettingScreen = ({ navigation }) => {
                         }
                         setToken(null);
                         setUser(null);
-                        NavigationService.reset("GetStartScreen");
+                        NavigationService.reset("LetDiscoverScreen");
                       } else {
                         Toast.show({
                           text1: res?.data?.message ?? "Block action failed!",

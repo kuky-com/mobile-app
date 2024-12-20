@@ -11,6 +11,7 @@ import dayjs from 'dayjs'
 import LoadingView from '@/components/LoadingView'
 import { useAtomValue } from 'jotai'
 import { userAtom } from '@/actions/global'
+import colors from '../../utils/colors'
 
 const styles = StyleSheet.create({
     container: {
@@ -54,7 +55,7 @@ const OnboardingVideoTutorialScreen = ({ navigation, route }) => {
     }
 
     const openWalkThrought = () => {
-        NavigationService.push('OnboardingVideoWalkthroughtScreen', {page: 1})
+        NavigationService.push('OnboardingVideoWalkthroughtScreen', { page: 1 })
     }
 
     return (
@@ -76,24 +77,22 @@ const OnboardingVideoTutorialScreen = ({ navigation, route }) => {
                         <Text onPress={openWalkThrought} style={{ fontSize: 13, color: '#725ED4', textAlign: 'right', lineHeight: 18, fontWeight: '500' }}>Why We Ask for Your Video?</Text>
                     </View>
                 </View>
-                <ScrollView style={{ flex: 1, width: '100%' }} showsVerticalScrollIndicator={false}>
-                    <View style={{ flex: 1, gap: 32, width: '100%' }}>
-                        <Text style={{ fontSize: 32, fontWeight: '600', color: '#4C4C4C' }}>{`Now It’s time to record your video!`}</Text>
+                <View style={{ flex: 1, gap: 32, width: '100%' }}>
+                    <Text style={{ fontSize: 32, fontWeight: '600', color: '#4C4C4C' }}>{`Now It’s time to record your video!`}</Text>
 
-                        <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start', width: '100%' }}>
-                            <View style={{ marginTop: 4, width: 16, height: 16, borderRadius: 8, backgroundColor: '#A74FFF' }} />
-                            <Text style={{ flex: 1, lineHeight: 22, fontSize: 16, fontWeight: '500', color: 'black' }}>{`Remember to be yourself and have fun`}</Text>
-                        </View>
-                        <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start', width: '100%' }}>
-                            <View style={{ marginTop: 4, width: 16, height: 16, borderRadius: 8, backgroundColor: '#A74FFF' }} />
-                            <Text style={{ flex: 1, lineHeight: 22, fontSize: 16, fontWeight: '500', color: 'black' }}>{`Tell us your purpose & who you’d like to connect with`}</Text>
-                        </View>
-                        <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start', width: '100%' }}>
-                            <View style={{ marginTop: 4, width: 16, height: 16, borderRadius: 8, backgroundColor: '#A74FFF' }} />
-                            <Text style={{ flex: 1, lineHeight: 22, fontSize: 16, fontWeight: '500', color: 'black' }}>{`Our AI will take care of the matching for you`}</Text>
-                        </View>
+                    <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start', width: '100%' }}>
+                        <View style={{ marginTop: 4, width: 10, height: 10, borderRadius: 5, backgroundColor: colors.mainColor }} />
+                        <Text style={{ flex: 1, lineHeight: 22, fontSize: 16, fontWeight: '500', color: 'black' }}>{`Remember to be yourself and have fun!`}</Text>
                     </View>
-                </ScrollView>
+                    <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start', width: '100%' }}>
+                        <View style={{ marginTop: 4, width: 10, height: 10, borderRadius: 5, backgroundColor: colors.mainColor }} />
+                        <Text style={{ flex: 1, lineHeight: 22, fontSize: 16, fontWeight: '500', color: 'black' }}>{`Tell us your purpose & who you’d like to connect with`}</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start', width: '100%' }}>
+                        <View style={{ marginTop: 4, width: 10, height: 10, borderRadius: 5, backgroundColor: colors.mainColor }} />
+                        <Text style={{ flex: 1, lineHeight: 22, fontSize: 16, fontWeight: '500', color: 'black' }}>{`Our AI will take care of the rest`}</Text>
+                    </View>
+                </View>
             </View>
             <Text style={{ fontSize: 13, color: '#4C4C4C', width: '100%', textAlign: 'center' }}>We’ll guide you through the process</Text>
             <TouchableOpacity onPress={onContinue} style={{ width: Platform.isPad ? 600 : '100%', alignSelf: 'center', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333', }}>

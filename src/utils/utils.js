@@ -16,8 +16,9 @@ export const getAuthenScreen = (currentUser, skipVideo = false) => {
     if (!currentUser?.full_name) {
         return 'NameUpdateScreen'
     } else if (!currentUser?.video_intro && !skipVideo) {
+        return 'RegisterSuccessScreen'
         // return 'OnboardingVideoTutorialScreen'
-        return 'OnboardingSampleProfile'
+        // return 'OnboardingSampleProfileScreen'
     } else if (!currentUser?.purposes || currentUser?.purposes.length === 0 || !currentUser?.interests || currentUser?.interests.length === 0) {
         return 'OnboardingReviewProfileScreen'
     } else if (!currentUser?.profile_tag) {
@@ -90,3 +91,7 @@ export const formatCallSeconds = (milliseconds) => {
 
     return parts.join(', ');
 };
+
+export function isStringInteger(value) {
+    return (Number.isInteger(value) || (typeof value === 'string' && Number.isInteger(Number(value))));
+}
