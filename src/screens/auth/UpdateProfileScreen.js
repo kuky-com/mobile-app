@@ -8,7 +8,7 @@ import NavigationService from "@/utils/NavigationService";
 import { Image } from "expo-image";
 import { useAtom } from "jotai";
 import React, { useState } from "react";
-import { Keyboard, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Keyboard, Linking, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SheetManager } from "react-native-actions-sheet";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -27,6 +27,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 20,
     alignItems: "center",
+    width: '100%'
   },
 });
 
@@ -128,12 +129,12 @@ const UpdateProfileScreen = ({ navigation }) => {
           Account Information
         </Text>
       </View>
-      <View style={{ flex: 1, backgroundColor: "white", marginTop: -40, paddingTop: 40 }}>
+      <View style={{ flex: 1, width: '100%', backgroundColor: "white", marginTop: -40, paddingTop: 40 }}>
         <KeyboardAwareScrollView
-          style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 16, paddingTop: 24 }}
+          style={{ flex: 1, width: '100%', paddingHorizontal: 16, paddingVertical: 16, paddingTop: 24 }}
         >
-          <View style={{ flex: 1, gap: 16 }}>
-            <Text style={{ fontSize: 14, color: "#646464" }}>Edit your name</Text>
+          <View style={{ flex: 1, gap: 16, width: Platform.isPad ? 600 : '100%', alignSelf: 'center', alignItems: 'center' }}>
+            <Text style={{ fontSize: 14, color: "#646464", width: '100%' }}>Edit your name</Text>
             <View style={styles.inputContainer}>
               <TextInput
                 style={{

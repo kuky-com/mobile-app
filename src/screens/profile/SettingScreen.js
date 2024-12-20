@@ -17,6 +17,7 @@ import { getBuildNumber, getVersion } from "react-native-device-info";
 import Purchases from "react-native-purchases";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import { NODE_ENV } from "../../utils/apiClient";
 
 const styles = StyleSheet.create({
   container: {
@@ -34,6 +35,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 20,
     alignItems: "center",
+    width: Platform.isPad ? 600 : '100%'
   },
 });
 
@@ -75,7 +77,7 @@ const SettingScreen = ({ navigation }) => {
         }
         setToken(null);
         setUser(null);
-        NavigationService.reset("GetStartScreen");
+        NavigationService.reset("LetDiscoverScreen");
         console.log({ res });
       })
       .catch(async (error) => {
@@ -89,7 +91,7 @@ const SettingScreen = ({ navigation }) => {
         }
         setToken(null);
         setUser(null);
-        NavigationService.reset("GetStartScreen");
+        NavigationService.reset("LetDiscoverScreen");
         console.log({ error });
       });
   };
@@ -140,7 +142,7 @@ const SettingScreen = ({ navigation }) => {
                         }
                         setToken(null);
                         setUser(null);
-                        NavigationService.reset("GetStartScreen");
+                        NavigationService.reset("LetDiscoverScreen");
                       } else {
                         Toast.show({
                           text1: res?.data?.message ?? "Block action failed!",
@@ -200,7 +202,7 @@ const SettingScreen = ({ navigation }) => {
                         }
                         setToken(null);
                         setUser(null);
-                        NavigationService.reset("GetStartScreen");
+                        NavigationService.reset("LetDiscoverScreen");
                       } else {
                         Toast.show({
                           text1: res?.data?.message ?? "Block action failed!",
@@ -305,7 +307,7 @@ const SettingScreen = ({ navigation }) => {
           showsVerticalScrollIndicator={false}
           style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 16, paddingTop: 24 }}
         >
-          <View style={{ flex: 1, gap: 16, marginBottom: insets.bottom + 120 }}>
+          <View style={{ flex: 1, gap: 16, marginBottom: insets.bottom + 120, alignItems: 'center' }}>
             {/* <TouchableOpacity style={[styles.buttonContainer]}>
                             <Text style={{ color: '#333333', fontSize: 16, fontWeight: 'bold', flex: 1 }}>My Subscription</Text>
                             <Image source={images.next_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
@@ -394,7 +396,7 @@ const SettingScreen = ({ navigation }) => {
 
             <Text
               style={{
-                fontSize: 13,
+                fontSize: 11,
                 color: "#aaaaaa",
                 fontWeight: "bold",
                 width: "100%",
@@ -402,9 +404,9 @@ const SettingScreen = ({ navigation }) => {
                 lineHeight: 20,
               }}
             >
-              {`Version: ${getVersion()} (Build ${getBuildNumber()})\n`}
+              {`Version: ${getVersion()} (${NODE_ENV.toUpperCase()} Build ${getBuildNumber()})\n`}
               <Text
-                style={{ color: "#5E30C1", textDecorationLine: "underline" }}
+                style={{ fontSize: 13, color: "#5E30C1", textDecorationLine: "underline" }}
                 onPress={getVersionInfo}
               >{`What's new?`}</Text>
             </Text>

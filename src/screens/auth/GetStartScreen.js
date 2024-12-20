@@ -19,50 +19,22 @@ const styles = StyleSheet.create({
 
 const GetStartScreen = ({ navigation }) => {
 
-    const openSignIn = () => {
-        NavigationService.reset('SignInScreen')
-    }
-
-    const openSignUp = () => {
-        NavigationService.reset('SampleExploreScreen')
+    const getStart = () => {
+        NavigationService.reset('SignUpScreen')
     }
 
     return (
         <View style={styles.container}>
-            <View style={{flex: 1, alignItems: 'center', justifyContent: 'center', width: Platform.isPad ? 600 : '100%', alignSelf: 'center'}}>
-            <Image contentFit='contain' source={images.logo_text} style={{ height: 80, width: 150 }} />
-            {/* <Text style={{ fontSize: 24, fontWeight: '700' }}>Better Together</Text> */}
-            <View style={{ paddingVertical: 24, flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-                <Image contentFit='contain' source={images.get_start_bg} style={{ width: 300, height: 300, position: 'absolute' }} />
-                {
-                    Platform.OS === 'ios' &&
-                    <Text style={{ fontSize: 24, color: '#666666', fontWeight: 'bold', lineHeight: 50 }}>
-                        {`Connections through `}
-                        <View style={{ backgroundColor: '#CDB8E2', paddingHorizontal: 8, borderRadius: 25 }}>
-                            <Text style={{ fontSize: 24, color: 'black', fontWeight: 'bold', lineHeight: 50 }}>shared experiences!</Text>
-                        </View>
-                        {`\n\nOur AI agent will guide you through the process and help you `}
-                        <View style={{ backgroundColor: '#CDB8E2', paddingHorizontal: 8, borderRadius: 25 }}>
-                            <Text style={{ fontSize: 24, color: 'black', fontWeight: 'bold', lineHeight: 50 }}>save time.</Text>
-                        </View>
-                    </Text>
-                }
-                {
-                    Platform.OS !== 'ios' &&
-                    <Text style={{ fontSize: 24, color: '#666666', fontWeight: 'bold', lineHeight: 50 }}>
-                        {`Connections through `}
-                        <Text style={{ fontSize: 25, color: 'black', fontWeight: 'bold', lineHeight: 50 }}>shared experiences!</Text>
-                        {`\n\nOur AI agent will guide you through the process and help you `}
-                        <Text style={{ fontSize: 25, color: 'black', fontWeight: 'bold', lineHeight: 50 }}>save time.</Text>
-                    </Text>
-                }
-            </View>
-            <TouchableOpacity onPress={openSignUp} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333', }}>
-                <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Get started</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={openSignIn} style={{ padding: 8, marginTop: 20 }}>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#333333' }}>Sign in</Text>
-            </TouchableOpacity>
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', width: Platform.isPad ? 600 : '100%', alignSelf: 'center' }}>
+                <View style={{ paddingVertical: 24, flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+                    <Image contentFit='contain' source={images.get_start_bg} style={{ width: 300, height: 300, position: 'absolute' }} />
+                        <Text style={{ fontSize: 20, color: '#4C4C4C', fontWeight: 'bold', lineHeight: 30, textAlign: 'center'}}>
+                            {`Kuky \nis here to bring you together through support and shared journeys.`}
+                        </Text>
+                </View>
+                <TouchableOpacity onPress={getStart} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333', }}>
+                    <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Let’s Get Started!</Text>
+                </TouchableOpacity>
             </View>
         </View>
     )

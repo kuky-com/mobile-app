@@ -3,11 +3,23 @@ import { View, Text } from "react-native";
 import DirectCallControllerView from "@/components/DirectCallControllerView";
 import DirectCallVideoContentView from "@/components/DirectCallVideoContentView";
 import { useDirectCall } from "@/hooks/useDirectCall";
+import AvatarImage from "@/components/AvatarImage";
+import { BlurView } from "expo-blur";
+import { useKeepAwake } from 'expo-keep-awake'
+
 export const VideoCallScreen = ({ route, navigation }) => {
-  const { call, status, currentAudioDeviceIOS } = useDirectCall(route.params.callId);
+  const { call, status, currentAudioDeviceIOS, callLog } = useDirectCall(route.params.callId);
+  useKeepAwake()
 
   useEffect(() => {
     if (status === "ended") {
+      if(callLog && (callLog.endResult === 'DECLINED' || callLog.endResult === 'CANCELED') && route.params.onMiss) {
+        route.params.onMiss()
+      }
+      if(callLog && callLog.endResult === 'COMPLETED' && route.params.onFinish) {
+        route.params.onFinish(callLog.duration)
+      }
+
       setTimeout(() => {
         navigation.goBack();
       }, 1000);
@@ -19,14 +31,22 @@ export const VideoCallScreen = ({ route, navigation }) => {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#BDBDBD" }}>
-      {status !== "ended" && <DirectCallVideoContentView status={status} call={call} />}
-
-      <DirectCallControllerView
-        status={status}
-        call={call}
-        ios_audioDevice={currentAudioDeviceIOS}
+    <View style={{ flex: 1, backgroundColor: "#333333" }}>
+      <AvatarImage
+        full_name={call.remoteUser?.nickname ?? ""}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+        avatar={call?.remoteUser?.profileUrl}
       />
+
+      <BlurView intensity={100} style={{ flex: 1 }}>
+        {status === "connected" && <DirectCallVideoContentView status={status} call={call} />}
+
+        <DirectCallControllerView
+          status={status}
+          call={call}
+          ios_audioDevice={currentAudioDeviceIOS}
+        />
+      </BlurView>
     </View>
   );
 };

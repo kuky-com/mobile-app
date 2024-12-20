@@ -10,6 +10,7 @@ import {
   DeviceEventEmitter,
   Dimensions,
   FlatList,
+  Platform,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -189,15 +190,17 @@ const MatchesScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Header showLogo />
+      <View style={{ paddingHorizontal: 16, flex: 1, alignItems: 'center' }}>
       <FlatList
         data={matches}
         renderItem={renderItem}
-        style={{ paddingHorizontal: 16, flex: 1 }}
+        style={{ width: Platform.isPad ? 600 : '100%', flex: 1 }}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={renderEmpty}
         onRefresh={onRefresh}
         refreshing={isFetching}
       />
+      </View>
     </View>
   );
 };

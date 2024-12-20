@@ -15,7 +15,7 @@ import Text from './Text';
 export const Header = ({ leftIcon, rightText, leftAction, rightIcon, rightAction, rightIconColor, leftIconColor, rightCounter = 0, showLogo = true }) => {
   const insets = useSafeAreaInsets()
 
-  const buttonWidth = Math.max((rightText ?? '').length * 5, 40)
+  const buttonWidth = Math.max((rightText ?? '').length * 5, 70)
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
@@ -42,7 +42,7 @@ export const Header = ({ leftIcon, rightText, leftAction, rightIcon, rightAction
         }
         {rightText &&
           <TouchableOpacity style={[styles.rightButton, { width: buttonWidth }]} onPress={() => rightAction && rightAction()}>
-            <Text style={[styles.rightText, { color: rightIconColor ? rightIconColor : '#333333' }]}>{rightText}</Text>
+            <Text style={[styles.rightText, { color: rightIconColor ? rightIconColor : 'black' }]}>{rightText}</Text>
           </TouchableOpacity>
         }
       </View>
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   leftButton: {
     position: 'absolute',
     left: 0,
-    width: 40,
+    width: 70,
     height: 40,
     alignItems: 'center', justifyContent: 'center',
     zIndex: 5
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   rightButton: {
     position: 'absolute',
     right: 0,
-    width: 40,
+    width: 70,
     height: 40,
     alignItems: 'center', justifyContent: 'center',
     zIndex: 5
@@ -92,6 +92,6 @@ const styles = StyleSheet.create({
   rightText: {
     fontSize: 14,
     fontWeight: 'bold',
-    lineHeight: 16, textAlign: 'right'
+    lineHeight: 16, textAlign: 'right', color: 'black'
   }
 });

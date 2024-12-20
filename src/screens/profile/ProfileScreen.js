@@ -19,6 +19,8 @@ import Toast from 'react-native-toast-message'
 import Share from 'react-native-share'
 import { ResizeMode, Video } from 'expo-av'
 import CustomVideo from '@/components/CustomVideo'
+import { FontAwesome6 } from '@expo/vector-icons'
+import ShareModal from '../../components/ShareModal'
 
 const styles = StyleSheet.create({
     container: {
@@ -51,7 +53,7 @@ const ProfileScreen = ({ navigation }) => {
     const [purposes, setPurposes] = useState([])
 
     const [currentUser, setCurrentUser] = useAtom(userAtom)
-    const [expiredDate, setExpiredDate] = useState(null)
+    const [showShare, setShowShare] = useState(null);
 
     const [playing, setPlaying] = useState(false)
     const videoRef = useRef(null)
@@ -163,7 +165,7 @@ const ProfileScreen = ({ navigation }) => {
 
     const openEditVideo = async () => {
         const options = [
-            { text: 'Record new video' },
+            { text: 'Update profile Video' },
             { text: 'Remove profile video', color: '#FF8B8B' }
         ]
 
@@ -205,6 +207,19 @@ const ProfileScreen = ({ navigation }) => {
             })
     }
 
+    const onShareProfile = () => {
+        apiClient
+            .get(`users/${currentUser.id}/share-link`)
+            .then((res) => {
+                console.log({ res: res.data.data });
+
+                setShowShare(res.data.data);
+            })
+            .catch((error) => {
+                console.log({ error });
+            });
+    }
+
     return (
         <View style={styles.container}>
             <StatusBar translucent style='dark' />
@@ -215,14 +230,9 @@ const ProfileScreen = ({ navigation }) => {
                     </TouchableOpacity>
                 </View> */}
                 <View style={{ gap: 8, paddingTop: 16, paddingBottom: 8, width: '100%', alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
-
-                    <View style={{ width: 40, height: 40 }}></View>
-                    {/* <View style={{alignItems: 'center', gap: 8}}>
-                        <Text style={{ fontSize: 16, color: expiredDate ? '#FFAB48' : 'white', fontWeight: 'bold' }}>{expiredDate ? `Membership` : 'Free user'}</Text>
-                        <TouchableOpacity onPress={openSubscription} style={[styles.subscriptionButton, { paddingHorizontal: 16, height: 24, borderRadius: 12, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' }]}>
-                            <Text style={{ fontSize: 12, color: 'black', fontWeight: 'bold' }}>{expiredDate ? `Subscription end at: ${expiredDate}` : 'Upgrade now'}</Text>
-                        </TouchableOpacity>
-                    </View> */}
+                    <TouchableOpacity onPress={onShareProfile} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
+                        <FontAwesome6 name='share-from-square' color='white' size={22} />
+                    </TouchableOpacity>
                     <Text style={{ flex: 1, textAlign: 'center', fontSize: 18, color: 'white', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text>
                     <TouchableOpacity onPress={openSetting} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
                         <Image source={images.setting_icon} style={{ width: 22, height: 22 }} contentFit='contain' />
@@ -592,6 +602,13 @@ const ProfileScreen = ({ navigation }) => {
                     </ScrollView>
                 </View>
             }
+
+            <ShareModal
+                visible={showShare !== null}
+                onClose={() => setShowShare(null)}
+                full_name={currentUser?.full_name}
+                shareLink={showShare ?? ""}
+            />
         </View>
     )
 }

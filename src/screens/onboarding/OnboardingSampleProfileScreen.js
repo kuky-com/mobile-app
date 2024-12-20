@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     },
 });
 
-const OnboardingSampleProfile = ({ navigation }) => {
+const OnboardingSampleProfileScreen = ({ navigation }) => {
     const insets = useSafeAreaInsets();
     const [loading, setLoading] = useState(false);
     const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
@@ -113,71 +113,73 @@ const OnboardingSampleProfile = ({ navigation }) => {
 
     const likeAction = () => {
         handleNextProfile()
-        try {
-            setLoading(true);
-            Toast.show({
-                type: "sent",
-                position: "top",
-                text1: "Connection Sent!",
-                text2: `Your invitation to connect has been sent to ${currentProfile?.full_name}.`,
-                visibilityTime: 2000,
-                autoHide: true,
-                topOffset: 0
-            });
-            apiClient
-                .post("matches/accept", { friend_id: currentProfile?.id })
-                .then((res) => {
-                    console.log({ res });
-                    setLoading(false);
-                })
-                .catch((error) => {
-                    console.log({ error });
-                    setLoading(false);
-                });
-        } catch (error) {
-            setLoading(false);
-        }
+        // try {
+        //     setLoading(true);
+        //     Toast.show({
+        //         type: "sent",
+        //         position: "top",
+        //         text1: "Connection Sent!",
+        //         text2: `Your invitation to connect has been sent to ${currentProfile?.full_name}.`,
+        //         visibilityTime: 2000,
+        //         autoHide: true,
+        //         topOffset: 0
+        //     });
+        //     apiClient
+        //         .post("matches/accept", { friend_id: currentProfile?.id })
+        //         .then((res) => {
+        //             console.log({ res });
+        //             setLoading(false);
+        //         })
+        //         .catch((error) => {
+        //             console.log({ error });
+        //             setLoading(false);
+        //         });
+        // } catch (error) {
+        //     setLoading(false);
+        // }
     };
 
     const rejectAction = () => {
-        handleNextProfile()
-        try {
-            setLoading(true);
-            Toast.show({
-                type: "deny",
-                position: "top",
-                visibilityTime: 2000,
-                autoHide: true,
-                topOffset: 0
-            });
-            apiClient
-                .post("matches/reject", { friend_id: currentProfile?.id })
-                .then((res) => {
-                    console.log({ res });
-                    setLoading(false);
-                })
-                .catch((error) => {
-                    console.log({ error });
-                    setLoading(false);
-                });
+        handlePreviousProfile()
+        // try {
+        //     setLoading(true);
+        //     Toast.show({
+        //         type: "deny",
+        //         position: "top",
+        //         visibilityTime: 2000,
+        //         autoHide: true,
+        //         topOffset: 0
+        //     });
+        //     apiClient
+        //         .post("matches/reject", { friend_id: currentProfile?.id })
+        //         .then((res) => {
+        //             console.log({ res });
+        //             setLoading(false);
+        //         })
+        //         .catch((error) => {
+        //             console.log({ error });
+        //             setLoading(false);
+        //         });
 
-        } catch (error) {
-            setLoading(false);
-        }
+        // } catch (error) {
+        //     setLoading(false);
+        // }
     };
 
     const handleNextProfile = () => {
         pauseVideo()
 
         if (sampleProfiles.length > 0 && currentProfileIndex === (sampleProfiles.length - 1)) {
-            setTimeout(() => {
-                NavigationService.reset('OnboardingVideoTutorialScreen')
-            }, 1000);
+            NavigationService.reset('GetStartScreen')
         } else {
-            setTimeout(() => {
-                setCurrentProfileIndex(old => (old + 1))
-            }, 500);
+            setCurrentProfileIndex(old => (old + 1))
         }
+    }
+
+    const handlePreviousProfile = () => {
+        pauseVideo()
+
+        setCurrentProfileIndex(old => (old - 1))
     }
 
     let userDislikes = [];
@@ -216,8 +218,7 @@ const OnboardingSampleProfile = ({ navigation }) => {
     };
 
     const onSkip = () => {
-        NavigationService.reset('OnboardingVideoTutorialScreen')
-        // NavigationService.reset(getAuthenScreen(currentUser, true))
+        NavigationService.reset('GetStartScreen')
     }
 
     const onChangeMuteOption = () => {
@@ -228,7 +229,7 @@ const OnboardingSampleProfile = ({ navigation }) => {
         <View style={[styles.container]}>
             <Header
                 showLogo
-                rightText='Skip to Proceed'
+                rightText='Skip Tour'
                 rightAction={onSkip}
             />
             <ScrollView
@@ -251,8 +252,7 @@ const OnboardingSampleProfile = ({ navigation }) => {
                             width: "100%",
                             height: Math.min(
                                 700,
-                                Dimensions.get("screen").height - insets.top - insets.bottom - 220,
-                                (Dimensions.get("screen").width - 32) * 1.4,
+                                Dimensions.get("screen").height - insets.top - insets.bottom - 80,
                             ),
                             borderWidth: 8,
                             borderColor: "white",
@@ -315,14 +315,16 @@ const OnboardingSampleProfile = ({ navigation }) => {
                             }}
                         >
 
-                            <View style={{ width: "100%", alignItems: "space-between", padding: 16 }}>
-                                {
-                                    (playing || pendingVideo) &&
-                                    <TouchableOpacity onPress={onChangeMuteOption} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.mainColor }}>
-                                        <FontAwesome6 name={isMute ? 'volume-xmark' : 'volume-high'} size={20} color='white' />
-                                    </TouchableOpacity>
-                                }
-                                {!playing && <View style={styles.tagContainer}>
+                            <View style={{ width: "100%", flexDirection: 'row', alignItems: 'center', justifyContent: "space-between", padding: 16 }}>
+                                <View>
+                                    {
+                                        (playing || pendingVideo) &&
+                                        <TouchableOpacity onPress={onChangeMuteOption} style={{ width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.mainColor, borderWidth: 1, borderColor: "black" }}>
+                                            <FontAwesome6 name={isMute ? 'volume-xmark' : 'volume-high'} size={15} color='white' />
+                                        </TouchableOpacity>
+                                    }
+                                </View>
+                                <View style={styles.tagContainer}>
                                     <Text
                                         style={[
                                             styles.tagText,
@@ -334,7 +336,6 @@ const OnboardingSampleProfile = ({ navigation }) => {
                                         {currentProfile?.tag?.name}
                                     </Text>
                                 </View>
-                                }
                             </View>
 
                             <View
@@ -344,7 +345,7 @@ const OnboardingSampleProfile = ({ navigation }) => {
                                     justifyContent: "flex-end",
                                     paddingBottom: 25,
                                     paddingHorizontal: 16,
-                                    gap: 16,
+                                    gap: 8,
                                 }}
                             >
                                 {
@@ -366,42 +367,42 @@ const OnboardingSampleProfile = ({ navigation }) => {
                                 >
                                     {
                                         currentProfile &&
-                                        <View style={{ alignItems: "center", gap: 13 }}>
-                                            <TouchableOpacity
-                                                disabled={loading}
-                                                onPress={rejectAction}
-                                                style={{
-                                                    width: 60,
-                                                    height: 60,
-                                                    borderRadius: 30,
-                                                    backgroundColor: "#6C6C6C",
-                                                    alignItems: "center",
-                                                    justifyContent: "center",
-                                                }}
-                                            >
-                                                <Image
-                                                    source={images.close_icon}
+                                        <View style={{ alignItems: "center", gap: 15, width: 45 }}>
+                                            {
+                                                currentProfileIndex > 0 &&
+                                                <TouchableOpacity
+                                                    disabled={loading}
+                                                    onPress={rejectAction}
                                                     style={{
-                                                        width: 26,
-                                                        height: 26,
-                                                        tintColor: "#E8FF58",
+                                                        alignItems: "center",
+                                                        justifyContent: "center",
                                                     }}
-                                                    contentFit="contain"
-                                                />
-                                            </TouchableOpacity>
-                                            <Text
-                                                style={{
-                                                    color: "#949494",
-                                                    fontSize: 10,
-                                                    fontWeight: "bold",
-                                                }}
-                                            >
-                                                Pass
-                                            </Text>
+                                                >
+                                                    <Image
+                                                        source={images.back_button}
+                                                        style={{
+                                                            width: 45,
+                                                            height: 45,
+                                                        }}
+                                                        contentFit="contain"
+                                                    />
+                                                </TouchableOpacity>
+                                            }
+                                            {
+                                                currentProfileIndex > 0 && <Text
+                                                    style={{
+                                                        color: "#949494",
+                                                        fontSize: 12,
+                                                        fontWeight: "bold",
+                                                    }}
+                                                >
+                                                    Back
+                                                </Text>
+                                            }
                                         </View>
                                     }
                                     {currentProfile?.video_intro && (
-                                        <View style={{ alignItems: "center", gap: 13 }}>
+                                        <View style={{ alignItems: "center", gap: 10 }}>
                                             {!playing && !pendingVideo && (
                                                 <TouchableOpacity
                                                     onPress={playVideo}
@@ -442,7 +443,7 @@ const OnboardingSampleProfile = ({ navigation }) => {
                                             <Text
                                                 style={{
                                                     color: "#949494",
-                                                    fontSize: 10,
+                                                    fontSize: 12,
                                                     fontWeight: "bold",
                                                 }}
                                             >
@@ -452,25 +453,20 @@ const OnboardingSampleProfile = ({ navigation }) => {
                                     )}
                                     {
                                         currentProfile &&
-                                        <View style={{ alignItems: "center", gap: 13 }}>
+                                        <View style={{ alignItems: "center", gap: 15 }}>
                                             <TouchableOpacity
                                                 disabled={loading}
                                                 onPress={likeAction}
                                                 style={{
-                                                    width: 60,
-                                                    height: 60,
-                                                    borderRadius: 30,
-                                                    backgroundColor: "#6C6C6C",
                                                     alignItems: "center",
                                                     justifyContent: "center",
                                                 }}
                                             >
                                                 <Image
-                                                    source={images.like_icon}
+                                                    source={images.next_button}
                                                     style={{
-                                                        width: 26,
-                                                        height: 26,
-                                                        tintColor: "#E8FF58",
+                                                        width: 45,
+                                                        height: 45,
                                                     }}
                                                     contentFit="contain"
                                                 />
@@ -478,11 +474,11 @@ const OnboardingSampleProfile = ({ navigation }) => {
                                             <Text
                                                 style={{
                                                     color: "#949494",
-                                                    fontSize: 10,
+                                                    fontSize: 12,
                                                     fontWeight: "bold",
                                                 }}
                                             >
-                                                Connect
+                                                Next
                                             </Text>
                                         </View>
                                     }
@@ -497,6 +493,7 @@ const OnboardingSampleProfile = ({ navigation }) => {
                             alignItems: "center",
                             width: "100%",
                             paddingHorizontal: 8,
+                            marginTop: 16
                         }}
                     >
                         <View
@@ -795,4 +792,4 @@ const OnboardingSampleProfile = ({ navigation }) => {
     );
 };
 
-export default OnboardingSampleProfile;
+export default OnboardingSampleProfileScreen;

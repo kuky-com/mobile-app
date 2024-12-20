@@ -30,6 +30,7 @@ import OnboardingCompleteScreen from "./onboarding/OnboardingCompleteScreen";
 import ProfileTagScreen from "./onboarding/ProfileTagScreen";
 import PronounsUpdateScreen from "./onboarding/PronounsUpdateScreen";
 import OnboardingReviewProfileScreen from "./onboarding/OnboardingReviewProfileScreen";
+import RegisterSuccessScreen from "./onboarding/RegisterSuccessScreen";
 import SettingScreen from "./profile/SettingScreen";
 import { deviceIdAtom, pushTokenAtom, userAtom } from "@/actions/global";
 import DeviceInfo from "react-native-device-info";
@@ -78,7 +79,7 @@ import { VoiceCallScreen } from "./chat/VoiceCallScreen";
 import { VideoCallScreen } from "./chat/VideoCallScreen";
 import { CALL_PERMISSIONS, usePermissions } from "@/hooks/usePermissions";
 import DisclaimeScreen from "./onboarding/DisclaimeScreen";
-import OnboardingSampleProfile from "./onboarding/OnboardingSampleProfile";
+import OnboardingSampleProfileScreen from "./onboarding/OnboardingSampleProfileScreen";
 import ProfileVideoProcessingScreen from "./profile/ProfileVideoProcessingScreen";
 import ProfileVideoReviewScreen from "./profile/ProfileVideoReviewScreen";
 import RNVoipPushNotification from "react-native-voip-push-notification";
@@ -90,6 +91,7 @@ import OnboardingVideoWalkthroughtScreen from "./onboarding/OnboardingVideoWalkt
 import { LogLevel, OneSignal } from "react-native-onesignal";
 
 const ONESIGNAL_APP_ID = "c3fb597e-e318-4eab-9d90-cd43b9491bc1";
+import LetDiscoverScreen from "./auth/LetDiscoverScreen";
 
 SendbirdCalls.setListener({
   onRinging: async (callProps) => {
@@ -106,8 +108,8 @@ SendbirdCalls.setListener({
 
     const unsubscribe = directCall.addListener({
       onEnded() {
-        RNCallKeep.removeEventListener("answerCall");
-        RNCallKeep.removeEventListener("endCall");
+        RNCallKeep.removeEventListener('answerCall');
+        RNCallKeep.removeEventListener('endCall');
         RNCallKeep.endAllCalls();
         unsubscribe();
       },
@@ -138,9 +140,8 @@ SendbirdCalls.setListener({
   },
 });
 
-if (Platform.OS === "android") {
-  SendbirdCalls.addDirectCallSound(SoundType.RINGING, "ringing.mp3");
-}
+SendbirdCalls.setDirectCallDialingSoundOnWhenSilentOrVibrateMode(true)
+SendbirdCalls.addDirectCallSound(SoundType.RINGING, "ringing.mp3");
 SendbirdCalls.addDirectCallSound(SoundType.DIALING, "dialing.mp3");
 SendbirdCalls.addDirectCallSound(SoundType.RECONNECTED, "reconnected.mp3");
 SendbirdCalls.addDirectCallSound(SoundType.RECONNECTING, "reconnecting.mp3");
@@ -511,6 +512,7 @@ const AppStack = ({ navgation }) => {
     <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="SplashScreen">
       <Stack.Screen name="SplashScreen" component={SplashScreen} />
       <Stack.Screen name="GetStartScreen" component={GetStartScreen} />
+      <Stack.Screen name="LetDiscoverScreen" component={LetDiscoverScreen} />
       <Stack.Screen name="SignUpEmailScreen" component={SignUpEmailScreen} />
       <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
       <Stack.Screen name="SignInScreen" component={SignInScreen} />
@@ -569,16 +571,14 @@ const AppStack = ({ navgation }) => {
       />
       <Stack.Screen name="ProfileVideoUpdateScreen" component={ProfileVideoUpdateScreen} />
       <Stack.Screen name="DisclaimeScreen" component={DisclaimeScreen} />
-      <Stack.Screen name="OnboardingSampleProfile" component={OnboardingSampleProfile} />
+      <Stack.Screen name="OnboardingSampleProfileScreen" component={OnboardingSampleProfileScreen} />
       <Stack.Screen name="ProfileVideoProcessingScreen" component={ProfileVideoProcessingScreen} />
       <Stack.Screen name="ProfileVideoReviewScreen" component={ProfileVideoReviewScreen} />
       <Stack.Screen name="ConnectUsScreen" component={ConnectUsScreen} />
       <Stack.Screen name="SampleExploreScreen" component={SampleExploreScreen} />
       <Stack.Screen name="SampleProfileScreen" component={SampleProfileScreen} />
-      <Stack.Screen
-        name="OnboardingVideoWalkthroughtScreen"
-        component={OnboardingVideoWalkthroughtScreen}
-      />
+      <Stack.Screen name="OnboardingVideoWalkthroughtScreen" component={OnboardingVideoWalkthroughtScreen} />
+      <Stack.Screen name="RegisterSuccessScreen" component={RegisterSuccessScreen} />
     </Stack.Navigator>
   );
 };

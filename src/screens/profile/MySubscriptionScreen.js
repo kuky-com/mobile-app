@@ -13,6 +13,7 @@ import {
   DeviceEventEmitter,
   Keyboard,
   Linking,
+  Platform,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -40,6 +41,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingHorizontal: 16,
     height: 50,
+    width: Platform.isPad ? 600 : '100%'
   },
 });
 
@@ -180,9 +182,9 @@ const MySubscriptionScreen = ({ navigation }) => {
           style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}
         ></View>
       </View>
-      <View style={{ flex: 1, backgroundColor: "white", marginTop: -40, paddingTop: 40 }}>
+      <View style={{ flex: 1, width: '100%', backgroundColor: "white", marginTop: -40, paddingTop: 40,  }}>
         <View
-          style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 16, paddingTop: 24, gap: 32 }}
+          style={{ flex: 1, width: '100%', paddingHorizontal: 16, paddingVertical: 16, paddingTop: 24, gap: 32, alignItems: 'center' }}
         >
           <View style={{ gap: 8 }}>
             <Text style={{ fontSize: 14, color: "#646464" }}>My Plan</Text>

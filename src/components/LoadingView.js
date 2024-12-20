@@ -8,7 +8,7 @@ import {
 const LoadingView = () => {
     return(
         <View style={styles.container}>
-            <ActivityIndicator size='large' />
+            <ActivityIndicator size='large' color='white' />
         </View>
     )
 }

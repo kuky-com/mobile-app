@@ -7,6 +7,7 @@ node_modules/
 .expo/
 dist/
 web-build/
+expo-env.d.ts
 
 # Native
 *.orig.*
@@ -55,3 +56,4 @@ amplifytools.xcconfig
 .secret-*
 **.sample
 #amplify-do-not-edit-end
+nativewind-env.d.ts

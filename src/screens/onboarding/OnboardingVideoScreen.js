@@ -14,7 +14,6 @@ import {
 } from "react-native";
 import { SheetManager } from "react-native-actions-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import ImagePicker from "react-native-image-crop-picker";
 import { StatusBar } from "expo-status-bar";
 import dayjs from "dayjs";
 import Toast from "react-native-toast-message";
@@ -28,6 +27,8 @@ import ButtonWithLoading from "@/components/ButtonWithLoading";
 import Slider from "@react-native-community/slider";
 import CustomVideo from "@/components/CustomVideo";
 import { useAlertWithIcon } from "../../components/AlertIconProvider";
+import * as ImagePicker from 'expo-image-picker'
+import { useAlert } from "../../components/AlertProvider";
 
 const styles = StyleSheet.create({
   container: {
@@ -79,6 +80,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
   const [playing, setPlaying] = useState(false);
 
   const showAlert = useAlertWithIcon()
+  const showNormalAlert = useAlert()
 
   const [timer, setTimer] = useState(0);
 
@@ -109,6 +111,26 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
     }
   };
 
+  const selectFromLibrary = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['videos'],
+          allowsEditing: true,
+          quality: 1,
+          duration: 60000
+        })
+    
+        console.log(result);
+    
+        if (!result.canceled) {
+          if(result.assets[0].width > result.assets[0].height) {
+            showNormalAlert('Error', 'Oops! Please upload a portrait video for the best experience.')
+            
+            return
+          }
+          setVideoUrl(result.assets[0])
+        }
+      }
+
   useEffect(() => {
     const updateTimer = async () => {
       if (timer + 1 > MAX_DURATION) {
@@ -131,7 +153,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
         await cameraRef.current.stopRecording();
         setRecording(false);
       }
-    } catch (error) {}
+    } catch (error) { }
   };
 
   const onPlay = () => {
@@ -139,7 +161,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
       if (videoRef && videoRef.current) {
         videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: startPosition * 1000 });
       }
-    } catch (error) {}
+    } catch (error) { }
   };
 
   const onPause = () => {
@@ -147,7 +169,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
       if (videoRef && videoRef.current) {
         videoRef.current.setStatusAsync({ shouldPlay: false });
       }
-    } catch (error) {}
+    } catch (error) { }
   };
 
   const onConfirm = () => {
@@ -170,9 +192,15 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
   };
 
   const handleTrim = async () => {
-    if((endPosition - startPosition) < 10) {
+    if ((endPosition - startPosition) < 10) {
       showAlert(images.video_error, 'Too Short', 'Your video duration is too short.', 'Please record video at least 10 seconds', [
-        {text: "Record again", onPress: () => clearVideo()}
+        { text: "Record again", onPress: () => clearVideo() }
+      ])
+      return
+    }
+    if ((endPosition - startPosition) > 60) {
+      showAlert(images.video_error, 'Too Long', 'Your video duration is too long.', 'Please record video with maximum 60 seconds', [
+        { text: "Record again", onPress: () => clearVideo() }
       ])
       return
     }
@@ -224,7 +252,6 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
 
   return (
     <View style={{ flex: 1, width: "100%" }}>
-      <StatusBar translucent style="dark" />
       {!videoUrl &&
         permission &&
         permission.granted &&
@@ -249,13 +276,13 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
             width: "100%",
             backgroundColor: "#e5e5e5",
             paddingTop: insets.top + 8,
-            paddingBottom: 16,
+            paddingBottom: 8,
           }}
         >
           <View style={{ width: "100%", alignItems: "flex-end" }}>
             <Image
               source={images.logo_with_text}
-              style={{ width: 120, height: 40, marginBottom: 32 }}
+              style={{ width: 120, height: 40, marginBottom: 2 }}
               contentFit="contain"
             />
           </View>
@@ -270,7 +297,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
         <View
           style={{
             width: "100%",
-            height: Dimensions.get("screen").height - 450,
+            height: Dimensions.get("screen").height - 470,
             alignItems: "center",
             justifyContent: "center",
             flexDirection: "row",
@@ -280,7 +307,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
           <View
             style={{
               width: Dimensions.get("screen").width - 64,
-              height: Dimensions.get("screen").height - 450,
+              height: Dimensions.get("screen").height - 470,
             }}
           >
             <View
@@ -528,7 +555,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
           }}
         >
           <Text style={{ fontSize: 14, fontWeight: "500", color: "black", lineHeight: 18, textAlign: 'center' }}>
-          Share your purpose, likes, and dislikes with us - it only takes a moment and will help us connect you with the right people.
+            Share your purpose, likes, and dislikes with us - it only takes a moment and will help us connect you with the right people.
           </Text>
           {!recording && !loading && !videoUrl && (
             <TouchableOpacity
@@ -545,6 +572,23 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
             >
               <Text style={{ fontSize: 18, fontWeight: "700", color: "white" }}>
                 {"Start recording"}
+              </Text>
+            </TouchableOpacity>
+          )}
+          {!recording && !loading && !videoUrl && (
+            <TouchableOpacity
+              onPress={selectFromLibrary}
+              style={{
+                paddingHorizontal: 16,
+                alignSelf: "center",
+                height: 30,
+                borderRadius: 30,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={{ fontSize: 16, fontWeight: "700", color: "#333333" }}>
+                {"Upload your video"}
               </Text>
             </TouchableOpacity>
           )}

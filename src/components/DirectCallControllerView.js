@@ -10,6 +10,7 @@ import AudioDeviceButton from "./AudioDeviceButton";
 import Text from "@/components/Text";
 import CallIcon from "./CallIcon";
 import { CALL_PERMISSIONS, usePermissions } from "@/hooks/usePermissions";
+import { BlurView } from 'expo-blur'
 
 // type ControllerViewProps = {
 //   status: DirectCallStatus;
@@ -39,40 +40,40 @@ const DirectCallControllerView = ({ status, call, ios_audioDevice }) => {
   return (
     <View style={[StyleSheet.absoluteFill, { padding: 16 }]}>
       <View style={styles.topController}>
-        <View style={{ alignItems: "flex-end", paddingTop: top }}>
-          {isVideoCall && statusInProgress && (
-            <Pressable onPress={() => call.switchCamera()}>
-              <CallIcon icon={"btnCameraFlipIos"} size={48} />
-            </Pressable>
-          )}
+        <View style={{ alignItems: "flex-end", justifyContent: 'center', paddingTop: top }}>
+          <View style={{ gap: 16, alignItems: 'center' }}>
+            {isVideoCall && statusInProgress && (
+              <Pressable onPress={() => call.switchCamera()}>
+                <CallIcon icon={"btnCameraFlipIos"} size={48} />
+              </Pressable>
+            )}
+            {statusInProgress && !call.isRemoteAudioEnabled &&
+              <CallIcon
+                icon={"AudioOff"}
+                size={28}
+                color={"white"}
+              />
+            }
+          </View>
         </View>
         <View style={styles.information}>
-          {statusStandby && (
+          {((isVoiceCall && statusInProgress) || statusEnded || statusStandby) && (
             <Fragment>
-              <Text className="text-lg2 text-color-red" style={styles.nickname}>
-                {remoteUserNickname}
-              </Text>
-              <Text className="text-md text-color-red">
-                {call.myRole === DirectCallUserRole.CALLER
-                  ? "calling..."
-                  : `Incoming ${call.isVideoCall ? "video" : "voice"} call...`}
-              </Text>
-            </Fragment>
-          )}
-          {((isVoiceCall && statusInProgress) || statusEnded) && (
-            <Fragment>
+
+              <StatusView isVideoCall={call.isVideoCall} myRole={call.myRole} statusStandby={statusStandby} statusInProgress={statusInProgress} call={call} />
+
               <AvatarImage
                 full_name={call.remoteUser?.nickname ?? ""}
-                style={{ width: 120, height: 120, borderRadius: 60 }}
+                style={[{ width: 120, height: 120, borderRadius: 60 }, styles.shadow]}
                 avatar={call?.remoteUser?.profileUrl}
               />
               <Text className="text-md text-red" style={styles.nickname}>
                 {remoteUserNickname}
               </Text>
-              <StatusView statusInProgress={statusInProgress} call={call} />
+
             </Fragment>
           )}
-          <View style={styles.remoteMuteStatus}>
+          {/* <View style={styles.remoteMuteStatus}>
             {statusInProgress && !call.isRemoteAudioEnabled && (
               <Fragment>
                 <CallIcon
@@ -84,14 +85,38 @@ const DirectCallControllerView = ({ status, call, ios_audioDevice }) => {
                 <Text className="text-color-red">{`${remoteUserNickname} is muted`}</Text>
               </Fragment>
             )}
-          </View>
+          </View> */}
         </View>
       </View>
 
       <View style={styles.bottomController}>
         {(statusStandby || statusInProgress) && (
           <>
-            <View style={[styles.bottomButtonGroup, { marginBottom: 24 }]}>
+            <View style={[styles.bottomButtonGroup, { marginBottom: 24, zIndex: 20 }]}>
+              <AudioDeviceButton
+                currentAudioDeviceIOS={ios_audioDevice}
+                availableAudioDevicesAndroid={call.android_availableAudioDevices}
+                currentAudioDeviceAndroid={call.android_currentAudioDevice}
+                onSelectAudioDeviceAndroid={call.android_selectAudioDevice}
+              />
+
+              {isVideoCall && (
+                <Pressable
+                  style={styles.bottomButton}
+                  onPress={() => {
+                    if (call.isLocalVideoEnabled) {
+                      call.stopVideo();
+                    } else {
+                      call.startVideo();
+                    }
+                  }}
+                >
+                  <CallIcon
+                    icon={call.isLocalVideoEnabled ? "btnVideoOff" : "btnVideoOffSelected"}
+                    size={64}
+                  />
+                </Pressable>
+              )}
               <Pressable
                 style={[
                   styles.bottomButton,
@@ -110,45 +135,35 @@ const DirectCallControllerView = ({ status, call, ios_audioDevice }) => {
                   size={64}
                 />
               </Pressable>
-              {isVideoCall && (
-                <Pressable
-                  style={styles.bottomButton}
-                  onPress={() => {
-                    if (call.isLocalVideoEnabled) {
-                      call.stopVideo();
-                    } else {
-                      call.startVideo();
-                    }
-                  }}
-                >
-                  <CallIcon
-                    icon={call.isLocalVideoEnabled ? "btnVideoOff" : "btnVideoOffSelected"}
-                    size={64}
-                  />
-                </Pressable>
-              )}
-              <AudioDeviceButton
-                currentAudioDeviceIOS={ios_audioDevice}
-                availableAudioDevicesAndroid={call.android_availableAudioDevices}
-                currentAudioDeviceAndroid={call.android_currentAudioDevice}
-                onSelectAudioDeviceAndroid={call.android_selectAudioDevice}
-              />
+
+              <Pressable onPress={() => {
+                console.log('end call')
+                call.end()
+              }}>
+                <CallIcon icon={"btnCallEnd"} size={64} />
+              </Pressable>
             </View>
 
-            <View style={styles.bottomButtonGroup}>
-              {statusStandby && call.myRole === DirectCallUserRole.CALLEE && (
+            {statusStandby && call.myRole === DirectCallUserRole.CALLEE && (
+              <View style={[styles.bottomButtonGroup, { justifyContent: 'space-between', paddingHorizontal: 32, zIndex: 20 }]}>
                 <Pressable
                   style={styles.bottomButton}
                   onPress={() => call.accept()}
                   className="bg-red"
                 >
-                  <CallIcon icon={"btnCallVideoAccept"} size={64} />
+                  <CallIcon icon={"btnCallVoiceAccept"} size={64} />
+                  <Text style={styles.responseText}>Decline</Text>
                 </Pressable>
-              )}
-              <Pressable onPress={() => call.end()}>
-                <CallIcon icon={"btnCallEnd"} size={64} />
-              </Pressable>
-            </View>
+
+                <Pressable style={styles.bottomButton} onPress={() => {
+                  console.log('end call')
+                  call.end()
+                }}>
+                  <CallIcon icon={"btnCallDecline"} size={64} />
+                  <Text style={styles.responseText}>Accept</Text>
+                </Pressable>
+              </View>
+            )}
           </>
         )}
       </View>
@@ -156,10 +171,20 @@ const DirectCallControllerView = ({ status, call, ios_audioDevice }) => {
   );
 };
 
-const StatusView = ({ call, statusInProgress }) => {
+const StatusView = ({ call, statusInProgress, statusStandby, myRole, isVideoCall }) => {
   const seconds = useDirectCallDuration(call);
+
+  let textContent = ''
+  if (statusStandby) {
+    textContent = myRole === DirectCallUserRole.CALLER
+      ? "Calling..."
+      : `Incoming ${isVideoCall ? "video" : "voice"} call...`
+  } else {
+    textContent = statusInProgress ? seconds : call.endResult
+  }
+
   return (
-    <Text className="text-md text-color-red">{statusInProgress ? seconds : call.endResult}</Text>
+    <Text style={{ fontSize: 14, color: 'white', fontWeight: 'bold', marginBottom: 32 }}>{textContent}</Text>
   );
 };
 
@@ -167,10 +192,15 @@ const styles = StyleSheet.create({
   topController: {
     flex: 1,
   },
+  blurContainer: {
+    flex: 1,
+    padding: 16
+  },
   information: {
     flex: 1,
-    justifyContent: "flex-end",
+    justifyContent: "flex-start",
     alignItems: "center",
+    gap: 16
   },
   profile: {
     width: 72,
@@ -179,9 +209,9 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   nickname: {
-    fontSize: 20,
-    fontWeight: "600",
-    marginBottom: 12,
+    fontSize: 28,
+    fontWeight: "bold",
+    color: 'white'
   },
   remoteMuteStatus: {
     height: 150,
@@ -193,14 +223,26 @@ const styles = StyleSheet.create({
     flex: 0.8,
     justifyContent: "flex-end",
     paddingBottom: 64,
+    zIndex: 20
   },
   bottomButton: {
-    marginRight: 24,
+    alignItems: 'center',
+    gap: 8
   },
   bottomButtonGroup: {
     flexDirection: "row",
     justifyContent: "center",
+    gap: 16
   },
+  responseText: {
+    fontSize: 10, color: 'white', fontWeight: 'bold'
+  },
+  shadow: {
+    shadowOffset: { width: 1, height: 1 },
+    shadowOpacity: 0.25,
+    elevation: 1,
+    shadowColor: '#000000',
+  }
 });
 
 export default DirectCallControllerView;
