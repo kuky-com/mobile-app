@@ -88,11 +88,14 @@ import ConnectUsScreen from "./profile/ConnectUsScreen";
 import SampleExploreScreen from "./interest/SampleExploreScreen";
 import SampleProfileScreen from "./interest/SampleProfileScreen";
 import OnboardingVideoWalkthroughtScreen from "./onboarding/OnboardingVideoWalkthroughtScreen";
+import { LogLevel, OneSignal } from "react-native-onesignal";
+
+const ONESIGNAL_APP_ID = "c3fb597e-e318-4eab-9d90-cd43b9491bc1";
 import LetDiscoverScreen from "./auth/LetDiscoverScreen";
 
 SendbirdCalls.setListener({
   onRinging: async (callProps) => {
-    console.log('calll --------------\n------------\n---------------------')
+    console.log("calll --------------\n------------\n---------------------");
     const directCall = await SendbirdCalls.getDirectCall(callProps.callId);
 
     if (!SendbirdCalls.currentUser) {
@@ -105,7 +108,6 @@ SendbirdCalls.setListener({
 
     const unsubscribe = directCall.addListener({
       onEnded() {
-        console.log('onEnded fdafsjl fjsakljdf onEnded')
         RNCallKeep.removeEventListener('answerCall');
         RNCallKeep.removeEventListener('endCall');
         RNCallKeep.endAllCalls();
@@ -121,19 +123,18 @@ SendbirdCalls.setListener({
       await startRingingWithCallKit(callProps);
     }
 
-    RNCallKeep.addEventListener('answerCall', async () => {
+    RNCallKeep.addEventListener("answerCall", async () => {
       directCall.accept();
     });
-    RNCallKeep.addEventListener('endCall', async () => {
-      console.log("event endCall")
+    RNCallKeep.addEventListener("endCall", async () => {
       directCall.end();
     });
 
     RNCallKeep.displayIncomingCall(
       callProps.ios_callUUID,
       callProps.remoteUser?.userId,
-      callProps.remoteUser?.nickname ?? 'Unknown',
-      'generic',
+      callProps.remoteUser?.nickname ?? "Unknown",
+      "generic",
       callProps.isVideoCall,
     );
   },
@@ -153,7 +154,7 @@ if (Platform.OS === "android") {
 // Setup ios callkit
 if (Platform.OS === "ios") {
   RNVoipPushNotification.registerVoipToken();
-  
+
   setupCallKit();
 }
 
@@ -177,12 +178,18 @@ const TabNavigator = () => {
 
 const AppStack = ({ navgation }) => {
   const setDeviceId = useSetAtom(deviceIdAtom);
-  const setPushToken = useSetAtom(pushTokenAtom);
   const [currentUser, setUser] = useAtom(userAtom);
   const showUpdateAlert = useAppUpdateAlert();
   const appState = useRef(AppState.currentState);
   usePermissions(CALL_PERMISSIONS);
 
+  //config onesignal
+  useEffect(() => {
+    OneSignal.initialize(ONESIGNAL_APP_ID);
+    OneSignal.Notifications.requestPermission(true);
+  }, []);
+
+  // config purchase status
   useEffect(() => {
     if (currentUser && currentUser?.email) {
       Purchases.logIn(currentUser?.email)
@@ -195,6 +202,7 @@ const AppStack = ({ navgation }) => {
     }
   }, [currentUser]);
 
+  // config profile status (accepted/rejected)
   useEffect(() => {
     const checkProfileStatus = async () => {
       if (currentUser && currentUser.profile_action_date) {
@@ -218,6 +226,83 @@ const AppStack = ({ navgation }) => {
 
     checkProfileStatus();
   }, [currentUser]);
+
+  // Onesignal setup for logged in user
+  useEffect(() => {
+    if (currentUser && currentUser?.id) {
+      OneSignal.login(`${process.env.NODE_ENV}_${currentUser.id}`);
+    } else {
+      OneSignal.logout();
+    }
+  }, [currentUser]);
+
+  // Add onesignal listeners
+  useEffect(() => {
+    const handleNotificationData = (notiData, notification) => {
+      if (notiData.type === "message") {
+        if (notiData.conversationId) {
+          NavigationService.resetRaw([
+            { name: "Dashboard" },
+            {
+              name: "MessageScreen",
+              params: { conversation: { conversation_id: notiData.conversationId } },
+            },
+          ]);
+        } else {
+          NavigationService.resetRaw([{ name: "Dashboard" }, { name: "NotificationScreen" }]);
+        }
+      } else if (notiData.type === "profile_approved") {
+        NavigationService.push("ProfileApprovedScreen");
+      } else if (notiData.type === "profile_rejected") {
+        NavigationService.push("ProfileRejectScreen", {
+          message: notification.body,
+        });
+      } else if (notiData.type === "new_suggestions" && notiData.suggestUserId) {
+        NavigationService.push("ConnectProfileScreen", {
+          profile: { id: notiData.suggestUserId },
+        });
+      } else {
+        NavigationService.resetRaw([{ name: "Dashboard" }, { name: "NotificationScreen" }]);
+      }
+    };
+
+    OneSignal.Notifications.addEventListener("click", (event) => {
+      if (event.notification?.additionalData) {
+        try {
+          const notiData = event.notification.additionalData;
+          console.log("Current route: ", navigationRef.current.getCurrentRoute().name);
+          if (navigationRef.current.getCurrentRoute().name === "SplashScreen") {
+            setTimeout(() => {
+              handleNotificationData(notiData, event.notification);
+            }, 3500);
+          } else {
+            handleNotificationData(notiData, event.notification);
+          }
+        } catch (error) {
+          console.log({ error });
+        }
+      }
+    });
+
+    OneSignal.Notifications.addEventListener("foregroundWillDisplay", (event) => {
+      const notification = event.getNotification();
+
+      if (notification && notification?.additionalData) {
+        try {
+          const notiData = notification?.additionalData;
+
+          if (notiData.type === "profile_approved") {
+            NavigationService.push("ProfileApprovedScreen");
+          } else if (notiData.type === "profile_rejected") {
+            console.log("rejected here ", notification.body);
+            NavigationService.push("ProfileRejectScreen", {
+              message: notification.body,
+            });
+          }
+        } catch (error) {}
+      }
+    });
+  }, []);
 
   const loadProfile = async () => {
     const token = await AsyncStorage.getItem("ACCESS_TOKEN");
@@ -331,6 +416,7 @@ const AppStack = ({ navgation }) => {
     }, 5000);
   }, []);
 
+  // config app review
   useEffect(() => {
     try {
       setTimeout(() => {
@@ -369,6 +455,7 @@ const AppStack = ({ navgation }) => {
     } catch (error) {}
   }, []);
 
+  // config purchases
   useEffect(() => {
     const configPurchase = () => {
       Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
@@ -383,213 +470,32 @@ const AppStack = ({ navgation }) => {
     configPurchase();
   }, []);
 
-  useEffect(() => {
-    if (Platform.OS === "ios") {
-      PushNotificationIOS.requestPermissions()
-        .then((data) => {
-          // console.log({ data });
-        })
-        .catch((error) => {
-          console.log({ error });
-        });
-    }
-  }, []);
+  // useEffect(() => {
+  //   const unsubscribe = messaging().onMessage(async (remoteMessage) => {
+  //     console.log("ACI?");
+  //     //   Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
+  //     if (remoteMessage) {
+  //       console.log("aci3?", remoteMessage);
+  //       if (remoteMessage.data && remoteMessage.data.data) {
+  //         try {
+  //           const notiData = JSON.parse(remoteMessage.data.data);
 
-  async function requestUserPermission() {
-    const authStatus = await messaging().requestPermission();
-    const enabled =
-      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+  //           if (notiData.type === "profile_approved") {
+  //             NavigationService.push("ProfileApprovedScreen");
+  //           } else if (notiData.type === "profile_rejected") {
+  //             NavigationService.push("ProfileRejectScreen", {
+  //               message: remoteMessage.notification.body,
+  //             });
+  //           }
+  //         } catch (error) {}
+  //       }
+  //     }
+  //   });
 
-    if (enabled) {
-      try {
-        await messaging().registerDeviceForRemoteMessages();
-        const token = await messaging().getToken();
-        setPushToken(token);
-        registerToken();
-        AsyncStorage.getItem("ACCESS_TOKEN", (error, result) => {
-          if (result) {
-            apiClient
-              .post("users/update-token", { session_token: token })
-              .then((res) => {})
-              .catch((error) => {
-                console.log({ error });
-              });
-          }
-        });
-      } catch (error) {}
-    }
-  }
+  //   return unsubscribe;
+  // }, []);
 
-  useEffect(() => {
-    const unsubscribe = messaging().onMessage(async (remoteMessage) => {
-      //   Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
-      if (remoteMessage) {
-        if (remoteMessage.data && remoteMessage.data.data) {
-          try {
-            const notiData = JSON.parse(remoteMessage.data.data);
-
-            if (notiData.type === "profile_approved") {
-              NavigationService.push("ProfileApprovedScreen");
-            } else if (notiData.type === "profile_rejected") {
-              NavigationService.push("ProfileRejectScreen", {
-                message: remoteMessage.notification.body,
-              });
-            }
-          } catch (error) {}
-        }
-      }
-    });
-
-    return unsubscribe;
-  }, []);
-
-  useEffect(() => {
-    const unsubscribe = messaging().onNotificationOpenedApp((remoteMessage) => {
-      if (remoteMessage) {
-        if (remoteMessage.data && remoteMessage.data.data) {
-          try {
-            const notiData = JSON.parse(remoteMessage.data.data);
-            if (navigationRef.current.getCurrentRoute().name === "SplashScreen") {
-              setTimeout(() => {
-                if (notiData.type === "message") {
-                  if (notiData.match && notiData.match.conversation_id) {
-                    NavigationService.resetRaw([
-                      { name: "Dashboard" },
-                      { name: "MessageScreen", params: { conversation: notiData.match } },
-                    ]);
-                  } else {
-                    NavigationService.resetRaw([{ name: "Dashboard" }, { name: "MatchesScreen" }]);
-                  }
-                } else if (notiData.type === "profile_approved") {
-                  NavigationService.push("ProfileApprovedScreen");
-                } else if (notiData.type === "profile_rejected") {
-                  NavigationService.push("ProfileRejectScreen", {
-                    message: remoteMessage.notification.body,
-                  });
-                } else if (notiData.type === "new_suggestions" && notiData.suggest) {
-                  NavigationService.push("ConnectProfileScreen", {
-                    profile: { id: notiData.suggest?.id },
-                  });
-                } else {
-                  // NavigationService.resetRaw([
-                  //     { name: 'Dashboard' },
-                  //     { name: 'NotificationScreen' }
-                  // ])
-                }
-              }, 1200);
-            } else {
-              if (notiData.type === "message") {
-                if (notiData.match && notiData.match.conversation_id) {
-                  NavigationService.resetRaw([
-                    { name: "Dashboard" },
-                    { name: "MessageScreen", params: { conversation: notiData.match } },
-                  ]);
-                } else {
-                  NavigationService.resetRaw([{ name: "Dashboard" }, { name: "MatchesScreen" }]);
-                }
-              } else if (notiData.type === "profile_approved") {
-                NavigationService.push("ProfileApprovedScreen");
-              } else if (notiData.type === "profile_rejected") {
-                NavigationService.push("ProfileRejectScreen", {
-                  message: remoteMessage.notification.body,
-                });
-              } else if (notiData.type === "new_suggestions" && notiData.suggest) {
-                NavigationService.push("ConnectProfileScreen", {
-                  profile: { id: notiData.suggest?.id },
-                });
-              } else {
-                // NavigationService.resetRaw([
-                //     { name: 'Dashboard' },
-                //     { name: 'NotificationScreen' }
-                // ])
-              }
-            }
-          } catch (error) {
-            console.log({ error });
-          }
-        }
-      }
-    });
-
-    messaging()
-      .getInitialNotification()
-      .then((remoteMessage) => {
-        if (remoteMessage) {
-          if (remoteMessage.data && remoteMessage.data.data) {
-            try {
-              const notiData = JSON.parse(remoteMessage.data.data);
-              if (navigationRef.current.getCurrentRoute().name === "SplashScreen") {
-                setTimeout(() => {
-                  if (notiData.type === "message") {
-                    if (notiData.match && notiData.match.conversation_id) {
-                      NavigationService.resetRaw([
-                        { name: "Dashboard" },
-                        { name: "MessageScreen", params: { conversation: notiData.match } },
-                      ]);
-                    } else {
-                      NavigationService.resetRaw([
-                        { name: "Dashboard" },
-                        { name: "NotificationScreen" },
-                      ]);
-                    }
-                  } else if (notiData.type === "profile_approved") {
-                    NavigationService.push("ProfileApprovedScreen");
-                  } else if (notiData.type === "profile_rejected") {
-                    NavigationService.push("ProfileRejectScreen", {
-                      message: remoteMessage.notification.body,
-                    });
-                  } else if (notiData.type === "new_suggestions" && notiData.suggest) {
-                    NavigationService.push("ConnectProfileScreen", {
-                      profile: { id: notiData.suggest?.id },
-                    });
-                  } else {
-                    NavigationService.resetRaw([
-                      { name: "Dashboard" },
-                      { name: "NotificationScreen" },
-                    ]);
-                  }
-                }, 1200);
-              } else {
-                if (notiData.type === "message") {
-                  if (notiData.match && notiData.match.conversation_id) {
-                    NavigationService.resetRaw([
-                      { name: "Dashboard" },
-                      { name: "MessageScreen", params: { conversation: notiData.match } },
-                    ]);
-                  } else {
-                    NavigationService.resetRaw([
-                      { name: "Dashboard" },
-                      { name: "NotificationScreen" },
-                    ]);
-                  }
-                } else if (notiData.type === "profile_approved") {
-                  NavigationService.push("ProfileApprovedScreen");
-                } else if (notiData.type === "profile_rejected") {
-                  NavigationService.push("ProfileRejectScreen", {
-                    message: remoteMessage.notification.body,
-                  });
-                } else if (notiData.type === "new_suggestions" && notiData.suggest) {
-                  NavigationService.push("ConnectProfileScreen", {
-                    profile: { id: notiData.suggest?.id },
-                  });
-                } else {
-                  NavigationService.resetRaw([
-                    { name: "Dashboard" },
-                    { name: "NotificationScreen" },
-                  ]);
-                }
-              }
-            } catch (error) {
-              console.log({ error });
-            }
-          }
-        }
-      });
-
-    return unsubscribe;
-  }, []);
-
+  // set device id
   useEffect(() => {
     const getDeviceId = async () => {
       const deviceId = await DeviceInfo.getUniqueId();
@@ -600,8 +506,6 @@ const AppStack = ({ navgation }) => {
     };
 
     getDeviceId();
-
-    requestUserPermission();
   }, []);
 
   return (
@@ -643,7 +547,10 @@ const AppStack = ({ navgation }) => {
       <Stack.Screen name="OnboardingCompleteScreen" component={OnboardingCompleteScreen} />
       <Stack.Screen name="ProfileTagScreen" component={ProfileTagScreen} />
       <Stack.Screen name="PronounsUpdateScreen" component={PronounsUpdateScreen} />
-      <Stack.Screen name="OnboardingReviewProfileScreen" component={OnboardingReviewProfileScreen} />
+      <Stack.Screen
+        name="OnboardingReviewProfileScreen"
+        component={OnboardingReviewProfileScreen}
+      />
       <Stack.Screen name="SettingScreen" component={SettingScreen} />
       <Stack.Screen name="PurposeUpdateScreen" component={PurposeUpdateScreen} />
       <Stack.Screen name="NameUpdateScreen" component={NameUpdateScreen} />
@@ -658,7 +565,10 @@ const AppStack = ({ navgation }) => {
       <Stack.Screen name="FirstTimeScreen" component={FirstTimeScreen} />
       <Stack.Screen name="ProfileApprovedScreen" component={ProfileApprovedScreen} />
       <Stack.Screen name="ProfileRejectScreen" component={ProfileRejectScreen} />
-      <Stack.Screen name="OnboardingVideoProcessingScreen" component={OnboardingVideoProcessingScreen} />
+      <Stack.Screen
+        name="OnboardingVideoProcessingScreen"
+        component={OnboardingVideoProcessingScreen}
+      />
       <Stack.Screen name="ProfileVideoUpdateScreen" component={ProfileVideoUpdateScreen} />
       <Stack.Screen name="DisclaimeScreen" component={DisclaimeScreen} />
       <Stack.Screen name="OnboardingSampleProfileScreen" component={OnboardingSampleProfileScreen} />
