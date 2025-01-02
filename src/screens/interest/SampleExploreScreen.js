@@ -15,7 +15,6 @@ import { sampleProfileViewAtom } from '../../actions/global';
 import NavigationService from '@/utils/NavigationService'
 
 const ITEM_WIDTH = Platform.isPad ? Dimensions.get('screen').width / 4 - 20 : Dimensions.get('screen').width / 2 - 24;
-const PAGE_SIZE = 8
 
 const SampleExploreScreen = ({ navigation }) => {
     const insets = useSafeAreaInsets()

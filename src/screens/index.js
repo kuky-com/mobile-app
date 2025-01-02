@@ -193,12 +193,12 @@ const AppStack = ({ navgation }) => {
   useEffect(() => {
     if (currentUser && currentUser?.email) {
       Purchases.logIn(currentUser?.email)
-        .then(() => {})
-        .catch(() => {});
+        .then(() => { })
+        .catch(() => { });
     } else {
       Purchases.logOut()
-        .then(() => {})
-        .catch(() => {});
+        .then(() => { })
+        .catch(() => { });
     }
   }, [currentUser]);
 
@@ -220,7 +220,7 @@ const AppStack = ({ navgation }) => {
             }
           }
           await AsyncStorage.setItem("LAST_PROFILE_STATUS_CHECK", dayjs().format());
-        } catch (error) {}
+        } catch (error) { }
       }
     };
 
@@ -299,7 +299,7 @@ const AppStack = ({ navgation }) => {
               message: notification.body,
             });
           }
-        } catch (error) {}
+        } catch (error) { }
       }
     });
   }, []);
@@ -450,9 +450,9 @@ const AppStack = ({ navgation }) => {
                 });
             }
           })
-          .catch((error) => {});
+          .catch((error) => { });
       }, 2000);
-    } catch (error) {}
+    } catch (error) { }
   }, []);
 
   // config purchases
@@ -501,12 +501,23 @@ const AppStack = ({ navgation }) => {
       const deviceId = await DeviceInfo.getUniqueId();
       setDeviceId(deviceId);
       AsyncStorage.setItem("DEVICE_ID", deviceId)
-        .then(() => {})
-        .catch(() => {});
+        .then(() => { })
+        .catch(() => { });
     };
 
     getDeviceId();
   }, []);
+
+  //update last active time
+  useEffect(() => {
+    if (currentUser) {
+      apiClient.get('users/update-last-active')
+        .then((data) => { })
+        .catch((error) => {
+          console.log(({ error }))
+        })
+    }
+  }, [currentUser])
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="SplashScreen">

@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   AppState,
   DeviceEventEmitter,
   Dimensions,
@@ -171,7 +172,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     marginBottom: 15,
-  }
+  },
+  botMessageContainer: {
+    backgroundColor: "#725ED4",
+    borderBottomRightRadius: 10,
+    borderBottomLeftRadius: 2.5,
+    borderTopRightRadius: 10,
+    borderTopLeftRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginBottom: 15,
+  },
+  onlineStatus: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#47F644',
+  },
+  onlineStatusBg: {
+    width: 12, height: 12, borderRadius: 6,
+    backgroundColor: '#5BFF5830',
+    alignItems: 'center', justifyContent: 'center',
+    position: 'absolute', top: -2, right: -2
+  },
 });
 
 const typingMessageId = 'typing_indicator'
@@ -185,9 +208,10 @@ const MessageScreen = ({ navigation, route }) => {
   const appState = useRef(AppState.currentState);
   const [loading, setLoading] = useState(false);
   const showAlert = useAlert();
-  const typingTimeoutRef = useRef(null)
   const [isTyping, setIsTyping] = useState(false);
   const [isCallAvailable, setIsCallAvailable] = useState(false)
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const scrollY = new Animated.Value(0);
 
   usePermissions(CALL_PERMISSIONS);
 
@@ -259,6 +283,17 @@ const MessageScreen = ({ navigation, route }) => {
     }
   }, [currentUser]);
 
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+    {
+      useNativeDriver: false,
+      listener: (event) => {
+        const offsetY = event.nativeEvent.contentOffset.y;
+        setIsHeaderVisible(offsetY <= 0); // Show header when at top
+      }
+    }
+  );
+
   useEffect(() => {
     if (!conversation.profile) {
       setLoading(true);
@@ -300,7 +335,11 @@ const MessageScreen = ({ navigation, route }) => {
                 _id: doc?.id ?? "111",
                 text: firebaseData.text,
                 createdAt: firebaseData.createdAt.toDate(),
-                user: {
+                user: firebaseData.user?._id === 0 ? {
+                  _id: 0,
+                  name: 'Kuky Bot',
+                  avatar: images.bot_avatar,
+                } : {
                   _id: firebaseData.user ? firebaseData.user?._id : 0,
                   name: firebaseData.user ? firebaseData.user?.full_name : "",
                   avatar: currentConversation?.profile?.avatar,
@@ -355,14 +394,14 @@ const MessageScreen = ({ navigation, route }) => {
     const getCallStatus = async () => {
       try {
         const res = await apiClient.get(`users/${NODE_ENV}_${conversation.profile?.id}/readyForCall`)
-        console.log({res})
-        if(res && res.data && res.data.success) {
+        console.log({ res })
+        if (res && res.data && res.data.success) {
           setIsCallAvailable(true)
         } else {
           setIsCallAvailable(false)
         }
       } catch (error) {
-        console.log({error})
+        console.log({ error })
         setIsCallAvailable(false)
       }
     }
@@ -462,8 +501,8 @@ const MessageScreen = ({ navigation, route }) => {
     } else {
       contentView = (
         <View style={{ gap: 1, alignItems: 'flex-end' }}>
-          <Text style={{ fontSize: 13, color: 'black', lineHeight: 20 }}>{currentMessage?.text}</Text>
-          <Text style={{ color: '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
+          <Text style={{ fontSize: 13, color: currentMessage?.user?._id === 0 ? '#f0f0f0' : 'black', lineHeight: 20 }}>{currentMessage?.text}</Text>
+          <Text style={{ color: currentMessage?.user?._id === 0 ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
         </View>
       )
     }
@@ -480,7 +519,7 @@ const MessageScreen = ({ navigation, route }) => {
             ((currentMessage.showUserAvatar || currentMessage.isTyping) && currentMessage?.user?._id !== currentUser?.id) && renderAvatar(props)
           }
         </View>
-        <View style={[currentMessage?.user?._id === currentUser?.id ? styles.rightMessageContainer : styles.leftMessageContainer, {
+        <View style={[currentMessage?.user?._id === currentUser?.id ? styles.rightMessageContainer : (currentMessage?.user?._id === 0 ? styles.botMessageContainer : styles.leftMessageContainer), {
           maxWidth: Dimensions.get('screen').width - 28 - (currentMessage?.user?._id !== currentUser?.id ? 45 : 0)
         }]}>
           {contentView}
@@ -501,41 +540,6 @@ const MessageScreen = ({ navigation, route }) => {
 
     // return <Message {...props} />
   }
-
-  const renderBubble = (bubbleProps) => {
-    return (
-      <Bubble
-        {...bubbleProps}
-        wrapperStyle={{
-          right: styles.rightMessageContainer,
-          left: styles.leftMessageContainer,
-        }}
-        textStyle={{
-          right: {
-            color: "black",
-          },
-          left: {
-            color: "black",
-          },
-        }}
-        renderTime={(props) => (
-          <Time
-            {...props}
-            timeTextStyle={{
-              left: {
-                fontSize: 10,
-                color: "#646464",
-              },
-              right: {
-                fontSize: 10,
-                color: "#646464",
-              },
-            }}
-          />
-        )}
-      />
-    );
-  };
 
   const renderInputToolbar = (props) => {
     return (
@@ -848,7 +852,7 @@ const MessageScreen = ({ navigation, route }) => {
         if (res && res.data && res.data.success && res.data.data) {
           setCurrentConversation(res.data.data);
           NavigationService.replace("GetMatchScreen", { match: res.data.data });
-        } else if(res && res.data && res.data.message) {
+        } else if (res && res.data && res.data.message) {
           showAlert('Hold on', res.data.message)
         }
       })
@@ -877,12 +881,24 @@ const MessageScreen = ({ navigation, route }) => {
   };
 
   const renderHeaderView = () => {
-    return (
-      <MessageHeader conversation={currentConversation} rejectAction={rejectAction} likeAction={likeAction} />
-    )
+    if (isHeaderVisible)
+      return (
+        <MessageHeader conversation={currentConversation} rejectAction={rejectAction} likeAction={likeAction} />
+      )
+    else
+      return null
   };
 
   const renderAvatar = (props) => {
+    if (props.currentMessage.user._id === 0) {
+      return (
+        <Image
+          style={{ width: 48, height: 48, borderRadius: 24 }}
+          source={images.bot_avatar}
+        />
+      )
+    }
+
     return (
       <TouchableOpacity
         onPress={openProfile}
@@ -917,33 +933,7 @@ const MessageScreen = ({ navigation, route }) => {
     } else {
       updateTypingStatus(false)
     }
-    // try {
-    //   if (text && text.length > 0) {
-    //     updateTypingStatus(true)
-    //     clearTimeout(typingTimeoutRef.current);
-    //     typingTimeoutRef.current = setTimeout(() => {
-    //       updateTypingStatus(false)
-    //     }, 2000);
-    //   } else {
-    //     updateTypingStatus(false)
-    //   }
-    // } catch (error) {
-    //   console.log({ error })
-    // }
   }
-
-  // const renderFooter = () => {
-  //   if (isTypingUsers.length > 0) {
-  //     return (
-  //       <View style={{ padding: 10 }}>
-  //         <Text style={{ fontSize: 11, fontStyle: 'italic', color: 'gray' }}>
-  //           {isTypingUsers.join(', ')} {isTypingUsers.length > 1 ? 'are' : 'is'} typing...
-  //         </Text>
-  //       </View>
-  //     );
-  //   }
-  //   return null;
-  // }
 
   const openProfile = () => {
     navigation.push("ConnectProfileScreen", {
@@ -951,6 +941,8 @@ const MessageScreen = ({ navigation, route }) => {
       showAcceptReject: false,
     });
   };
+
+  const isRecentOnline = currentConversation?.profile ? dayjs().diff(dayjs(currentConversation?.profile.last_active_time), 'minutes') < 60 : false
 
   return (
     <View style={styles.container}>
@@ -989,14 +981,20 @@ const MessageScreen = ({ navigation, route }) => {
               width: 50,
               height: 50,
               borderWidth: 2,
-              borderColor: "white",
+              borderColor: isRecentOnline ? '#47F644' : "white",
               borderRadius: 25,
             }}
           />
+          {isRecentOnline &&
+            <View style={styles.onlineStatusBg}>
+              <View style={styles.onlineStatus} />
+            </View>
+          }
         </TouchableOpacity>
         <Text onPress={openProfile} style={{ flex: 1, fontSize: 18, color: "white", fontWeight: "bold" }}>
           {currentConversation?.profile?.full_name}
         </Text>
+
         <View
           style={{
             flex: 1,
@@ -1043,20 +1041,6 @@ const MessageScreen = ({ navigation, route }) => {
         renderComposer={renderComposer}
         renderSend={renderSend}
         renderAvatar={renderAvatar}
-        // renderTicks={(currentMessage) => {
-        //   const tickedUser = currentMessage.user._id;
-        //   return (
-        //     <View style={{ position: "absolute", bottom: -20, right: -8 }}>
-        //       {!!currentMessage.received && tickedUser === currentUser?.id && currentUser?.id && (
-        //         <Text style={{ color: "#6C6C6C", fontWeight: "bold", fontSize: 8 }}>Read</Text>
-        //       )}
-        //       {!!currentMessage.sent &&
-        //         !currentMessage.received &&
-        //         tickedUser === currentUser?.id &&
-        //         currentUser?.id && <Text style={{ color: "#6C6C6C", fontSize: 8 }}>Delivered</Text>}
-        //     </View>
-        //   );
-        // }}
         renderTime={(props) => (
           <Time
             {...props}
@@ -1073,14 +1057,16 @@ const MessageScreen = ({ navigation, route }) => {
           />
         )}
         renderMessage={renderMessage}
-        renderBubble={renderBubble}
         user={{
           _id: currentUser?.id,
           name: currentUser?.full_name ?? "",
         }}
         onInputTextChanged={handleTyping}
-        // renderFooter={renderFooter}
         alwaysShowSend
+        listViewProps={{
+          onScroll: handleScroll,
+          scrollEventThrottle: 16,
+        }}
       />
       {loading && (
         <LoadingView />

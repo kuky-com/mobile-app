@@ -199,6 +199,7 @@ const MatchesScreen = ({ navigation }) => {
         ListEmptyComponent={renderEmpty}
         onRefresh={onRefresh}
         refreshing={isFetching}
+        showsVerticalScrollIndicator={false}
       />
       </View>
     </View>

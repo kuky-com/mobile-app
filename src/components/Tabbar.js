@@ -68,7 +68,18 @@ const Tabbar = ({ navigation, state }) => {
   const openTab = (tabIndex) => {
     const { routes } = state;
     navigation.jumpTo(routes[tabIndex].name);
+    updateLastActive()
   };
+
+  const updateLastActive = () => {
+    apiClient.get('users/update-last-active')
+        .then((data) => { 
+          console.log({data})
+        })
+        .catch((error) => {
+          console.log(({ error }))
+        })
+  }
 
   useEffect(() => {
     const eventListener = DeviceEventEmitter.addListener(

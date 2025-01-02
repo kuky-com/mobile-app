@@ -64,6 +64,18 @@ const styles = StyleSheet.create({
     bottom: 0,
     borderRadius: 10,
   },
+  onlineStatus: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#47F644',
+  },
+  onlineStatusBg: {
+    width: 12, height: 12, borderRadius: 6,
+    backgroundColor: '#5BFF5830',
+    alignItems: 'center', justifyContent: 'center',
+    marginTop: 13
+  },
 });
 
 const ConnectProfileScreen = ({ navigation, route }) => {
@@ -392,6 +404,8 @@ const ConnectProfileScreen = ({ navigation, route }) => {
     setIsMute(!isMute)
   }
 
+  const isRecentOnline = dayjs().diff(dayjs(currentProfile?.last_active_time), 'minutes') < 60;
+
   return (
     <View style={[styles.container]}>
       <Header
@@ -528,9 +542,16 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                 }}
               >
                 {!playing && (
-                  <Text style={{ fontSize: 32, color: "white", fontWeight: "bold" }}>
-                    {currentProfile.full_name}
-                  </Text>
+                  <View style={{flexDirection: 'row', gap: 5, width: '100%'}}>
+                    <Text style={{ fontSize: 32, color: "white", fontWeight: "bold", maxWidth: Dimensions.get('screen').width - 86 }}>
+                      {currentProfile?.full_name}
+                    </Text>
+                    {isRecentOnline &&
+                      <View style={styles.onlineStatusBg}>
+                        <View style={styles.onlineStatus} />
+                      </View>
+                    }
+                  </View>
                 )}
                 {/* <View style={{ width: '100%', flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                                     {

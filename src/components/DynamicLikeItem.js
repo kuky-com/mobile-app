@@ -7,14 +7,15 @@ import dayjs from 'dayjs';
 import { Image } from 'expo-image';
 import AvatarImage from './AvatarImage';
 
-const itemWidth = Dimensions.get('screen').width * 0.5 - 24
+const ITEM_WIDTH = Platform.isPad ? Dimensions.get('screen').width / 4 - 20 : Dimensions.get('screen').width / 2 - 24;
 
 const DynamicLikeItem = ({ itemWidth, item, onPress }) => {
     const [itemHeight, setItemHeight] = useState(Math.round(itemWidth * 1024 / 800));
+    const isRecentOnline = dayjs().diff(dayjs(item?.last_active_time), 'minutes') < 60;
 
     return (
-        <TouchableOpacity onPress={() => onPress && onPress()} style={[styles.cardContainer, {width: itemWidth, height: itemHeight}]}>
-            <AvatarImage 
+        <TouchableOpacity onPress={() => onPress && onPress()} style={[styles.cardContainer, { width: itemWidth, height: itemHeight }]}>
+            <AvatarImage
                 avatar={item?.avatar}
                 full_name={item?.full_name}
                 style={[styles.image, { height: itemHeight }]}
@@ -23,14 +24,21 @@ const DynamicLikeItem = ({ itemWidth, item, onPress }) => {
                 <Text style={styles.tagText}>{item?.tag?.name}</Text>
             </View>
 
-            <View style={styles.nameContainer}>
+            <View style={styles.bottomContainer}>
                 <LinearGradient
                     colors={['transparent', 'rgba(0,0,0,0.79)']}
                     style={styles.nameBackground}
                 />
-                {item.birthday && item.birthday.includes('-') && <Text style={styles.name}>{`${item.full_name}, ${dayjs().diff(dayjs(item.birthday, 'MM-DD-YYYY'), 'years')}`}</Text>}
-                {item.birthday && item.birthday.includes('/') && <Text style={styles.name}>{`${item.full_name}, ${dayjs().diff(dayjs(item.birthday, 'DD/MM/YYYY'), 'years')}`}</Text>}
-                {!item.birthday && <Text style={styles.name}>{`${item.full_name}`}</Text>}
+                <View style={styles.nameContainer}>
+                    {item.birthday && item.birthday.includes('-') && <Text style={styles.name}>{`${item.full_name}, ${dayjs().diff(dayjs(item.birthday, 'MM-DD-YYYY'), 'years')}`}</Text>}
+                    {item.birthday && item.birthday.includes('/') && <Text style={styles.name}>{`${item.full_name}, ${dayjs().diff(dayjs(item.birthday, 'DD/MM/YYYY'), 'years')}`}</Text>}
+                    {!item.birthday && <Text style={styles.name}>{`${item.full_name}`}</Text>}
+                    {isRecentOnline &&
+                        <View style={styles.onlineStatusBg}>
+                            <View style={styles.onlineStatus} />
+                        </View>
+                    }
+                </View>
             </View>
         </TouchableOpacity>
     );
@@ -67,10 +75,10 @@ const styles = StyleSheet.create({
     name: {
         fontWeight: 'bold',
         fontSize: Platform.isPad ? 20 : 14,
-        textAlign: 'center',
-        color: 'white'
+        textAlign: 'left',
+        color: 'white', maxWidth: ITEM_WIDTH - 30
     },
-    nameContainer: {
+    bottomContainer: {
         position: 'absolute',
         bottom: 0, left: 0,
         height: '50%',
@@ -78,6 +86,21 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
         paddingBottom: 16, paddingLeft: 10,
         width: '100%'
+    },
+    nameContainer: {
+        flexDirection: "row", gap: 3
+    },
+    onlineStatus: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: '#47F644',
+    },
+    onlineStatusBg: {
+        width: 12, height: 12, borderRadius: 6,
+        backgroundColor: '#5BFF5830',
+        alignItems: 'center', justifyContent: 'center',
+        marginTop: 2
     },
     nameBackground: {
         position: 'absolute',
