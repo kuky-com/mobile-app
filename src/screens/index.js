@@ -77,7 +77,6 @@ import { getSendbirdToken } from "../utils/api";
 import { authenticate, registerToken } from "../utils/sendbird";
 import { VoiceCallScreen } from "./chat/VoiceCallScreen";
 import { VideoCallScreen } from "./chat/VideoCallScreen";
-import { CALL_PERMISSIONS, usePermissions } from "@/hooks/usePermissions";
 import DisclaimeScreen from "./onboarding/DisclaimeScreen";
 import OnboardingSampleProfileScreen from "./onboarding/OnboardingSampleProfileScreen";
 import ProfileVideoProcessingScreen from "./profile/ProfileVideoProcessingScreen";
@@ -181,12 +180,10 @@ const AppStack = ({ navgation }) => {
   const [currentUser, setUser] = useAtom(userAtom);
   const showUpdateAlert = useAppUpdateAlert();
   const appState = useRef(AppState.currentState);
-  usePermissions(CALL_PERMISSIONS);
 
   //config onesignal
   useEffect(() => {
     OneSignal.initialize(ONESIGNAL_APP_ID);
-    OneSignal.Notifications.requestPermission(true);
   }, []);
 
   // config purchase status

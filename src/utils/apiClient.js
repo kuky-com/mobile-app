@@ -4,13 +4,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const apiClient = axios.create({
   // baseURL: 'http://192.168.1.168:8000/api',
   // // baseURL: "http://192.168.165.237:8000/api",
-  // baseURL: 'https://api.kuky.com/api',
-  baseURL: 'https://dev.api.kuky.com/api',
+  baseURL: 'https://api.kuky.com/api',
+  // baseURL: 'https://dev.api.kuky.com/api',
   timeout: 30000,
 });
 
-export const NODE_ENV = 'development'
-// export const NODE_ENV = 'production'
+// export const NODE_ENV = 'development'
+export const NODE_ENV = 'production'
 
 apiClient.interceptors.request.use(
   async (config) => {

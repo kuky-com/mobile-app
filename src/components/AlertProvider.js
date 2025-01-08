@@ -18,7 +18,6 @@ const CustomAlert = ({ visible, title, message, onClose, buttons = [] }) => {
     }
   }
 
-
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
       <View style={styles.overlay}>
@@ -47,9 +46,11 @@ export const AlertProvider = ({ children }) => {
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertConfig, setAlertConfig] = useState({ title: '', message: '', buttons: [], onClose: null });
 
-  const showAlert = useCallback((title, message, buttons = [], onClose) => {
+  const showAlert = useCallback((title, message, buttons = [], onClose = null) => {
     setAlertConfig({ title, message, buttons, onClose });
-    setAlertVisible(true);
+    setTimeout(() => {
+      setAlertVisible(true);
+    }, 200);
   }, []);
 
   const closeAlert = useCallback(() => {

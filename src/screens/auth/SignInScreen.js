@@ -226,7 +226,7 @@ const SignInScreen = ({ navigation }) => {
   };
 
   const onSignUp = () => {
-    NavigationService.reset("SignUpScreen");
+    NavigationService.reset("SignUpEmailScreen");
   };
 
   return (

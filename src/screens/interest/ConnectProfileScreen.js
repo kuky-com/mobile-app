@@ -404,7 +404,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
     setIsMute(!isMute)
   }
 
-  const isRecentOnline = dayjs().diff(dayjs(currentProfile?.last_active_time), 'minutes') < 60;
+  const isRecentOnline = currentProfile && currentProfile?.last_active_time ? dayjs().diff(dayjs(currentProfile?.last_active_time), 'minutes') < 60 : false
 
   return (
     <View style={[styles.container]}>

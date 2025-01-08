@@ -205,8 +205,8 @@ export default function App() {
       <SafeAreaProvider>
         <SheetProvider>
           <AppUpdateAlertProvider>
-            <AlertProvider>
-              <AlertIconProvider>
+            <AlertIconProvider>
+              <AlertProvider>
                 <NavigationContainer
                   ref={navigationRef}
                   linking={linking}
@@ -223,8 +223,8 @@ export default function App() {
                     </QueryClientProvider>
                   </Suspense>
                 </NavigationContainer>
-              </AlertIconProvider>
-            </AlertProvider>
+              </AlertProvider>
+            </AlertIconProvider>
           </AppUpdateAlertProvider>
         </SheetProvider>
       </SafeAreaProvider>

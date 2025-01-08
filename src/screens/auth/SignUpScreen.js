@@ -210,24 +210,25 @@ const SignUpScreen = ({ navigation }) => {
           paddingBottom: 48,
         }}
       >
-        <TouchableOpacity
-          onPress={onSignUp}
-          disabled={!accepted}
-          style={{
-            width: Platform.isPad ? 600 : "100%",
-            alignSelf: "center",
-            height: 60,
-            borderRadius: 30,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: accepted ? "#333333" : '#999999',
-          }}
-        >
-          <Text style={{ fontSize: 18, fontWeight: "700", color: "white" }}>
-            Sign Up with Email
-          </Text>
-        </TouchableOpacity>
-        <View
+        <View style={{paddingVertical: 16, alignItems: 'center', justifyContent: 'center', width: '100%', gap: 32}}>
+          <Text style={{fontSize: 22, fontWeight: 'bold', color: '#333333'}}>Welcome to Kuky</Text>
+          <TouchableOpacity
+            onPress={onSignUp}
+            style={{
+              width: Platform.isPad ? 600 : "100%",
+              alignSelf: "center",
+              height: 60,
+              borderRadius: 30,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#333333",
+            }}
+          >
+            <Text style={{ fontSize: 18, fontWeight: "700", color: "white" }}>
+              Sign up
+            </Text>
+          </TouchableOpacity>
+          {/* <View
           style={{ alignItems: "center", justifyContent: "center", gap: 16, flexDirection: "row" }}
         >
           {Platform.OS === "ios" && (
@@ -274,12 +275,13 @@ const SignUpScreen = ({ navigation }) => {
           <TouchableOpacity onPress={() => setAccepted(old => !old)} style={{ width: 20, height: 20, marginTop: 3 }}>
             <FontAwesome5 name={accepted ? 'check-square' : 'square'} solid={accepted} size={20} color={colors.mainColor} />
           </TouchableOpacity>
-          <Text style={{ flex: 1, fontSize: 14, fontWeight: 'bold', color: 'black', lineHeight: 25 }}>{`I acknowledge that Kuky is not a substitute for professional mental health services or advice. I understand that Kuky's content is for informational and supportive purposes only.`}</Text>
-        </View>
+          <Text onPress={() => setAccepted(old => !old)} style={{ flex: 1, fontSize: 14, fontWeight: 'bold', color: 'black', lineHeight: 25 }}>{`I acknowledge that Kuky is not a substitute for professional mental health services or advice. I understand that Kuky's content is for informational and supportive purposes only.`}</Text>
+        </View> */}
 
-        <Text onPress={onSignIn} style={{ fontSize: 20, fontWeight: "700", color: "#6900D3" }}>
-          Sign in
-        </Text>
+          <Text onPress={onSignIn} style={{ fontSize: 20, fontWeight: "700", color: "#6900D3" }}>
+            Sign in
+          </Text>
+        </View>
 
         <View style={{ width: '100%', height: 1, backgroundColor: '#726E7030' }} />
         <Text style={{ color: '#666666', fontSize: 12, textAlign: "center", fontWeight: "500", lineHeight: 17 }}>

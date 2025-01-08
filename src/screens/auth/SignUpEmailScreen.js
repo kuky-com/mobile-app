@@ -34,6 +34,7 @@ const SignUpEmailScreen = ({ navigation }) => {
   const setToken = useSetAtom(tokenAtom);
   const pushToken = useAtomValue(pushTokenAtom);
   const [loading, setLoading] = useState(false);
+  const [accepted, setAccepted] = useState(false);
 
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
@@ -194,7 +195,7 @@ const SignUpEmailScreen = ({ navigation }) => {
       .post("auth/register", { full_name: fullName, email, password })
       .then((res) => {
         setLoading(false);
-        console.log({res: res.data})
+        console.log({ res: res.data })
         if (res && res.data && res.data.success) {
           navigation.navigate("EmailVerificationScreen", { email: email });
           Toast.show({ text1: res.data.message, type: "success" });
@@ -321,58 +322,65 @@ const SignUpEmailScreen = ({ navigation }) => {
                 />
               </TouchableOpacity>
             </View>
+
+            <View style={{ alignSelf: "center", width: Platform.isPad ? 600 : "100%", flexDirection: 'row', alignItems: 'flex-start', gap: 4, paddingHorizontal: 8 }}>
+              <TouchableOpacity onPress={() => setAccepted(old => !old)} style={{ width: 20, height: 20, marginTop: 3 }}>
+                <FontAwesome5 name={accepted ? 'check-square' : 'square'} solid={accepted} size={20} color={colors.mainColor} />
+              </TouchableOpacity>
+              <Text onPress={() => setAccepted(old => !old)} style={{ flex: 1, fontSize: 12, fontWeight: 'bold', color: 'black', lineHeight: 25 }}>{`I acknowledge that Kuky is not a substitute for professional mental health services or advice. I understand that Kuky's content is for informational and supportive purposes only.`}</Text>
+            </View>
+
+            <ButtonWithLoading disabled={!accepted} text={"Create an account"} onPress={onSignUp} loading={loading} />
+
             <View style={{ width: "100%", flexDirection: "row", alignItems: "center", gap: 5 }}>
               <View style={{ flex: 1, height: 1, backgroundColor: "#726E70" }} />
               <Text style={{ fontSize: 18, color: "#726E70", fontWeight: "bold" }}>or</Text>
               <View style={{ flex: 1, height: 1, backgroundColor: "#726E70" }} />
             </View>
+
             <View
-              style={{
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 10,
-                flexDirection: "row",
-              }}
+              style={{ alignItems: "center", justifyContent: "center", gap: 16, flexDirection: "row" }}
             >
               {Platform.OS === "ios" && (
                 <TouchableOpacity
                   onPress={onApple}
-                  style={{
+                  disabled={!accepted}
+                  style={[{
                     height: 54,
                     borderRadius: 25,
                     alignItems: "center",
                     justifyContent: "center",
                     width: 80,
                     backgroundColor: "#EEEEEE",
-                  }}
+                  }, styles.shadow]}
                 >
                   <Image
                     source={images.apple_icon}
-                    style={{ width: 20, height: 20 }}
+                    style={{ width: 20, height: 20, tintColor: accepted ? "#333333" : '#999999' }}
                     contentFit="contain"
                   />
                 </TouchableOpacity>
               )}
               <TouchableOpacity
                 onPress={onGoogle}
-                style={{
+                disabled={!accepted}
+                style={[{
                   height: 54,
                   borderRadius: 25,
                   alignItems: "center",
                   justifyContent: "center",
                   width: 80,
                   backgroundColor: "#EEEEEE",
-                }}
+                }, styles.shadow]}
               >
                 <Image
                   source={images.google_icon}
-                  style={{ width: 20, height: 20 }}
+                  style={{ width: 20, height: 20, tintColor: accepted ? "#333333" : '#999999' }}
                   contentFit="contain"
                 />
               </TouchableOpacity>
             </View>
 
-            <ButtonWithLoading text={"Create an account"} onPress={onSignUp} loading={loading} />
             <TouchableOpacity onPress={openSignIn} style={{ padding: 8 }}>
               <Text style={{ fontSize: 14, fontWeight: "700", color: "#333333" }}>Sign in</Text>
             </TouchableOpacity>

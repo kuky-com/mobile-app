@@ -11,7 +11,7 @@ const ITEM_WIDTH = Platform.isPad ? Dimensions.get('screen').width / 4 - 20 : Di
 
 const DynamicLikeItem = ({ itemWidth, item, onPress }) => {
     const [itemHeight, setItemHeight] = useState(Math.round(itemWidth * 1024 / 800));
-    const isRecentOnline = dayjs().diff(dayjs(item?.last_active_time), 'minutes') < 60;
+    const isRecentOnline = item?.last_active_time ? dayjs().diff(dayjs(item?.last_active_time), 'minutes') < 60 : false
 
     return (
         <TouchableOpacity onPress={() => onPress && onPress()} style={[styles.cardContainer, { width: itemWidth, height: itemHeight }]}>

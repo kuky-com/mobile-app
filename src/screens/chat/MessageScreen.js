@@ -942,7 +942,7 @@ const MessageScreen = ({ navigation, route }) => {
     });
   };
 
-  const isRecentOnline = currentConversation?.profile ? dayjs().diff(dayjs(currentConversation?.profile.last_active_time), 'minutes') < 60 : false
+  const isRecentOnline = currentConversation?.profile && currentConversation?.profile.last_active_time ? dayjs().diff(dayjs(currentConversation?.profile.last_active_time), 'minutes') < 60 : false
 
   return (
     <View style={styles.container}>

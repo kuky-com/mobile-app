@@ -113,25 +113,27 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
   };
 
   const selectFromLibrary = async () => {
-      let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['videos'],
-        allowsEditing: true,
-        quality: 1,
-        duration: 60000
-      })
-  
-      console.log(result);
-  
-      if (!result.canceled) {
-        if(result.assets[0].width > result.assets[0].height) {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['videos'],
+      allowsEditing: true,
+      quality: 1,
+      duration: 60000
+    })
+
+    console.log(result);
+
+    if (!result.canceled) {
+      if (result.assets[0].width > result.assets[0].height) {
+        setTimeout(() => {
           showNormalAlert('Error', 'Oops! Please upload a portrait video for the best experience.')
-          
-          return
-        }
-        setVideoUrl(result.assets[0])
+        }, 1000);
+
+        return
       }
+      setVideoUrl(result.assets[0])
     }
-  
+  }
+
 
   useEffect(() => {
     const updateTimer = async () => {
