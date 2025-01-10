@@ -29,6 +29,7 @@ import CustomVideo from "@/components/CustomVideo";
 import { useAlertWithIcon } from "../../components/AlertIconProvider";
 import * as ImagePicker from 'expo-image-picker'
 import { useAlert } from "../../components/AlertProvider";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -85,6 +86,13 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
   const [timer, setTimer] = useState(0);
 
   const [processing, setProcessing] = useState(false);
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: 'OnboardingVideoScreen',
+      screen_class: 'OnboardingVideoScreen'
+    })
+  }, [])
 
   const onLoad = (data) => {
     setStartPosition(0);

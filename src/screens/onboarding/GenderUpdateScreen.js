@@ -2,7 +2,7 @@ import Text from "@/components/Text";
 import images from "@/utils/images";
 import NavigationService from "@/utils/NavigationService";
 import { Image } from "expo-image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Dimensions, Platform, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SheetManager } from "react-native-actions-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,6 +16,7 @@ import DoubleSwitch from "@/components/DoubleSwitch";
 import SwitchWithText from "@/components/SwitchWithText";
 import apiClient from "@/utils/apiClient";
 import ButtonWithLoading from "@/components/ButtonWithLoading";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -58,6 +59,13 @@ const GenderUpdateScreen = ({ navigation, route }) => {
   const [gender, setGender] = useState(null);
   const [isPublic, setPublic] = useState(true);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: "GenderUpdateScreen",
+      screen_class: "GenderUpdateScreen",
+    });
+  }, [])
 
   const onContinue = () => {
     try {

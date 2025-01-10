@@ -19,6 +19,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import ButtonWithLoading from '@/components/ButtonWithLoading'
 import { useAlert } from '@/components/AlertProvider'
 import TextInput from '@/components/TextInput'
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
     container: {
@@ -58,6 +59,13 @@ const PurposeUpdateScreen = ({ navigation, route }) => {
     const [loading, setLoading] = useState(false)
     const inputRef = useRef()
     const showAlert = useAlert()
+
+    useEffect(() => {
+        analytics().logScreenView({
+            screen_name: 'PurposeUpdateScreen',
+            screen_class: 'PurposeUpdateScreen'
+        })
+    }, [])
 
     const onContinue = () => {
         if(loading) return

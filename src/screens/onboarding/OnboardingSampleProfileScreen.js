@@ -37,6 +37,7 @@ import colors from "../../utils/colors";
 import { Rating } from "@/components/Rating";
 import { getAuthenScreen } from "../../utils/utils";
 import { FontAwesome6 } from "@expo/vector-icons";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
     container: {
@@ -79,6 +80,14 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
     const videoRef = useRef(null);
 
     const currentProfile = (sampleProfiles && sampleProfiles.length > 0 && currentProfileIndex < sampleProfiles.length) ? sampleProfiles[currentProfileIndex] : null
+
+
+    useEffect(() => {
+        analytics().logScreenView({
+            screen_name: 'OnboardingSampleProfileScreen',
+            screen_class: 'OnboardingSampleProfileScreen'
+        })
+    }, [])
 
     const onRefresh = () => {
         if (sampleProfiles.length > 0) return

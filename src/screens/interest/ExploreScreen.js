@@ -12,6 +12,7 @@ import constants from '@/utils/constants';
 import { useAtom } from 'jotai';
 import { notiCounterAtom } from '@/actions/global';
 import colors from '@/utils/colors';
+import analytics from '@react-native-firebase/analytics'
 
 const ITEM_WIDTH = Platform.isPad ? Dimensions.get('screen').width / 4 - 20 : Dimensions.get('screen').width / 2 - 24;
 const PAGE_SIZE = 8
@@ -25,6 +26,13 @@ const ExploreScreen = ({ navigation }) => {
     const [page, setPage] = useState(1)
     const [loadingMore, setLoadingMore] = useState(false)
     const [canLoadMore, setCanLoadMore] = useState(true)
+
+    useEffect(() => {
+        analytics().logScreenView({
+            screen_name: 'ExploreScreen',
+            screen_class: 'ExploreScreen'
+        })
+    }, [])
 
     useEffect(() => {
         onRefresh()

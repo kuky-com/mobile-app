@@ -4,6 +4,7 @@ import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import React, { useEffect } from 'react'
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native'
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
     container: {
@@ -18,6 +19,13 @@ const styles = StyleSheet.create({
 })
 
 const GetStartScreen = ({ navigation }) => {
+
+    useEffect(() => {
+        analytics().logScreenView({
+            screen_name: 'GetStartScreen',
+            screen_class: 'GetStartScreen',
+        })
+    }, [])
 
     const getStart = () => {
         NavigationService.reset('SignUpScreen')

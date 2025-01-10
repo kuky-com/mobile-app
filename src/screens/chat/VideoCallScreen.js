@@ -6,10 +6,18 @@ import { useDirectCall } from "@/hooks/useDirectCall";
 import AvatarImage from "@/components/AvatarImage";
 import { BlurView } from "expo-blur";
 import { useKeepAwake } from 'expo-keep-awake'
+import analytics from '@react-native-firebase/analytics'
 
 export const VideoCallScreen = ({ route, navigation }) => {
   const { call, status, currentAudioDeviceIOS, callLog } = useDirectCall(route.params.callId);
   useKeepAwake()
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: "VideoCallScreen",
+      screen_class: "VideoCallScreen",
+    })
+  }, [])
 
   useEffect(() => {
     if (status === "ended") {

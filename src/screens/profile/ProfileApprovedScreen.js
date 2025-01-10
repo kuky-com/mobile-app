@@ -8,6 +8,7 @@ import LottieView from "lottie-react-native";
 import React, { useEffect, useState } from "react";
 import { Dimensions, StyleSheet, TextBase, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -22,6 +23,13 @@ const styles = StyleSheet.create({
 
 const ProfileApprovedScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: "ProfileApprovedScreen",
+      screen_class: "ProfileApprovedScreen",
+    })
+  }, [])
 
   useEffect(() => {
     AsyncStorage.setItem("LAST_PROFILE_STATUS_CHECK", dayjs().format());

@@ -41,6 +41,8 @@ import customParseFormat from "dayjs/plugin/customParseFormat"
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import { SendbirdCalls } from "@sendbird/calls-react-native";
 import { AlertIconProvider } from "./src/components/AlertIconProvider";
+import DeviceInfo from "react-native-device-info";
+import { NODE_ENV } from "./src/utils/apiClient";
 
 dayjs.extend(advancedFormat);
 dayjs.extend(relativeTime);
@@ -48,6 +50,12 @@ dayjs.extend(customParseFormat);
 dayjs.extend(duration)
 
 const queryClient = new QueryClient();
+
+if(NODE_ENV === 'development') {
+  analytics().setAnalyticsCollectionEnabled(false)
+} else {
+  analytics().setAnalyticsCollectionEnabled(true)
+}
 
 {
   /* <BaseToast

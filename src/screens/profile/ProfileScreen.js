@@ -21,6 +21,7 @@ import { ResizeMode, Video } from 'expo-av'
 import CustomVideo from '@/components/CustomVideo'
 import { FontAwesome6 } from '@expo/vector-icons'
 import ShareModal from '../../components/ShareModal'
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
     container: {
@@ -57,6 +58,13 @@ const ProfileScreen = ({ navigation }) => {
 
     const [playing, setPlaying] = useState(false)
     const videoRef = useRef(null)
+
+    useEffect(() => {
+        analytics().logScreenView({
+            screen_name: 'ProfileScreen',
+            screen_class: 'ProfileScreen'
+        })
+    }, [])
 
     useEffect(() => {
         onRefresh()

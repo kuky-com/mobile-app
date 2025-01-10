@@ -22,6 +22,7 @@ import {
 import Purchases from "react-native-purchases";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -46,6 +47,13 @@ const PremiumRequestScreen = ({ navigation, route }) => {
   const [planIndex, setPlanIndex] = useState(null);
   const [subscriptions, setSubscriptions] = useState([]);
   const [customerInfo, setCustomerInfo] = useState();
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: 'PremiumRequestScreen',
+      screen_class: 'PremiumRequestScreen'
+    })
+  }, []);
 
   useEffect(() => {
     const loadSubscriptions = async () => {
@@ -272,7 +280,7 @@ const PremiumRequestScreen = ({ navigation, route }) => {
         </View>
       </ScrollView>
 
-<Text style={{fontSize: 15, color: 'white', width: '100%', textAlign: "center"}}>Includes 7 Days Free Trial</Text>
+      <Text style={{ fontSize: 15, color: 'white', width: '100%', textAlign: "center" }}>Includes 3 Months Free Trial</Text>
       {customerInfo &&
         customerInfo.latestExpirationDate &&
         dayjs().isBefore(dayjs(customerInfo.latestExpirationDate)) ? (

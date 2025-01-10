@@ -16,6 +16,7 @@ import Toast from 'react-native-toast-message'
 import { useAtom, useSetAtom } from 'jotai'
 import { userAtom } from '@/actions/global'
 import { getAuthenScreen } from '@/utils/utils'
+import analytics from '@react-native-firebase/analytics'
 
 const imageImage = `avatar${dayjs().unix()}.png`
 
@@ -53,6 +54,13 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
     const [imageUrl, setImageUrl] = useState(null)
     const [loading, setLoading] = useState(false)
     const [currentUser, setUser] = useAtom(userAtom)
+
+    useEffect(() => {
+        analytics().logScreenView({
+            screen_name: 'AvatarUpdateScreen',
+            screen_class: 'AvatarUpdateScreen',
+        })
+    }, [])
 
     useEffect(() => {
         if (imageUrl !== null) {

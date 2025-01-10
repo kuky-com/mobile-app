@@ -6,7 +6,7 @@ import images from "@/utils/images";
 import NavigationService from "@/utils/NavigationService";
 import { Image } from "expo-image";
 import { useAtom } from "jotai";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Keyboard,
   Linking,
@@ -20,6 +20,7 @@ import { SheetManager } from "react-native-actions-sheet";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -46,6 +47,13 @@ const NotificationSettingScreen = ({ navigation }) => {
     currentUser?.emailNotificationEnable,
   );
   const [subscribeEmail, setSubscribeEmail] = useState(currentUser?.subscribeEmail);
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: 'NotificationSettingScreen',
+      screen_class: 'NotificationSettingScreen',
+    })
+  }, [])
 
   const updateProfile = async () => {
     try {

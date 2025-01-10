@@ -10,7 +10,7 @@ import { capitalize } from "@/utils/utils";
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 import { useAtom } from "jotai";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   DeviceEventEmitter,
@@ -23,6 +23,7 @@ import {
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -44,6 +45,13 @@ const DislikeUpdateScreen = ({ navigation, route }) => {
   const [currentUser, setCurrentUser] = useAtom(userAtom);
   const [loading, setLoading] = useState(false);
   const showAlert = useAlert();
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: "DislikeUpdateScreen",
+      screen_class: "DislikeUpdateScreen",
+    })
+  }, [])
 
   const onAddNewTag = () => {
     Keyboard.dismiss();

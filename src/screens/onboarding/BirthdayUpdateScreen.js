@@ -18,6 +18,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import ButtonWithLoading from '@/components/ButtonWithLoading'
 import { getAuthenScreen } from '@/utils/utils'
 import TextInput from '@/components/TextInput'
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
     container: {
@@ -62,6 +63,13 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
 
     const monthInputRef = useRef(null);
     const yearInputRef = useRef(null);
+
+    useEffect(() => {
+        analytics().logScreenView({
+            screen_name: 'BirthdayUpdateScreen',
+            screen_class: 'BirthdayUpdateScreen'
+        })
+    }, [])
 
     const handleMonthChange = (text) => {
         if (/^\d{0,2}$/.test(text)) {

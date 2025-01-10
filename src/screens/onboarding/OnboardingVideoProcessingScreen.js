@@ -20,6 +20,7 @@ import { useAtomValue } from 'jotai'
 import { userAtom } from '../../actions/global'
 import { useAlertWithIcon } from '../../components/AlertIconProvider'
 import { NODE_ENV } from '../../utils/apiClient'
+import analytics from '@react-native-firebase/analytics'
 
 const OnboardingVideoProcessingScreen = ({ navigation, route }) => {
     const insets = useSafeAreaInsets()
@@ -30,6 +31,13 @@ const OnboardingVideoProcessingScreen = ({ navigation, route }) => {
     const currentUser = useAtomValue(userAtom)
     const [processingData, setProcessingData] = useState(null)
     const [progress, setProgress] = useState(0)
+
+    useEffect(() => {
+        analytics().logScreenView({
+            screen_name: 'OnboardingVideoProcessingScreen',
+            screen_class: 'OnboardingVideoProcessingScreen'
+        })
+    }, [])
 
     useEffect(() => {
         uploadFileToAws()

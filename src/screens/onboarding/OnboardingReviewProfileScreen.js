@@ -16,6 +16,7 @@ import { Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -44,6 +45,13 @@ const OnboardingReviewProfileScreen = ({ navigation, route }) => {
   const nameInputRef = useRef(null);
   const birthdayInputRef = useRef(null);
   const locationInputRef = useRef(null);
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: 'OnboardingReviewProfileScreen',
+      screen_class: 'OnboardingReviewProfileScreen',
+    });
+  }, [])
 
   useEffect(() => {
     apiClient

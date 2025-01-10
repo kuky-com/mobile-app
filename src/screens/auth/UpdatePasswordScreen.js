@@ -5,12 +5,13 @@ import apiClient from "@/utils/apiClient";
 import images from "@/utils/images";
 import NavigationService from "@/utils/NavigationService";
 import { Image } from "expo-image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Keyboard, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SheetManager } from "react-native-actions-sheet";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -33,6 +34,13 @@ const UpdatePasswordScreen = ({ navigation }) => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: "UpdatePasswordScreen",
+      screen_class: "UpdatePasswordScreen",
+    })
+  }, [])
 
   const updatePassword = async () => {
     if (oldPassword.length < 6 || newPassword.length < 6) {

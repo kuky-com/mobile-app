@@ -13,6 +13,7 @@ import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Dimensions, StyleSheet, View } from "react-native";
 import { registerToken } from "../../utils/sendbird";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -31,6 +32,13 @@ const FirstTimeScreen = ({ navigation }) => {
   const pushToken = useAtomValue(pushTokenAtom);
   const [isFirstTime, setIsFirstTime] = useState(true);
   const insets = useSafeAreaInsets()
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: "FirstTimeScreen",
+      screen_class: "FirstTimeScreen",
+    })
+  }, [])
 
   const openGetStart = () => {
     NavigationService.reset("LetDiscoverScreen");

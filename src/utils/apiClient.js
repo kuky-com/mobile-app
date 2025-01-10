@@ -6,7 +6,7 @@ const apiClient = axios.create({
   // // baseURL: "http://192.168.165.237:8000/api",
   baseURL: 'https://api.kuky.com/api',
   // baseURL: 'https://dev.api.kuky.com/api',
-  timeout: 30000,
+  timeout: 40000,
 });
 
 // export const NODE_ENV = 'development'

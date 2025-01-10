@@ -6,6 +6,7 @@ import LottieView from "lottie-react-native";
 import React, { useEffect, useState } from "react";
 import { Dimensions, StyleSheet, TextBase, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -21,6 +22,13 @@ const styles = StyleSheet.create({
 const OnboardingCompleteScreen = ({ navigation }) => {
   const [animation, setAnimation] = useState(true);
   const insets = useSafeAreaInsets();
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: "OnboardingCompleteScreen",
+      screen_class: "OnboardingCompleteScreen",
+    });
+  }, [])
 
   useEffect(() => {
     setTimeout(() => {

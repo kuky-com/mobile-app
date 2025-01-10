@@ -8,6 +8,7 @@ import { useAtomValue } from "jotai";
 import React, { useEffect } from "react";
 import { Dimensions, StyleSheet, TextBase, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -24,6 +25,13 @@ const GetMatchScreen = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
   const { match } = route.params;
   const currentUser = useAtomValue(userAtom);
+  
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: "GetMatchScreen",
+      screen_class: "GetMatchScreen",
+    })
+  }, [])
 
   const onContinue = () => {
     if (currentUser?.id === match.sender_id) {

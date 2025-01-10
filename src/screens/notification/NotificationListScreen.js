@@ -10,6 +10,7 @@ import React, { useEffect, useState } from 'react'
 import { DeviceEventEmitter, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import Toast from 'react-native-toast-message'
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
     container: {
@@ -20,6 +21,13 @@ const styles = StyleSheet.create({
 const NotificationListScreen = ({ navigation }) => {
     const [notifications, setNotifications] = useState([])
     const [isFetching, setFetching] = useState(false)
+
+    useEffect(() => {
+        analytics().logScreenView({
+            screen_name: 'NotificationListScreen',
+            screen_class: 'NotificationListScreen',
+        })
+    }, [])
 
     const onRefresh = () => {
         setFetching(true)

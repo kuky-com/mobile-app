@@ -9,6 +9,7 @@ import {
   AppState,
   DeviceEventEmitter,
   Dimensions,
+  Keyboard,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -47,6 +48,7 @@ import { formatCallSeconds } from "../../utils/utils";
 import TypingBubble from "../../components/TypingBubble";
 import LoadingView from "../../components/LoadingView";
 import { NODE_ENV } from "../../utils/apiClient";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -212,8 +214,37 @@ const MessageScreen = ({ navigation, route }) => {
   const [isCallAvailable, setIsCallAvailable] = useState(false)
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const scrollY = new Animated.Value(0);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   usePermissions(CALL_PERMISSIONS);
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: 'MessageScreen',
+      screen_class: 'MessageScreen'
+    })
+  }, [])
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      event => {
+        setKeyboardHeight(event.endCoordinates.height);
+      },
+    );
+
+    const keyboardDidHideListener = Keyboard.addListener(
+      "keyboardDidHide",
+      () => {
+        setKeyboardHeight(0);
+      },
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
 
   const loadSubscriptionInfo = async () => {
     try {
@@ -501,7 +532,7 @@ const MessageScreen = ({ navigation, route }) => {
     } else {
       contentView = (
         <View style={{ gap: 1, alignItems: 'flex-end' }}>
-          <Text style={{ fontSize: 13, color: currentMessage?.user?._id === 0 ? '#f0f0f0' : 'black', lineHeight: 20 }}>{currentMessage?.text}</Text>
+          <Text selectable style={{ fontSize: 13, color: currentMessage?.user?._id === 0 ? '#f0f0f0' : 'black', lineHeight: 20 }}>{currentMessage?.text}</Text>
           <Text style={{ color: currentMessage?.user?._id === 0 ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
         </View>
       )
@@ -1066,6 +1097,11 @@ const MessageScreen = ({ navigation, route }) => {
         listViewProps={{
           onScroll: handleScroll,
           scrollEventThrottle: 16,
+          contentContainerStyle: {
+            flexGrow: 1,
+            justifyContent: "flex-start",
+            paddingBottom: keyboardHeight,
+          },
         }}
       />
       {loading && (

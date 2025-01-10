@@ -21,6 +21,7 @@ import { userAtom } from '@/actions/global'
 import constants from '@/utils/constants'
 import { useAlert } from '@/components/AlertProvider'
 import TextInput from '@/components/TextInput'
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
     container: {
@@ -61,6 +62,13 @@ const PurposeProfileScreen = ({ navigation, route }) => {
     const inputRef = useRef()
     const setCurrentUser = useSetAtom(userAtom)
     const showAlert = useAlert()
+
+    useEffect(() => {
+        analytics().logScreenView({
+            screen_name: 'PurposeProfileScreen',
+            screen_class: 'PurposeProfileScreen'
+        })
+    }, [])
 
     useEffect(() => {
         apiClient.get('interests/purposes')

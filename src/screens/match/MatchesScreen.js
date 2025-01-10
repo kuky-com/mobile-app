@@ -22,6 +22,7 @@ import Toast from "react-native-toast-message";
 import constants from "@/utils/constants";
 import { useAtomValue, useSetAtom } from "jotai";
 import { totalMessageCounterAtom, totalMessageUnreadAtom, userAtom } from "@/actions/global";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -37,6 +38,13 @@ const MatchesScreen = ({ navigation }) => {
   const [isFetching, setFetching] = useState(false);
   const unreadMessage = useAtomValue(totalMessageCounterAtom);
   const setUnreadCounter = useSetAtom(totalMessageUnreadAtom);
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: 'MatchesScreen',
+      screen_class: 'MatchesScreen'
+    })
+  }, [])
 
   useEffect(() => {
     onRefresh();

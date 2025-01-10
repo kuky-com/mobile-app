@@ -14,11 +14,21 @@ import LoadingView from "@/components/LoadingView";
 import NavigationService from "@/utils/NavigationService";
 import colors from "@/utils/colors";
 import { TouchableOpacity } from "react-native-gesture-handler";
+import analytics from '@react-native-firebase/analytics'
+import { useEffect } from "react";
 
 export const ReviewsScreen = ({ navigation, route }) => {
   const { profileId, avatar, full_name, matchInfo } = route.params;
   const insets = useSafeAreaInsets();
   const { isFetched, data, refetch, isRefetching } = useUserReviews(profileId);
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: "ReviewsScreen",
+      screen_class: "ReviewsScreen",
+    })
+  }, [])
+
   return (
     <View className="flex h-full">
       <Header
@@ -100,10 +110,10 @@ export const ReviewsScreen = ({ navigation, route }) => {
                       className="flex grow"
                       onPress={() => {
                         console.log({
-                          profile: { id: item.reviewer.id, full_name: item.reviewer.full_name },
+                          profile: { id: item.reviewer.id, full_name: item.reviewer?.full_name },
                         });
                         NavigationService.push("ConnectProfileScreen", {
-                          profile: { id: item.reviewer.id, full_name: item.reviewer.full_name },
+                          profile: { id: item.reviewer.id, full_name: item.reviewer?.full_name },
                         });
                       }}
                     >
@@ -111,7 +121,7 @@ export const ReviewsScreen = ({ navigation, route }) => {
                         <View className="flex flex-row items-center gap-1">
                           <AvatarImage
                             avatar={item.reviewer.avatar}
-                            full_name={item.reviewer.full_name}
+                            full_name={item.reviewer?.full_name}
                             style={{
                               height: 25,
                               width: 25,
@@ -119,7 +129,7 @@ export const ReviewsScreen = ({ navigation, route }) => {
                             }}
                           />
                           <Text style={{ fontWeight: "600", width: 80 }}>
-                            {item.reviewer.full_name}
+                            {item.reviewer?.full_name}
                           </Text>
                           <Rating disabled={true} size={15} rating={item.rating} />
                         </View>

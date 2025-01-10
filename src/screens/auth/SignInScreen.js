@@ -20,6 +20,7 @@ import ButtonWithLoading from "@/components/ButtonWithLoading";
 import { FontAwesome5 } from "@expo/vector-icons";
 import TextInput from "@/components/TextInput";
 import { authenticate } from "../../utils/sendbird";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -37,6 +38,13 @@ const SignInScreen = ({ navigation }) => {
   const pushToken = useAtomValue(pushTokenAtom);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: "SignInScreen",
+      screen_class: "SignInScreen",
+    })
+  }, [])
 
   useEffect(() => {
     GoogleSignin.configure({

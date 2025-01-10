@@ -4,8 +4,17 @@ import DirectCallControllerView from "@/components/DirectCallControllerView";
 import { useDirectCall } from "@/hooks/useDirectCall";
 import { BlurView } from "expo-blur";
 import AvatarImage from "@/components/AvatarImage";
+import analytics from '@react-native-firebase/analytics'
+
 export const VoiceCallScreen = ({ route, navigation }) => {
   const { call, status, currentAudioDeviceIOS, callLog } = useDirectCall(route.params.callId);
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: "VoiceCallScreen",
+      screen_class: "VoiceCallScreen",
+    })
+  }, [])
 
   useEffect(() => {
     if (status === "ended") {

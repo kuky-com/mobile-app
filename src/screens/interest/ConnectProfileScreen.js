@@ -38,6 +38,7 @@ import { Rating } from "@/components/Rating";
 import ShareModal from "../../components/ShareModal";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { isStringInteger } from "../../utils/utils";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -96,6 +97,13 @@ const ConnectProfileScreen = ({ navigation, route }) => {
 
   const videoRef = useRef(null);
 
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: 'ConnectProfileScreen',
+      screen_class: 'ConnectProfileScreen'
+    })
+  }, [])
+
   const onRefresh = () => {
     try {
       setLoading(true);
@@ -105,7 +113,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
           setLoading(false);
           if (res && res.data && res.data.success) {
             if (res.data.data.blocked) {
-              setCurrentProfile({ full_name: profile.full_name });
+              setCurrentProfile({ full_name: profile?.full_name });
 
               showAlert("Not found", "User profile is not available!", [
                 {

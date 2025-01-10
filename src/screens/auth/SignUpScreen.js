@@ -17,6 +17,9 @@ import LoadingView from "@/components/LoadingView";
 import { authenticate, registerToken } from "../../utils/sendbird";
 import { FontAwesome5 } from "@expo/vector-icons";
 import colors from "../../utils/colors";
+import analytics from '@react-native-firebase/analytics'
+import { getBuildNumber, getVersion } from "react-native-device-info";
+import { NODE_ENV } from "../../utils/apiClient";
 
 const styles = StyleSheet.create({
   container: {
@@ -38,6 +41,13 @@ const SignUpScreen = ({ navigation }) => {
   const pushToken = useAtomValue(pushTokenAtom);
   const [loading, setLoading] = useState(false);
   const [accepted, setAccepted] = useState(false)
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: "SignUpScreen",
+      screen_class: "SignUpScreen",
+    })
+  }, [])
 
   useEffect(() => {
     GoogleSignin.configure({
@@ -188,6 +198,10 @@ const SignUpScreen = ({ navigation }) => {
     NavigationService.reset("SignInScreen");
   };
 
+  const openTerm = () => {
+    Linking.openURL("https://www.kuky.com/terms-and-service");
+  };
+
   const openPolicy = () => {
     Linking.openURL("https://www.kuky.com/privacy-policy");
   };
@@ -210,8 +224,8 @@ const SignUpScreen = ({ navigation }) => {
           paddingBottom: 48,
         }}
       >
-        <View style={{paddingVertical: 16, alignItems: 'center', justifyContent: 'center', width: '100%', gap: 32}}>
-          <Text style={{fontSize: 22, fontWeight: 'bold', color: '#333333'}}>Welcome to Kuky</Text>
+        <View style={{ paddingVertical: 16, alignItems: 'center', justifyContent: 'center', width: '100%', gap: 32 }}>
+          <Text style={{ fontSize: 22, fontWeight: 'bold', color: '#333333' }}>Welcome to Kuky</Text>
           <TouchableOpacity
             onPress={onSignUp}
             style={{
@@ -278,7 +292,7 @@ const SignUpScreen = ({ navigation }) => {
           <Text onPress={() => setAccepted(old => !old)} style={{ flex: 1, fontSize: 14, fontWeight: 'bold', color: 'black', lineHeight: 25 }}>{`I acknowledge that Kuky is not a substitute for professional mental health services or advice. I understand that Kuky's content is for informational and supportive purposes only.`}</Text>
         </View> */}
 
-          <Text onPress={onSignIn} style={{ fontSize: 20, fontWeight: "700", color: "#6900D3" }}>
+          <Text onPress={onSignIn} style={{ textDecorationLine: 'underline', fontSize: 20, fontWeight: "bold", color: colors.mainColor }}>
             Sign in
           </Text>
         </View>
@@ -286,7 +300,7 @@ const SignUpScreen = ({ navigation }) => {
         <View style={{ width: '100%', height: 1, backgroundColor: '#726E7030' }} />
         <Text style={{ color: '#666666', fontSize: 12, textAlign: "center", fontWeight: "500", lineHeight: 17 }}>
           {`By tapping Sign Up / Login, you agree to our `}
-          <Text style={{ textDecorationLine: "underline", fontWeight: "bold" }}>Terms</Text>
+          <Text onPress={openTerm} style={{ textDecorationLine: "underline", fontWeight: "bold" }}>Terms</Text>
           {` .\nLearn how we process your data in our  `}
           <Text
             onPress={openPolicy}
@@ -302,6 +316,18 @@ const SignUpScreen = ({ navigation }) => {
             Cookies Policy
           </Text>
           {`.`}
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 9,
+            color: "#aaaaaa",
+            fontWeight: "bold",
+            width: "100%",
+            textAlign: "center",
+          }}
+        >
+          {`Version ${getVersion()} - ${NODE_ENV.toUpperCase()} - Build ${getBuildNumber()} - ${Platform.OS.toUpperCase()} - © 2024 Kuky`}
         </Text>
       </View>
 

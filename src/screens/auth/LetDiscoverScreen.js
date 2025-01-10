@@ -6,6 +6,7 @@ import React, { useEffect } from 'react'
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native'
 import colors from '../../utils/colors'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
     container: {
@@ -19,6 +20,13 @@ const styles = StyleSheet.create({
 
 const LetDiscoverScreen = ({ navigation }) => {
     const insets = useSafeAreaInsets()
+
+    useEffect(() => {
+        analytics().logScreenView({
+            screen_name: 'LetDiscoverScreen',
+            screen_class: 'LetDiscoverScreen'
+        })
+    }, [])
 
     const openSignIn = () => {
         NavigationService.reset('SignInScreen')

@@ -37,6 +37,7 @@ import colors from "../../utils/colors";
 import { Rating } from "@/components/Rating";
 import ShareModal from "../../components/ShareModal";
 import { FontAwesome6 } from "@expo/vector-icons";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -81,6 +82,13 @@ const SampleProfileScreen = ({ navigation, route }) => {
 
   const videoRef = useRef(null);
 
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: 'SampleProfileScreen',
+      screen_class: 'SampleProfileScreen'
+    })
+  }, [])
+
   const onRefresh = () => {
     try {
       setLoading(true);
@@ -90,7 +98,7 @@ const SampleProfileScreen = ({ navigation, route }) => {
           setLoading(false);
           if (res && res.data && res.data.success) {
             if (res.data.data.blocked) {
-              setCurrentProfile({ full_name: profile.full_name });
+              setCurrentProfile({ full_name: profile?.full_name });
 
               showAlert("Not found", "User profile is not available!", [
                 {
@@ -307,7 +315,7 @@ const SampleProfileScreen = ({ navigation, route }) => {
               >
                 {!playing && (
                   <Text style={{ fontSize: 32, color: "white", fontWeight: "bold" }}>
-                    {currentProfile.full_name}
+                    {currentProfile?.full_name}
                   </Text>
                 )}
 

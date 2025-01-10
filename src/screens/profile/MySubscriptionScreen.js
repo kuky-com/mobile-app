@@ -24,6 +24,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import Purchases from "react-native-purchases";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -52,6 +53,13 @@ const MySubscriptionScreen = ({ navigation }) => {
   const [expiredDate, setExpiredDate] = useState(null);
   const [activePlan, setActivePlan] = useState(null);
   const [activeSubscription, setActiveSubscription] = useState(null);
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: 'MySubscriptionScreen',
+      screen_class: 'MySubscriptionScreen',
+    })
+  }, [])
 
   useEffect(() => {
     const loadSubscriptions = async () => {
