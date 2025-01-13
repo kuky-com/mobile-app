@@ -24,6 +24,7 @@ import {
   Composer,
   Time,
   Avatar,
+  Day,
 } from "react-native-gifted-chat";
 import { SheetManager } from "react-native-actions-sheet";
 import { StatusBar } from "expo-status-bar";
@@ -49,6 +50,7 @@ import TypingBubble from "../../components/TypingBubble";
 import LoadingView from "../../components/LoadingView";
 import { NODE_ENV } from "../../utils/apiClient";
 import analytics from '@react-native-firebase/analytics'
+import OnlineStatus from "../../components/OnlineStatus";
 
 const styles = StyleSheet.create({
   container: {
@@ -154,6 +156,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "black",
     textAlignVertical: "top",
+    lineHeight: 22,
   },
   rightMessageContainer: {
     backgroundColor: "#E0E1DD",
@@ -166,7 +169,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   leftMessageContainer: {
-    backgroundColor: "#CFC7F7",
+    backgroundColor: "#726F70",
     borderBottomRightRadius: 10,
     borderBottomLeftRadius: 2.5,
     borderTopRightRadius: 10,
@@ -192,9 +195,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#47F644',
   },
   onlineStatusBg: {
-    width: 12, height: 12, borderRadius: 6,
-    backgroundColor: '#5BFF5830',
-    alignItems: 'center', justifyContent: 'center',
     position: 'absolute', top: -2, right: -2
   },
 });
@@ -481,7 +481,7 @@ const MessageScreen = ({ navigation, route }) => {
   }, [currentConversation, currentUser?.id]);
 
   const renderMessage = (props) => {
-    const { currentMessage } = props
+    const { currentMessage, previousMessage } = props
     // if (currentMessage.type === 'missed_voice_call' || currentMessage.type === 'missed_video_call' || currentMessage.type === 'voice_call' || currentMessage.type === 'video_call') {
     let contentView = null
 
@@ -493,10 +493,10 @@ const MessageScreen = ({ navigation, route }) => {
           <Image source={currentMessage?.user?._id === currentUser?.id ? images.out_voice_call : images.missed_voice_call}
             style={{ width: 30, height: 30 }} contentFit="contain" />
           <TouchableOpacity onPress={() => calling(true)} style={{ gap: 1 }}>
-            <Text style={{ fontSize: 13, fontWeight: 'bold', lineHeight: 20, color: 'black' }}>{currentMessage?.user?._id === currentUser?.id ? 'Voice call' : 'Missed voice call'}</Text>
+            <Text style={{ fontSize: 13, fontWeight: 'bold', lineHeight: 20, color: currentMessage?.user?._id !== currentUser?.id ? '#f0f0f0' : 'black' }}>{currentMessage?.user?._id === currentUser?.id ? 'Voice call' : 'Missed voice call'}</Text>
             <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
-              <Text style={{ fontSize: 13, color: '#4c4c4c', lineHeight: 20 }}>{currentMessage?.user?._id === currentUser?.id ? 'No answer' : 'tap to call back'}</Text>
-              <Text style={{ color: '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
+              <Text style={{ fontSize: 13, color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#4c4c4c', lineHeight: 20 }}>{currentMessage?.user?._id === currentUser?.id ? 'No answer' : 'tap to call back'}</Text>
+              <Text style={{ color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -507,10 +507,10 @@ const MessageScreen = ({ navigation, route }) => {
           <Image source={currentMessage?.user?._id === currentUser?.id ? images.out_video_call : images.missed_video_call}
             style={{ width: 30, height: 30 }} contentFit="contain" />
           <TouchableOpacity onPress={() => calling(true)} style={{ gap: 1 }}>
-            <Text style={{ fontSize: 13, fontWeight: 'bold', lineHeight: 20, color: 'black' }}>{currentMessage?.user?._id === currentUser?.id ? 'Video call' : 'Missed video call'}</Text>
+            <Text style={{ fontSize: 13, fontWeight: 'bold', lineHeight: 20, color: currentMessage?.user?._id !== currentUser?.id ? '#f0f0f0' : 'black' }}>{currentMessage?.user?._id === currentUser?.id ? 'Video call' : 'Missed video call'}</Text>
             <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
-              <Text style={{ fontSize: 13, color: '#4c4c4c', lineHeight: 20 }}>{currentMessage?.user?._id === currentUser?.id ? 'No answer' : 'tap to call back'}</Text>
-              <Text style={{ color: '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
+              <Text style={{ fontSize: 13, color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#4c4c4c', lineHeight: 20 }}>{currentMessage?.user?._id === currentUser?.id ? 'No answer' : 'tap to call back'}</Text>
+              <Text style={{ color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -521,10 +521,10 @@ const MessageScreen = ({ navigation, route }) => {
           <Image source={currentMessage.type === 'video_call' ? images.out_video_call : images.out_voice_call}
             style={{ width: 30, height: 30 }} contentFit="contain" />
           <View style={{ gap: 1 }}>
-            <Text style={{ fontSize: 13, fontWeight: 'bold', lineHeight: 20, color: 'black' }}>{currentMessage.type === 'video_call' ? 'Video call' : 'Voice call'}</Text>
+            <Text style={{ fontSize: 13, fontWeight: 'bold', lineHeight: 20, color: currentMessage?.user?._id !== currentUser?.id ? '#f0f0f0' : 'black' }}>{currentMessage.type === 'video_call' ? 'Video call' : 'Voice call'}</Text>
             <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
-              <Text style={{ fontSize: 13, color: '#4c4c4c', lineHeight: 20 }}>{currentMessage?.text}</Text>
-              <Text style={{ color: '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
+              <Text style={{ fontSize: 13, color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#4c4c4c', lineHeight: 20 }}>{currentMessage?.text}</Text>
+              <Text style={{ color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
             </View>
           </View>
         </View>
@@ -532,38 +532,46 @@ const MessageScreen = ({ navigation, route }) => {
     } else {
       contentView = (
         <View style={{ gap: 1, alignItems: 'flex-end' }}>
-          <Text selectable style={{ fontSize: 13, color: currentMessage?.user?._id === 0 ? '#f0f0f0' : 'black', lineHeight: 20 }}>{currentMessage?.text}</Text>
-          <Text style={{ color: currentMessage?.user?._id === 0 ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
+          <Text selectable style={{ fontSize: 13, color: currentMessage?.user?._id !== currentUser?.id ? '#f0f0f0' : 'black', lineHeight: 20 }}>{currentMessage?.text}</Text>
+          <Text style={{ color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
         </View>
       )
     }
 
-    return (
-      <View style={{
-        width: '100%', paddingHorizontal: 8,
-        flexDirection: 'row', alignItems: 'center',
-        justifyContent: currentMessage?.user?._id === currentUser?.id ? 'flex-end' : 'flex-start',
-        gap: 8, paddingBottom: 3
-      }}>
-        <View style={{ width: 45 }}>
-          {
-            ((currentMessage.showUserAvatar || currentMessage.isTyping) && currentMessage?.user?._id !== currentUser?.id) && renderAvatar(props)
-          }
-        </View>
-        <View style={[currentMessage?.user?._id === currentUser?.id ? styles.rightMessageContainer : (currentMessage?.user?._id === 0 ? styles.botMessageContainer : styles.leftMessageContainer), {
-          maxWidth: Dimensions.get('screen').width - 28 - (currentMessage?.user?._id !== currentUser?.id ? 45 : 0)
-        }]}>
-          {contentView}
-        </View>
+    const isNewDay =
+      !previousMessage ||
+      new Date(previousMessage.createdAt).toDateString() !==
+      new Date(currentMessage.createdAt).toDateString();
 
-        <View style={{ position: 'absolute', bottom: 6, right: 8 }}>
-          {!!currentMessage.received && currentMessage.user._id === currentUser?.id && currentUser?.id && (
-            <Text style={{ color: "#6C6C6C", fontWeight: "bold", fontSize: 8 }}>Read</Text>
-          )}
-          {!!currentMessage.sent &&
-            !currentMessage.received &&
-            currentMessage.user._id === currentUser?.id &&
-            currentUser?.id && <Text style={{ color: "#6C6C6C", fontSize: 8 }}>Delivered</Text>}
+    return (
+      <View>
+        {isNewDay && <Day {...props} />}
+        <View style={{
+          width: '100%', paddingHorizontal: 8,
+          flexDirection: 'row', alignItems: 'center',
+          justifyContent: currentMessage?.user?._id === currentUser?.id ? 'flex-end' : 'flex-start',
+          gap: 8, paddingBottom: 2, paddingTop: 2
+        }}>
+          <View style={{ width: 45 }}>
+            {
+              ((currentMessage.showUserAvatar || currentMessage.isTyping) && currentMessage?.user?._id !== currentUser?.id) && renderAvatar(props)
+            }
+          </View>
+          <View style={[currentMessage?.user?._id === currentUser?.id ? styles.rightMessageContainer : (currentMessage?.user?._id === 0 ? styles.botMessageContainer : styles.leftMessageContainer), {
+            maxWidth: Dimensions.get('screen').width - 28 - (currentMessage?.user?._id !== currentUser?.id ? 45 : 0)
+          }]}>
+            {contentView}
+          </View>
+
+          <View style={{ position: 'absolute', bottom: 6, right: 8 }}>
+            {!!currentMessage.received && currentMessage.user._id === currentUser?.id && currentUser?.id && (
+              <Text style={{ color: "#6C6C6C", fontWeight: "bold", fontSize: 8 }}>Read</Text>
+            )}
+            {!!currentMessage.sent &&
+              !currentMessage.received &&
+              currentMessage.user._id === currentUser?.id &&
+              currentUser?.id && <Text style={{ color: "#6C6C6C", fontSize: 8 }}>Delivered</Text>}
+          </View>
         </View>
       </View>
     )
@@ -923,10 +931,13 @@ const MessageScreen = ({ navigation, route }) => {
   const renderAvatar = (props) => {
     if (props.currentMessage.user._id === 0) {
       return (
-        <Image
-          style={{ width: 48, height: 48, borderRadius: 24 }}
-          source={images.bot_avatar}
-        />
+        <TouchableOpacity onPress={() => navigation.navigate("BotProfileScreen")}>
+          <Image
+            style={{ width: 48, height: 48, borderRadius: 24 }}
+            source={images.bot_avatar}
+          />
+        </TouchableOpacity>
+
       )
     }
 
@@ -1018,7 +1029,7 @@ const MessageScreen = ({ navigation, route }) => {
           />
           {isRecentOnline &&
             <View style={styles.onlineStatusBg}>
-              <View style={styles.onlineStatus} />
+              <OnlineStatus isRecentOnline={isRecentOnline} status={currentConversation?.profile?.online_status} radius={12} />
             </View>
           }
         </TouchableOpacity>
@@ -1072,21 +1083,6 @@ const MessageScreen = ({ navigation, route }) => {
         renderComposer={renderComposer}
         renderSend={renderSend}
         renderAvatar={renderAvatar}
-        renderTime={(props) => (
-          <Time
-            {...props}
-            timeTextStyle={{
-              left: {
-                fontSize: 10,
-                color: "#646464",
-              },
-              right: {
-                fontSize: 10,
-                color: "#646464",
-              },
-            }}
-          />
-        )}
         renderMessage={renderMessage}
         user={{
           _id: currentUser?.id,

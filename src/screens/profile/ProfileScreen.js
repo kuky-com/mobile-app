@@ -22,6 +22,7 @@ import CustomVideo from '@/components/CustomVideo'
 import { FontAwesome6 } from '@expo/vector-icons'
 import ShareModal from '../../components/ShareModal'
 import analytics from '@react-native-firebase/analytics'
+import { capitalize, getStatusColor } from '../../utils/utils'
 
 const styles = StyleSheet.create({
     container: {
@@ -43,6 +44,12 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.5,
         elevation: 1,
         shadowColor: '#FFAB48',
+    },
+    shadow: {
+        shadowOffset: { width: 1, height: 1 },
+        shadowOpacity: 0.25,
+        elevation: 1,
+        shadowColor: '#000000',
     }
 })
 
@@ -203,6 +210,10 @@ const ProfileScreen = ({ navigation }) => {
         });
     }
 
+    const onSetStatus = () => {
+        navigation.navigate('OnlineStatusScreen')
+    }
+
     const reapplyProfileReview = () => {
         apiClient.get(`users/reapply-profile-review`)
             .then((res) => {
@@ -241,7 +252,10 @@ const ProfileScreen = ({ navigation }) => {
                     <TouchableOpacity onPress={onShareProfile} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
                         <FontAwesome6 name='share-from-square' color='white' size={22} />
                     </TouchableOpacity>
-                    <Text style={{ flex: 1, textAlign: 'center', fontSize: 18, color: 'white', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text>
+                    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+                        <Text style={{ flex: 1, textAlign: 'center', fontSize: 18, color: 'white', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text>
+                        <Text style={{ fontSize: 12, fontWeight: 'bold', color: 'white' }}>{capitalize(currentUser?.online_status)}</Text>
+                    </View>
                     <TouchableOpacity onPress={openSetting} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
                         <Image source={images.setting_icon} style={{ width: 22, height: 22 }} contentFit='contain' />
                     </TouchableOpacity>
@@ -451,7 +465,7 @@ const ProfileScreen = ({ navigation }) => {
                                     </View>
                                 }
                                 {
-                                    currentUser?.profile_approved === 'pending' &&
+                                    (currentUser?.profile_approved === 'pending' || currentUser?.profile_approved === 'resubmitted') &&
                                     <View style={{ width: '100%', flexDirection: 'row', gap: 16, alignItems: 'center' }}>
                                         <Image source={images.profile_pending} style={{ width: 25, height: 25 }} contentFit='contain' />
                                         <Text style={{ fontSize: 13, fontWeight: 'bold', color: 'black' }}>Your account is under review.</Text>
@@ -479,12 +493,20 @@ const ProfileScreen = ({ navigation }) => {
                                 }
                             </View>
 
+                            <TouchableOpacity onPress={onSetStatus} style={[{ flexDirection: 'row', paddingHorizontal: 16, justifyContent: 'center', height: 40, gap: 8, alignItems: 'center', borderRadius: 20, backgroundColor: '#F5F5F5' }, styles.shadow]}>
+                                <Text style={{ flex: 1, fontSize: 16, color: '#333333', fontWeight: 'bold' }}>Set your status</Text>
+                                <View style={{ paddingHorizontal: 16, height: 20, borderRadius: 10, backgroundColor: '#333333', justifyContent: 'center', alignItems: 'center' }}>
+                                    <Text style={{ fontSize: 13, fontWeight: 'bold', color: getStatusColor(currentUser?.online_status) }}>{capitalize(currentUser?.online_status)}</Text>
+                                </View>
+                                <FontAwesome6 name='chevron-right' color={colors.mainColor} size={16} />
+                            </TouchableOpacity>
+
                             <View style={{ borderWidth: 1, borderRadius: 10, borderColor: colors.mainColor, padding: 16, gap: 16 }}>
-                                <Text style={{ color: '#333333', fontSize: 14, textAlign: 'center', lineHeight: 20 }}>Let your friends know you found a great match on Kuky!</Text>
                                 <TouchableOpacity onPress={onShare} style={{ paddingHorizontal: 32, justifyContent: 'center', height: 40, alignItems: 'center', borderRadius: 20, backgroundColor: colors.mainColor }}>
                                     <Text style={{ fontSize: 16, color: 'white', fontWeight: 'bold' }}>Invite a friend</Text>
                                 </TouchableOpacity>
                             </View>
+
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1 }}>
                                     <Text style={{ fontSize: 24, color: 'black', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text>

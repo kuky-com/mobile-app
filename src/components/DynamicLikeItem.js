@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import dayjs from 'dayjs';
 import { Image } from 'expo-image';
 import AvatarImage from './AvatarImage';
+import OnlineStatus from './OnlineStatus';
 
 const ITEM_WIDTH = Platform.isPad ? Dimensions.get('screen').width / 4 - 20 : Dimensions.get('screen').width / 2 - 24;
 
@@ -34,9 +35,7 @@ const DynamicLikeItem = ({ itemWidth, item, onPress }) => {
                     {item.birthday && item.birthday.includes('/') && <Text style={styles.name}>{`${item.full_name}, ${dayjs().diff(dayjs(item.birthday, 'DD/MM/YYYY'), 'years')}`}</Text>}
                     {!item.birthday && <Text style={styles.name}>{`${item.full_name}`}</Text>}
                     {isRecentOnline &&
-                        <View style={styles.onlineStatusBg}>
-                            <View style={styles.onlineStatus} />
-                        </View>
+                        <OnlineStatus isRecentOnline={isRecentOnline} status={item?.online_status} radius={12} />
                     }
                 </View>
             </View>
@@ -89,18 +88,6 @@ const styles = StyleSheet.create({
     },
     nameContainer: {
         flexDirection: "row", gap: 3
-    },
-    onlineStatus: {
-        width: 6,
-        height: 6,
-        borderRadius: 3,
-        backgroundColor: '#47F644',
-    },
-    onlineStatusBg: {
-        width: 12, height: 12, borderRadius: 6,
-        backgroundColor: '#5BFF5830',
-        alignItems: 'center', justifyContent: 'center',
-        marginTop: 2
     },
     nameBackground: {
         position: 'absolute',

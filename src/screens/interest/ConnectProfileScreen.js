@@ -39,6 +39,7 @@ import ShareModal from "../../components/ShareModal";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { isStringInteger } from "../../utils/utils";
 import analytics from '@react-native-firebase/analytics'
+import OnlineStatus from "../../components/OnlineStatus";
 
 const styles = StyleSheet.create({
   container: {
@@ -72,9 +73,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#47F644',
   },
   onlineStatusBg: {
-    width: 12, height: 12, borderRadius: 6,
-    backgroundColor: '#5BFF5830',
-    alignItems: 'center', justifyContent: 'center',
     marginTop: 13
   },
 });
@@ -556,7 +554,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                     </Text>
                     {isRecentOnline &&
                       <View style={styles.onlineStatusBg}>
-                        <View style={styles.onlineStatus} />
+                        <OnlineStatus isRecentOnline={isRecentOnline} status={currentProfile?.online_status} radius={12} />
                       </View>
                     }
                   </View>

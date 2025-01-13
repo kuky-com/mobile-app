@@ -123,7 +123,7 @@ const SplashScreen = ({ navigation }) => {
       <View style={{ position: "absolute", bottom: insets.bottom + 5, width: "100%", alignItems: "center" }}>
         <Text
           style={{
-            fontSize: 9,
+            fontSize: 8,
             color: "#aaaaaa",
             fontWeight: "bold",
             width: "100%",

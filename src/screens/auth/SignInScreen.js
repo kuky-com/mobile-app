@@ -86,6 +86,7 @@ const SignInScreen = ({ navigation }) => {
       setLoading(true);
       await GoogleSignin.hasPlayServices();
       const response = await GoogleSignin.signIn();
+      console.log({response})
       if (response && response.data && response.data.idToken) {
         apiClient
           .post("auth/google", {
@@ -95,6 +96,7 @@ const SignInScreen = ({ navigation }) => {
           })
           .then((res) => {
             setLoading(false);
+            console.log({res})
             if (res && res.data && res.data.success) {
               setUser(res.data.data.user);
               setToken(res.data.data.token);

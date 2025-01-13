@@ -8,6 +8,17 @@ export function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
+export const getStatusColor = (status) => {
+    switch (status.toLowerCase()) {
+        case 'away':
+            return '#FFD322';
+        case 'offline':
+            return '#A7A7A7';
+        default:
+            return '#2EE62A';
+    }
+}
+
 export const getUnit = (unit) => {
     return Platform.isPad ? (unit * 1.2) : unit
 }
