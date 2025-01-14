@@ -491,12 +491,12 @@ const SampleProfileScreen = ({ navigation, route }) => {
               {currentProfile?.birthday && currentProfile?.birthday.includes("/") && (
                 <Text
                   style={{ fontSize: 14, color: "black" }}
-                >{`${dayjs().diff(dayjs(currentProfile?.birthday, "DD/MM/YYYY"), "years")} yrs`}</Text>
+                >{`${dayjs().diff(dayjs(currentProfile?.birthday, "DD/MM/YYYY"), "year")} yrs`}</Text>
               )}
               {currentProfile?.birthday && currentProfile?.birthday.includes("-") && (
                 <Text
                   style={{ fontSize: 14, color: "black" }}
-                >{`${dayjs().diff(dayjs(currentProfile?.birthday, "MM-DD-YYYY"), "years")} yrs`}</Text>
+                >{`${dayjs().diff(dayjs(currentProfile?.birthday, "MM-DD-YYYY"), "year")} yrs`}</Text>
               )}
             </View>
 

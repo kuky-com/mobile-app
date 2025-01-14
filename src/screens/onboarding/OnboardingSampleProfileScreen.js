@@ -121,6 +121,8 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
     }, []);
 
     const likeAction = () => {
+        analytics().logEvent('next_sample_profile')
+
         handleNextProfile()
         // try {
         //     setLoading(true);
@@ -149,6 +151,8 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
     };
 
     const rejectAction = () => {
+        analytics().logEvent('previous_sample_profile')
+
         handlePreviousProfile()
         // try {
         //     setLoading(true);
@@ -534,12 +538,12 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                             {currentProfile?.birthday && currentProfile?.birthday.includes("/") && (
                                 <Text
                                     style={{ fontSize: 14, color: "black" }}
-                                >{`${dayjs().diff(dayjs(currentProfile?.birthday, "DD/MM/YYYY"), "years")} yrs`}</Text>
+                                >{`${dayjs().diff(dayjs(currentProfile?.birthday, "DD/MM/YYYY"), "year")} yrs`}</Text>
                             )}
                             {currentProfile?.birthday && currentProfile?.birthday.includes("-") && (
                                 <Text
                                     style={{ fontSize: 14, color: "black" }}
-                                >{`${dayjs().diff(dayjs(currentProfile?.birthday, "MM-DD-YYYY"), "years")} yrs`}</Text>
+                                >{`${dayjs().diff(dayjs(currentProfile?.birthday, "MM-DD-YYYY"), "year")} yrs`}</Text>
                             )}
                         </View>
 

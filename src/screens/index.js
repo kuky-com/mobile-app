@@ -93,6 +93,7 @@ const ONESIGNAL_APP_ID = "c3fb597e-e318-4eab-9d90-cd43b9491bc1";
 import LetDiscoverScreen from "./auth/LetDiscoverScreen";
 import BotProfileScreen from "./chat/BotProfileScreen";
 import OnlineStatusScreen from "./profile/OnlineStatusScreen";
+import RegisterSuggestionScreen from "./onboarding/RegisterSuggestionScreen";
 
 SendbirdCalls.setListener({
   onRinging: async (callProps) => {
@@ -589,6 +590,7 @@ const AppStack = ({ navgation }) => {
       <Stack.Screen name="SampleProfileScreen" component={SampleProfileScreen} />
       <Stack.Screen name="OnboardingVideoWalkthroughtScreen" component={OnboardingVideoWalkthroughtScreen} />
       <Stack.Screen name="RegisterSuccessScreen" component={RegisterSuccessScreen} />
+      <Stack.Screen name="RegisterSuggestionScreen" component={RegisterSuggestionScreen} />
       <Stack.Screen name="BotProfileScreen" component={BotProfileScreen} options={{ ...TransitionPresets.ModalSlideFromBottomIOS }} />
       <Stack.Screen name="OnlineStatusScreen" component={OnlineStatusScreen} options={{ ...TransitionPresets.ModalSlideFromBottomIOS }} />
     </Stack.Navigator>

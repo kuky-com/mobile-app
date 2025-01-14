@@ -33,10 +33,14 @@ const LetDiscoverScreen = ({ navigation }) => {
     }
 
     const skipTour = () => {
-        NavigationService.reset('SignUpScreen')
+        // NavigationService.reset('SignUpScreen')
+
+        analytics().logEvent('skip_tour_button')
+        NavigationService.reset('SampleExploreScreen')
     }
 
-    const openSignUp = () => {
+    const onDiscover = () => {
+        analytics().logEvent('discover_kuky_button')
         NavigationService.reset('OnboardingSampleProfileScreen')
     }
 
@@ -68,7 +72,7 @@ const LetDiscoverScreen = ({ navigation }) => {
                     <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'flex-end' }}>
                         <Image source={images.next_arrow} style={{ width: 35, height: 60 }} contentFit='contain' />
                     </View>
-                    <TouchableOpacity onPress={openSignUp} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333', }}>
+                    <TouchableOpacity onPress={onDiscover} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333', }}>
                         <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Discover Kuky</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={skipTour} style={{ padding: 8, marginTop: 20 }}>

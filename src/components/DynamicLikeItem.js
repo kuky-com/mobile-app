@@ -12,7 +12,7 @@ const ITEM_WIDTH = Platform.isPad ? Dimensions.get('screen').width / 4 - 20 : Di
 
 const DynamicLikeItem = ({ itemWidth, item, onPress }) => {
     const [itemHeight, setItemHeight] = useState(Math.round(itemWidth * 1024 / 800));
-    const isRecentOnline = item?.last_active_time ? dayjs().diff(dayjs(item?.last_active_time), 'minutes') < 60 : false
+    const isRecentOnline = item?.last_active_time ? dayjs().diff(dayjs(item?.last_active_time), 'minute') < 60 : false
 
     return (
         <TouchableOpacity onPress={() => onPress && onPress()} style={[styles.cardContainer, { width: itemWidth, height: itemHeight }]}>
@@ -31,8 +31,8 @@ const DynamicLikeItem = ({ itemWidth, item, onPress }) => {
                     style={styles.nameBackground}
                 />
                 <View style={styles.nameContainer}>
-                    {item.birthday && item.birthday.includes('-') && <Text style={styles.name}>{`${item.full_name}, ${dayjs().diff(dayjs(item.birthday, 'MM-DD-YYYY'), 'years')}`}</Text>}
-                    {item.birthday && item.birthday.includes('/') && <Text style={styles.name}>{`${item.full_name}, ${dayjs().diff(dayjs(item.birthday, 'DD/MM/YYYY'), 'years')}`}</Text>}
+                    {item.birthday && item.birthday.includes('-') && <Text style={styles.name}>{`${item.full_name}, ${dayjs().diff(dayjs(item.birthday, 'MM-DD-YYYY'), 'year')}`}</Text>}
+                    {item.birthday && item.birthday.includes('/') && <Text style={styles.name}>{`${item.full_name}, ${dayjs().diff(dayjs(item.birthday, 'DD/MM/YYYY'), 'year')}`}</Text>}
                     {!item.birthday && <Text style={styles.name}>{`${item.full_name}`}</Text>}
                     {isRecentOnline &&
                         <OnlineStatus isRecentOnline={isRecentOnline} status={item?.online_status} radius={12} />

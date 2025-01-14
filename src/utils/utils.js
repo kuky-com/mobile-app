@@ -8,14 +8,14 @@ export function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
-export const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
+export const getStatusColor = (status = '') => {
+    switch (status?.toLowerCase()) {
         case 'away':
             return '#FFD322';
-        case 'offline':
-            return '#A7A7A7';
-        default:
+        case 'active':
             return '#2EE62A';
+        default:
+            return '#A7A7A7';
     }
 }
 

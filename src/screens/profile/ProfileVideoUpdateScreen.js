@@ -102,6 +102,8 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
   };
 
   const startRecording = async () => {
+    analytics().logEvent('video_recording_button')
+
     if (cameraRef.current) {
       setRecording(true);
       try {
@@ -121,6 +123,8 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
   };
 
   const selectFromLibrary = async () => {
+    analytics().logEvent('video_uploading_button')
+
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['videos'],
       allowsEditing: true,

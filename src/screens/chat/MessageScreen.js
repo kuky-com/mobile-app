@@ -727,6 +727,13 @@ const MessageScreen = ({ navigation, route }) => {
   }
 
   const calling = async (isVideoCall) => {
+    if(isVideoCall) {
+      analytics().logEvent('video_call')
+    } else {
+      analytics().logEvent('voice_call')
+    }
+
+
     try {
       await authenticate();
       const callProps = await SendbirdCalls.dial(
@@ -772,6 +779,8 @@ const MessageScreen = ({ navigation, route }) => {
   };
 
   const onBlock = async () => {
+    analytics().logEvent('block_button_clicked')
+
     await SheetManager.show("confirm-action-sheets", {
       payload: {
         onCancel: () => {
@@ -802,6 +811,8 @@ const MessageScreen = ({ navigation, route }) => {
   };
 
   const onReport = async () => {
+    analytics().logEvent('report_button_clicked')
+
     const options = [
       { text: "Inappropriate", color: "#333333" },
       { text: "Nudity or sexual activity", color: "#333333" },
@@ -877,10 +888,14 @@ const MessageScreen = ({ navigation, route }) => {
   };
 
   const onReview = () => {
+    analytics().logEvent('review_button_clicked')
+
     navigation.push("ReviewMatchScreen", { profile: currentConversation.profile });
   };
 
   const likeAction = () => {
+    analytics().logEvent('accept_request_clicked')
+
     setLoading(true)
     apiClient
       .post("matches/accept", { friend_id: conversation.profile?.id })
@@ -902,6 +917,8 @@ const MessageScreen = ({ navigation, route }) => {
   };
 
   const rejectAction = () => {
+    analytics().logEvent('reject_request_clicked')
+
     setLoading(true)
     apiClient
       .post("matches/reject", { friend_id: conversation.profile?.id })
@@ -984,7 +1001,7 @@ const MessageScreen = ({ navigation, route }) => {
     });
   };
 
-  const isRecentOnline = currentConversation?.profile && currentConversation?.profile.last_active_time ? dayjs().diff(dayjs(currentConversation?.profile.last_active_time), 'minutes') < 60 : false
+  const isRecentOnline = currentConversation?.profile && currentConversation?.profile.last_active_time ? dayjs().diff(dayjs(currentConversation?.profile.last_active_time), 'minute') < 60 : false
 
   return (
     <View style={styles.container}>

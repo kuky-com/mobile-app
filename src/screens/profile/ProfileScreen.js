@@ -350,8 +350,8 @@ const ProfileScreen = ({ navigation }) => {
                                     <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
                                         <Image source={images.birthday_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
                                     </View>
-                                    {currentUser?.birthday && currentUser?.birthday.includes('/') && <Text style={{ fontSize: 14, color: 'black' }}>{`${dayjs().diff(dayjs(currentUser?.birthday, 'DD/MM/YYYY'), 'years')} yrs`}</Text>}
-                                    {currentUser?.birthday && currentUser?.birthday.includes('-') && <Text style={{ fontSize: 14, color: 'black' }}>{`${dayjs().diff(dayjs(currentUser?.birthday, 'MM-DD-YYYY'), 'years')} yrs`}</Text>}
+                                    {currentUser?.birthday && currentUser?.birthday.includes('/') && <Text style={{ fontSize: 14, color: 'black' }}>{`${dayjs().diff(dayjs(currentUser?.birthday, 'DD/MM/YYYY'), 'year')} yrs`}</Text>}
+                                    {currentUser?.birthday && currentUser?.birthday.includes('-') && <Text style={{ fontSize: 14, color: 'black' }}>{`${dayjs().diff(dayjs(currentUser?.birthday, 'MM-DD-YYYY'), 'year')} yrs`}</Text>}
                                 </View>
 
                                 <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'center' }}>
@@ -551,8 +551,8 @@ const ProfileScreen = ({ navigation }) => {
                                     <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
                                         <Image source={images.birthday_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
                                     </View>
-                                    {currentUser?.birthday && currentUser?.birthday.includes('/') && <Text style={{ fontSize: 14, color: 'black' }}>{`${dayjs().diff(dayjs(currentUser?.birthday, 'DD/MM/YYYY'), 'years')} yrs`}</Text>}
-                                    {currentUser?.birthday && currentUser?.birthday.includes('-') && <Text style={{ fontSize: 14, color: 'black' }}>{`${dayjs().diff(dayjs(currentUser?.birthday, 'MM-DD-YYYY'), 'years')} yrs`}</Text>}
+                                    {currentUser?.birthday && currentUser?.birthday.includes('/') && <Text style={{ fontSize: 14, color: 'black' }}>{`${dayjs().diff(dayjs(currentUser?.birthday, 'DD/MM/YYYY'), 'year')} yrs`}</Text>}
+                                    {currentUser?.birthday && currentUser?.birthday.includes('-') && <Text style={{ fontSize: 14, color: 'black' }}>{`${dayjs().diff(dayjs(currentUser?.birthday, 'MM-DD-YYYY'), 'year')} yrs`}</Text>}
                                 </View>
 
                                 <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'center' }}>

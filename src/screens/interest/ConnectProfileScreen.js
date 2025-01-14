@@ -210,6 +210,8 @@ const ConnectProfileScreen = ({ navigation, route }) => {
   }, []);
 
   const likeAction = () => {
+    analytics().logEvent('send_connect_request')
+
     // NavigationService.push('GetMatchScreen', { match: matchInfo })
     // return
     try {
@@ -270,6 +272,8 @@ const ConnectProfileScreen = ({ navigation, route }) => {
   };
 
   const rejectAction = () => {
+    analytics().logEvent('reject_suggestion')
+
     try {
       setLoading(true);
       apiClient
@@ -299,6 +303,8 @@ const ConnectProfileScreen = ({ navigation, route }) => {
   };
 
   const onBlock = async () => {
+    analytics().logEvent('block_button_clicked')
+
     await SheetManager.show("confirm-action-sheets", {
       payload: {
         onCancel: () => {
@@ -361,6 +367,8 @@ const ConnectProfileScreen = ({ navigation, route }) => {
   };
 
   const onGetSharedLink = async () => {
+    analytics().logEvent('share_button_clicked')
+
     apiClient
       .get(`users/${profile.id}/share-link`)
       .then((res) => {
@@ -410,7 +418,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
     setIsMute(!isMute)
   }
 
-  const isRecentOnline = currentProfile && currentProfile?.last_active_time ? dayjs().diff(dayjs(currentProfile?.last_active_time), 'minutes') < 60 : false
+  const isRecentOnline = currentProfile && currentProfile?.last_active_time ? dayjs().diff(dayjs(currentProfile?.last_active_time), 'minute') < 60 : false
 
   return (
     <View style={[styles.container]}>
@@ -742,12 +750,12 @@ const ConnectProfileScreen = ({ navigation, route }) => {
               {currentProfile?.birthday && currentProfile?.birthday.includes("/") && (
                 <Text
                   style={{ fontSize: 14, color: "black" }}
-                >{`${dayjs().diff(dayjs(currentProfile?.birthday, "DD/MM/YYYY"), "years")} yrs`}</Text>
+                >{`${dayjs().diff(dayjs(currentProfile?.birthday, "DD/MM/YYYY"), "year")} yrs`}</Text>
               )}
               {currentProfile?.birthday && currentProfile?.birthday.includes("-") && (
                 <Text
                   style={{ fontSize: 14, color: "black" }}
-                >{`${dayjs().diff(dayjs(currentProfile?.birthday, "MM-DD-YYYY"), "years")} yrs`}</Text>
+                >{`${dayjs().diff(dayjs(currentProfile?.birthday, "MM-DD-YYYY"), "year")} yrs`}</Text>
               )}
             </View>
 

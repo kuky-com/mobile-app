@@ -137,8 +137,8 @@ const ProfileTagScreen = ({ navigation, route }) => {
                         />
                         {/* <Text style={styles.name}>{`${currentUser?.full_name}, ${dayjs().diff(dayjs(currentUser?.birthday, 'DD/MM/YYYY'), 'years')}`}</Text> */}
 
-                        {currentUser?.birthday && currentUser?.birthday.includes('-') && <Text style={styles.name}>{`${currentUser?.full_name}, ${dayjs().diff(dayjs(currentUser?.birthday, 'MM-DD-YYYY'), 'years')}`}</Text>}
-                        {currentUser?.birthday && currentUser?.birthday.includes('/') && <Text style={styles.name}>{`${currentUser?.full_name}, ${dayjs().diff(dayjs(currentUser?.birthday, 'DD/MM/YYYY'), 'years')}`}</Text>}
+                        {currentUser?.birthday && currentUser?.birthday.includes('-') && <Text style={styles.name}>{`${currentUser?.full_name}, ${dayjs().diff(dayjs(currentUser?.birthday, 'MM-DD-YYYY'), 'year')}`}</Text>}
+                        {currentUser?.birthday && currentUser?.birthday.includes('/') && <Text style={styles.name}>{`${currentUser?.full_name}, ${dayjs().diff(dayjs(currentUser?.birthday, 'DD/MM/YYYY'), 'year')}`}</Text>}
                         {!currentUser?.birthday && <Text style={styles.name}>{`${currentUser?.full_name}`}</Text>}
                     </View>
                 </View>
