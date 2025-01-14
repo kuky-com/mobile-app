@@ -6,6 +6,7 @@ import images from "@/utils/images";
 import { Image } from "expo-image";
 import React, { useEffect, useState } from "react";
 import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -15,6 +16,13 @@ const styles = StyleSheet.create({
 
 const BlockedUsersScreen = ({ navigation }) => {
   const [blockedUser, setBlockedUsers] = useState([]);
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: "BlockedUsersScreen",
+      screen_class: "BlockedUsersScreen",
+    })
+  }, [])
 
   useEffect(() => {
     apiClient

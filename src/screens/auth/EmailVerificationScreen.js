@@ -21,6 +21,7 @@ import {
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Toast from "react-native-toast-message";
 import { authenticate, registerToken } from "../../utils/sendbird";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -37,6 +38,13 @@ const EmailVerificationScreen = ({ navigation, route }) => {
   const setToken = useSetAtom(tokenAtom);
   const pushToken = useAtomValue(pushTokenAtom);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: "EmailVerificationScreen",
+      screen_class: "EmailVerificationScreen",
+    })
+  }, [])
 
   const checkPushToken = () => {
     if (pushToken) {

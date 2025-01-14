@@ -11,6 +11,7 @@ import dayjs from 'dayjs'
 import LoadingView from '@/components/LoadingView'
 import { useAtomValue } from 'jotai'
 import { userAtom } from '@/actions/global'
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
     container: {
@@ -39,6 +40,13 @@ const styles = StyleSheet.create({
 
 const RegisterSuccessScreen = ({ navigation, route }) => {
     const insets = useSafeAreaInsets()
+
+    useEffect(() => {
+        analytics().logScreenView({
+            screen_name: 'RegisterSuccessScreen',
+            screen_class: 'RegisterSuccessScreen'
+        })
+    }, [])
 
     const onContinue = () => {
         NavigationService.reset('OnboardingVideoTutorialScreen')

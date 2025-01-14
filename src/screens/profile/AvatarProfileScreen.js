@@ -15,6 +15,7 @@ import apiClient from '@/utils/apiClient'
 import Toast from 'react-native-toast-message'
 import { useAtom, useSetAtom } from 'jotai'
 import { userAtom } from '@/actions/global'
+import analytics from '@react-native-firebase/analytics'
 
 const imageImage = `avatar${dayjs().unix()}.png`
 
@@ -55,6 +56,12 @@ const AvatarProfileScreen = ({ navigation, route }) => {
     const [imageUrl, setImageUrl] = useState(null)
     const [loading, setLoading] = useState(false)
     
+    useEffect(() => {
+        analytics().logScreenView({
+            screen_name: 'AvatarProfileScreen',
+            screen_class: 'AvatarProfileScreen'
+        })
+    }, [])
 
     useEffect(() => {
         if (imageUrl !== null) {

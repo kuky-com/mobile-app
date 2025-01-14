@@ -49,6 +49,7 @@ const TextInput = forwardRef(({ style, ...props }, ref) => {
     return <RNTextInput
         ref={localInputRef}
         style={[{ fontFamily }, style]} {...props}
+        allowFontScaling={false}
     />;
 });
 

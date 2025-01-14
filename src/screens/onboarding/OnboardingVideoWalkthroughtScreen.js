@@ -14,6 +14,7 @@ import LoadingView from '@/components/LoadingView'
 import { useAtomValue } from 'jotai'
 import { userAtom } from '@/actions/global'
 import { FontAwesome6 } from '@expo/vector-icons'
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
     container: {
@@ -62,6 +63,13 @@ const OnboardingVideoWalkthroughtScreen = ({ navigation, route }) => {
     const { page } = route.params
     const insets = useSafeAreaInsets()
     const currentUser = useAtomValue(userAtom)
+
+    useEffect(() => {
+        analytics().logScreenView({
+            screen_name: 'OnboardingVideoWalkthroughtScreen',
+            screen_class: 'OnboardingVideoWalkthroughtScreen'
+        })
+    }, [])
 
     const onNext = () => {
 

@@ -36,13 +36,21 @@ const DirectCallVideoContentView = ({ call, status }) => {
       <View style={{ flex: 1 }}>
         {
           call?.isRemoteVideoEnabled ?
-            <DirectCallVideoView
-              mirror={false}
-              resizeMode={"cover"}
-              viewType={"remote"}
-              callId={call.callId}
-              style={{ flex: 1 }}
-            />
+            <View style={{ flex: 1 }}>
+              <DirectCallVideoView
+                mirror={false}
+                resizeMode={"cover"}
+                viewType={"remote"}
+                callId={call.callId}
+                style={{ flex: 1 }}
+              />
+              <View style={{ alignSelf: 'center', 
+                backgroundColor: '#00000077', alignItems: 'center', 
+                justifyContent: 'center', borderRadius: 3, paddingHorizontal: 16, paddingVertical: 5,
+                position: 'absolute', bottom: 8, maxWidth: '90%' }}>
+                <Text style={{ fontSize: 22, fontWeight: 'bold', color: 'white' }}>{call.remoteUser?.nickname ?? ""}</Text>
+              </View>
+            </View>
             :
             <View style={{ flex: 1 }}>
               <AvatarImage

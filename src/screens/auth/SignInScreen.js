@@ -20,6 +20,7 @@ import ButtonWithLoading from "@/components/ButtonWithLoading";
 import { FontAwesome5 } from "@expo/vector-icons";
 import TextInput from "@/components/TextInput";
 import { authenticate } from "../../utils/sendbird";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -37,6 +38,13 @@ const SignInScreen = ({ navigation }) => {
   const pushToken = useAtomValue(pushTokenAtom);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: "SignInScreen",
+      screen_class: "SignInScreen",
+    })
+  }, [])
 
   useEffect(() => {
     GoogleSignin.configure({
@@ -78,6 +86,7 @@ const SignInScreen = ({ navigation }) => {
       setLoading(true);
       await GoogleSignin.hasPlayServices();
       const response = await GoogleSignin.signIn();
+      console.log({response})
       if (response && response.data && response.data.idToken) {
         apiClient
           .post("auth/google", {
@@ -87,6 +96,7 @@ const SignInScreen = ({ navigation }) => {
           })
           .then((res) => {
             setLoading(false);
+            console.log({res})
             if (res && res.data && res.data.success) {
               setUser(res.data.data.user);
               setToken(res.data.data.token);
@@ -226,7 +236,7 @@ const SignInScreen = ({ navigation }) => {
   };
 
   const onSignUp = () => {
-    NavigationService.reset("SignUpScreen");
+    NavigationService.reset("SignUpEmailScreen");
   };
 
   return (

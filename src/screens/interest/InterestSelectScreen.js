@@ -7,7 +7,7 @@ import NavigationService from "@/utils/NavigationService";
 import { capitalize } from "@/utils/utils";
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Keyboard,
@@ -19,6 +19,7 @@ import {
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -39,6 +40,13 @@ const InterestSelectScreen = ({ navigation, route }) => {
   const inputRef = useRef();
   const [loading, setLoading] = useState(false);
   const showAlert = useAlert();
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: "InterestSelectScreen",
+      screen_class: "InterestSelectScreen",
+    })
+  }, [])
 
   const onAddNewTag = () => {
     Keyboard.dismiss();

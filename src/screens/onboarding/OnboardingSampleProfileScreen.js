@@ -37,6 +37,7 @@ import colors from "../../utils/colors";
 import { Rating } from "@/components/Rating";
 import { getAuthenScreen } from "../../utils/utils";
 import { FontAwesome6 } from "@expo/vector-icons";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
     container: {
@@ -80,6 +81,14 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
 
     const currentProfile = (sampleProfiles && sampleProfiles.length > 0 && currentProfileIndex < sampleProfiles.length) ? sampleProfiles[currentProfileIndex] : null
 
+
+    useEffect(() => {
+        analytics().logScreenView({
+            screen_name: 'OnboardingSampleProfileScreen',
+            screen_class: 'OnboardingSampleProfileScreen'
+        })
+    }, [])
+
     const onRefresh = () => {
         if (sampleProfiles.length > 0) return
 
@@ -112,6 +121,8 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
     }, []);
 
     const likeAction = () => {
+        analytics().logEvent('next_sample_profile')
+
         handleNextProfile()
         // try {
         //     setLoading(true);
@@ -140,6 +151,8 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
     };
 
     const rejectAction = () => {
+        analytics().logEvent('previous_sample_profile')
+
         handlePreviousProfile()
         // try {
         //     setLoading(true);
@@ -525,12 +538,12 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                             {currentProfile?.birthday && currentProfile?.birthday.includes("/") && (
                                 <Text
                                     style={{ fontSize: 14, color: "black" }}
-                                >{`${dayjs().diff(dayjs(currentProfile?.birthday, "DD/MM/YYYY"), "years")} yrs`}</Text>
+                                >{`${dayjs().diff(dayjs(currentProfile?.birthday, "DD/MM/YYYY"), "year")} yrs`}</Text>
                             )}
                             {currentProfile?.birthday && currentProfile?.birthday.includes("-") && (
                                 <Text
                                     style={{ fontSize: 14, color: "black" }}
-                                >{`${dayjs().diff(dayjs(currentProfile?.birthday, "MM-DD-YYYY"), "years")} yrs`}</Text>
+                                >{`${dayjs().diff(dayjs(currentProfile?.birthday, "MM-DD-YYYY"), "year")} yrs`}</Text>
                             )}
                         </View>
 

@@ -10,9 +10,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Dimensions, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Dimensions, Platform, StyleSheet, View } from "react-native";
 import LottieView from "lottie-react-native";
 import { authenticate, registerToken } from "../../utils/sendbird";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { NODE_ENV } from "../../utils/apiClient";
+import { getBuildNumber, getVersion } from "react-native-device-info";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -28,7 +32,14 @@ const SplashScreen = ({ navigation }) => {
   const setUser = useSetAtom(userAtom);
   const setToken = useSetAtom(tokenAtom);
   const pushToken = useAtomValue(pushTokenAtom);
-  const [alreadyLoad, setAlreadyLoad] = useState(true);
+  const insets = useSafeAreaInsets()
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: "SplashScreen",
+      screen_class: "SplashScreen",
+    })
+  }, [])
 
   const openGetStart = () => {
     NavigationService.reset("LetDiscoverScreen");
@@ -58,7 +69,7 @@ const SplashScreen = ({ navigation }) => {
               registerToken();
               apiClient
                 .post("users/update-token", { session_token: pushToken })
-                .then((res) => {})
+                .then((res) => { })
                 .catch((error) => {
                   console.log({ error });
                 });
@@ -109,6 +120,20 @@ const SplashScreen = ({ navigation }) => {
         }}
         source={require("../../assets/animations/splash.json")}
       />
+      <View style={{ position: "absolute", bottom: insets.bottom + 5, width: "100%", alignItems: "center" }}>
+        <Text
+          style={{
+            fontSize: 8,
+            color: "#aaaaaa",
+            fontWeight: "bold",
+            width: "100%",
+            textAlign: "center",
+            lineHeight: 20,
+          }}
+        >
+          {`Version ${getVersion()} - ${NODE_ENV.toUpperCase()} - Build ${getBuildNumber()} - ${Platform.OS.toUpperCase()} - © 2024 Kuky`}
+        </Text>
+      </View>
     </View>
   );
 };

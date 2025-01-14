@@ -2,7 +2,7 @@ import Text from '@/components/Text'
 import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Dimensions, Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -16,6 +16,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import ButtonWithLoading from '@/components/ButtonWithLoading'
 import { getAuthenScreen } from '@/utils/utils'
 import TextInput from '@/components/TextInput'
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
     container: {
@@ -58,6 +59,13 @@ const NameUpdateScreen = ({ navigation, route }) => {
     const insets = useSafeAreaInsets()
     const [name, setName] = useState('');
     const [loading, setLoading] = useState(false)
+
+    useEffect(() => {
+        analytics().logScreenView({
+            screen_name: 'NameUpdateScreen',
+            screen_class: 'NameUpdateScreen'
+        })
+    }, [])
 
     const onContinue = () => {
         if (name.length > 0) {

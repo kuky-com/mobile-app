@@ -38,6 +38,8 @@ import { Rating } from "@/components/Rating";
 import ShareModal from "../../components/ShareModal";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { isStringInteger } from "../../utils/utils";
+import analytics from '@react-native-firebase/analytics'
+import OnlineStatus from "../../components/OnlineStatus";
 
 const styles = StyleSheet.create({
   container: {
@@ -64,6 +66,15 @@ const styles = StyleSheet.create({
     bottom: 0,
     borderRadius: 10,
   },
+  onlineStatus: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#47F644',
+  },
+  onlineStatusBg: {
+    marginTop: 13
+  },
 });
 
 const ConnectProfileScreen = ({ navigation, route }) => {
@@ -84,6 +95,13 @@ const ConnectProfileScreen = ({ navigation, route }) => {
 
   const videoRef = useRef(null);
 
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: 'ConnectProfileScreen',
+      screen_class: 'ConnectProfileScreen'
+    })
+  }, [])
+
   const onRefresh = () => {
     try {
       setLoading(true);
@@ -93,7 +111,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
           setLoading(false);
           if (res && res.data && res.data.success) {
             if (res.data.data.blocked) {
-              setCurrentProfile({ full_name: profile.full_name });
+              setCurrentProfile({ full_name: profile?.full_name });
 
               showAlert("Not found", "User profile is not available!", [
                 {
@@ -192,6 +210,8 @@ const ConnectProfileScreen = ({ navigation, route }) => {
   }, []);
 
   const likeAction = () => {
+    analytics().logEvent('send_connect_request')
+
     // NavigationService.push('GetMatchScreen', { match: matchInfo })
     // return
     try {
@@ -252,6 +272,8 @@ const ConnectProfileScreen = ({ navigation, route }) => {
   };
 
   const rejectAction = () => {
+    analytics().logEvent('reject_suggestion')
+
     try {
       setLoading(true);
       apiClient
@@ -281,6 +303,8 @@ const ConnectProfileScreen = ({ navigation, route }) => {
   };
 
   const onBlock = async () => {
+    analytics().logEvent('block_button_clicked')
+
     await SheetManager.show("confirm-action-sheets", {
       payload: {
         onCancel: () => {
@@ -343,6 +367,8 @@ const ConnectProfileScreen = ({ navigation, route }) => {
   };
 
   const onGetSharedLink = async () => {
+    analytics().logEvent('share_button_clicked')
+
     apiClient
       .get(`users/${profile.id}/share-link`)
       .then((res) => {
@@ -391,6 +417,8 @@ const ConnectProfileScreen = ({ navigation, route }) => {
   const onChangeMuteOption = () => {
     setIsMute(!isMute)
   }
+
+  const isRecentOnline = currentProfile && currentProfile?.last_active_time ? dayjs().diff(dayjs(currentProfile?.last_active_time), 'minute') < 60 : false
 
   return (
     <View style={[styles.container]}>
@@ -528,9 +556,16 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                 }}
               >
                 {!playing && (
-                  <Text style={{ fontSize: 32, color: "white", fontWeight: "bold" }}>
-                    {currentProfile.full_name}
-                  </Text>
+                  <View style={{flexDirection: 'row', gap: 5, width: '100%'}}>
+                    <Text style={{ fontSize: 32, color: "white", fontWeight: "bold", maxWidth: Dimensions.get('screen').width - 86 }}>
+                      {currentProfile?.full_name}
+                    </Text>
+                    {isRecentOnline &&
+                      <View style={styles.onlineStatusBg}>
+                        <OnlineStatus isRecentOnline={isRecentOnline} status={currentProfile?.online_status} radius={12} />
+                      </View>
+                    }
+                  </View>
                 )}
                 {/* <View style={{ width: '100%', flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                                     {
@@ -715,12 +750,12 @@ const ConnectProfileScreen = ({ navigation, route }) => {
               {currentProfile?.birthday && currentProfile?.birthday.includes("/") && (
                 <Text
                   style={{ fontSize: 14, color: "black" }}
-                >{`${dayjs().diff(dayjs(currentProfile?.birthday, "DD/MM/YYYY"), "years")} yrs`}</Text>
+                >{`${dayjs().diff(dayjs(currentProfile?.birthday, "DD/MM/YYYY"), "year")} yrs`}</Text>
               )}
               {currentProfile?.birthday && currentProfile?.birthday.includes("-") && (
                 <Text
                   style={{ fontSize: 14, color: "black" }}
-                >{`${dayjs().diff(dayjs(currentProfile?.birthday, "MM-DD-YYYY"), "years")} yrs`}</Text>
+                >{`${dayjs().diff(dayjs(currentProfile?.birthday, "MM-DD-YYYY"), "year")} yrs`}</Text>
               )}
             </View>
 

@@ -16,6 +16,7 @@ import { Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -44,6 +45,13 @@ const OnboardingReviewProfileScreen = ({ navigation, route }) => {
   const nameInputRef = useRef(null);
   const birthdayInputRef = useRef(null);
   const locationInputRef = useRef(null);
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: 'OnboardingReviewProfileScreen',
+      screen_class: 'OnboardingReviewProfileScreen',
+    });
+  }, [])
 
   useEffect(() => {
     apiClient
@@ -96,13 +104,26 @@ const OnboardingReviewProfileScreen = ({ navigation, route }) => {
       if (nameInputRef && nameInputRef.current) nameInputRef.current.focus();
       return;
     }
-    if (birthday.length === 0) {
-      Toast.show({ text1: "Please enter your birthday", type: "error" });
+    if (birthday.length === 0 || birthday.length < 10) {
+      Toast.show({ text1: "Please enter your valid birthday", type: "error" });
       if (birthdayInputRef && birthdayInputRef.current) birthdayInputRef.current.focus();
       return;
+    } else {
+      const [day, month, year] = birthday.split("/");
+      try {
+        if (parseInt(day) > 31 || parseInt(month) > 12 || parseInt(year) > 2024 || parseInt(year) < 1900) {
+          Toast.show({ text1: "Please enter your valid birthday", type: "error" });
+          if (birthdayInputRef && birthdayInputRef.current) birthdayInputRef.current.focus();
+          return;
+        }
+      } catch (error) {
+        Toast.show({ text1: "Please enter your valid birthday", type: "error" });
+        if (birthdayInputRef && birthdayInputRef.current) birthdayInputRef.current.focus();
+        return;
+      }
     }
-    if (location.length === 0) {
-      Toast.show({ text1: "Please enter your location", type: "error" });
+    if (location.length < 3) {
+      Toast.show({ text1: "Please enter your valid location", type: "error" });
       if (locationInputRef && locationInputRef.current) locationInputRef.current.focus();
       return;
     }

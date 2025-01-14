@@ -92,6 +92,8 @@ const walkthrought1 = require("../assets/images/walkthrought1.png");
 const walkthrought2 = require("../assets/images/walkthrought2.png");
 const walkthrought3 = require("../assets/images/walkthrought3.png");
 
+const bot_avatar = require("../assets/images/bot_avatar.png");
+
 const instagram_icon = require("../assets/images/social/instagram.png");
 const twitter_icon = require("../assets/images/social/twitter.png");
 const facebook_icon = require("../assets/images/social/facebook.png");
@@ -198,5 +200,6 @@ export default {
   subscription_bg,
   selected_plan,
   unselect_plan,
-  premium_list_icon
+  premium_list_icon,
+  bot_avatar
 };

@@ -12,6 +12,7 @@ import LoadingView from '@/components/LoadingView'
 import { useAtomValue } from 'jotai'
 import { userAtom } from '@/actions/global'
 import colors from '../../utils/colors'
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
     container: {
@@ -41,6 +42,13 @@ const styles = StyleSheet.create({
 const OnboardingVideoTutorialScreen = ({ navigation, route }) => {
     const insets = useSafeAreaInsets()
     const currentUser = useAtomValue(userAtom)
+
+    useEffect(() => {
+        analytics().logScreenView({
+            screen_name: 'OnboardingVideoTutorialScreen',
+            screen_class: 'OnboardingVideoTutorialScreen'
+        })
+    }, [])
 
     const onContinue = () => {
         NavigationService.reset('OnboardingVideoScreen')

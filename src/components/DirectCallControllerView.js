@@ -120,7 +120,7 @@ const DirectCallControllerView = ({ status, call, ios_audioDevice }) => {
               <Pressable
                 style={[
                   styles.bottomButton,
-                  { borderRadius: 10000, backgroundColor: "white", opacity: 30 },
+                  { borderRadius: 10000 },
                 ]}
                 onPress={() => {
                   if (call.isLocalAudioEnabled) {
@@ -148,18 +148,22 @@ const DirectCallControllerView = ({ status, call, ios_audioDevice }) => {
               <View style={[styles.bottomButtonGroup, { justifyContent: 'space-between', paddingHorizontal: 32, zIndex: 20 }]}>
                 <Pressable
                   style={styles.bottomButton}
-                  onPress={() => call.accept()}
+                  onPress={() => {
+                    console.log('end call')
+                    call.end()
+                  }}
                   className="bg-red"
                 >
-                  <CallIcon icon={"btnCallVoiceAccept"} size={64} />
+                  <CallIcon icon={"btnCallDecline"} size={64} />
+
                   <Text style={styles.responseText}>Decline</Text>
                 </Pressable>
 
-                <Pressable style={styles.bottomButton} onPress={() => {
-                  console.log('end call')
-                  call.end()
-                }}>
-                  <CallIcon icon={"btnCallDecline"} size={64} />
+                <Pressable style={styles.bottomButton}
+                  onPress={() => call.accept()}
+
+                >
+                  <CallIcon icon={"btnCallVoiceAccept"} size={64} />
                   <Text style={styles.responseText}>Accept</Text>
                 </Pressable>
               </View>

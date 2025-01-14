@@ -30,6 +30,7 @@ import CustomVideo from "@/components/CustomVideo";
 import { useAlertWithIcon } from "../../components/AlertIconProvider";
 import * as ImagePicker from 'expo-image-picker'
 import { useAlert } from "../../components/AlertProvider";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -87,6 +88,13 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
 
   const [processing, setProcessing] = useState(false);
 
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: 'ProfileVideoUpdateScreen',
+      screen_class: 'ProfileVideoUpdateScreen'
+    })
+  }, [])
+
   const onLoad = (data) => {
     setStartPosition(0);
     setDuration(Math.round(data.durationMillis / 1000));
@@ -94,6 +102,8 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
   };
 
   const startRecording = async () => {
+    analytics().logEvent('video_recording_button')
+
     if (cameraRef.current) {
       setRecording(true);
       try {
@@ -113,25 +123,29 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
   };
 
   const selectFromLibrary = async () => {
-      let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['videos'],
-        allowsEditing: true,
-        quality: 1,
-        duration: 60000
-      })
-  
-      console.log(result);
-  
-      if (!result.canceled) {
-        if(result.assets[0].width > result.assets[0].height) {
+    analytics().logEvent('video_uploading_button')
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['videos'],
+      allowsEditing: true,
+      quality: 1,
+      duration: 60000
+    })
+
+    console.log(result);
+
+    if (!result.canceled) {
+      if (result.assets[0].width > result.assets[0].height) {
+        setTimeout(() => {
           showNormalAlert('Error', 'Oops! Please upload a portrait video for the best experience.')
-          
-          return
-        }
-        setVideoUrl(result.assets[0])
+        }, 1000);
+
+        return
       }
+      setVideoUrl(result.assets[0])
     }
-  
+  }
+
 
   useEffect(() => {
     const updateTimer = async () => {

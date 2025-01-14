@@ -18,6 +18,7 @@ import apiClient from "@/utils/apiClient";
 import ButtonWithLoading from "@/components/ButtonWithLoading";
 import colors from "../../utils/colors";
 import { FontAwesome5 } from "@expo/vector-icons";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
     container: {
@@ -59,6 +60,13 @@ const DisclaimeScreen = ({ navigation, route }) => {
     const [loading, setLoading] = useState(false);
     const [disclaime, setDiscalime] = useState('')
     const [accepted, setAccepted] = useState(false)
+
+    useEffect(() => {
+        analytics().logScreenView({
+            screen_name: 'DisclaimeScreen',
+            screen_class: 'DisclaimeScreen'
+        })
+    }, [])
 
     useEffect(() => {
         const getDisclaime = async () => {

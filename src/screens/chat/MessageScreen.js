@@ -5,9 +5,11 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   AppState,
   DeviceEventEmitter,
   Dimensions,
+  Keyboard,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -22,6 +24,7 @@ import {
   Composer,
   Time,
   Avatar,
+  Day,
 } from "react-native-gifted-chat";
 import { SheetManager } from "react-native-actions-sheet";
 import { StatusBar } from "expo-status-bar";
@@ -46,6 +49,8 @@ import { formatCallSeconds } from "../../utils/utils";
 import TypingBubble from "../../components/TypingBubble";
 import LoadingView from "../../components/LoadingView";
 import { NODE_ENV } from "../../utils/apiClient";
+import analytics from '@react-native-firebase/analytics'
+import OnlineStatus from "../../components/OnlineStatus";
 
 const styles = StyleSheet.create({
   container: {
@@ -151,6 +156,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "black",
     textAlignVertical: "top",
+    lineHeight: 22,
   },
   rightMessageContainer: {
     backgroundColor: "#E0E1DD",
@@ -163,7 +169,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   leftMessageContainer: {
-    backgroundColor: "#CFC7F7",
+    backgroundColor: "#726F70",
     borderBottomRightRadius: 10,
     borderBottomLeftRadius: 2.5,
     borderTopRightRadius: 10,
@@ -171,7 +177,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     marginBottom: 15,
-  }
+  },
+  botMessageContainer: {
+    backgroundColor: "#725ED4",
+    borderBottomRightRadius: 10,
+    borderBottomLeftRadius: 2.5,
+    borderTopRightRadius: 10,
+    borderTopLeftRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginBottom: 15,
+  },
+  onlineStatus: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#47F644',
+  },
+  onlineStatusBg: {
+    position: 'absolute', top: -2, right: -2
+  },
 });
 
 const typingMessageId = 'typing_indicator'
@@ -185,11 +210,41 @@ const MessageScreen = ({ navigation, route }) => {
   const appState = useRef(AppState.currentState);
   const [loading, setLoading] = useState(false);
   const showAlert = useAlert();
-  const typingTimeoutRef = useRef(null)
   const [isTyping, setIsTyping] = useState(false);
   const [isCallAvailable, setIsCallAvailable] = useState(false)
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const scrollY = new Animated.Value(0);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   usePermissions(CALL_PERMISSIONS);
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: 'MessageScreen',
+      screen_class: 'MessageScreen'
+    })
+  }, [])
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      event => {
+        setKeyboardHeight(event.endCoordinates.height);
+      },
+    );
+
+    const keyboardDidHideListener = Keyboard.addListener(
+      "keyboardDidHide",
+      () => {
+        setKeyboardHeight(0);
+      },
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
 
   const loadSubscriptionInfo = async () => {
     try {
@@ -259,6 +314,17 @@ const MessageScreen = ({ navigation, route }) => {
     }
   }, [currentUser]);
 
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+    {
+      useNativeDriver: false,
+      listener: (event) => {
+        const offsetY = event.nativeEvent.contentOffset.y;
+        setIsHeaderVisible(offsetY <= 0); // Show header when at top
+      }
+    }
+  );
+
   useEffect(() => {
     if (!conversation.profile) {
       setLoading(true);
@@ -300,7 +366,11 @@ const MessageScreen = ({ navigation, route }) => {
                 _id: doc?.id ?? "111",
                 text: firebaseData.text,
                 createdAt: firebaseData.createdAt.toDate(),
-                user: {
+                user: firebaseData.user?._id === 0 ? {
+                  _id: 0,
+                  name: 'Kuky Bot',
+                  avatar: images.bot_avatar,
+                } : {
                   _id: firebaseData.user ? firebaseData.user?._id : 0,
                   name: firebaseData.user ? firebaseData.user?.full_name : "",
                   avatar: currentConversation?.profile?.avatar,
@@ -355,14 +425,14 @@ const MessageScreen = ({ navigation, route }) => {
     const getCallStatus = async () => {
       try {
         const res = await apiClient.get(`users/${NODE_ENV}_${conversation.profile?.id}/readyForCall`)
-        console.log({res})
-        if(res && res.data && res.data.success) {
+        console.log({ res })
+        if (res && res.data && res.data.success) {
           setIsCallAvailable(true)
         } else {
           setIsCallAvailable(false)
         }
       } catch (error) {
-        console.log({error})
+        console.log({ error })
         setIsCallAvailable(false)
       }
     }
@@ -411,7 +481,7 @@ const MessageScreen = ({ navigation, route }) => {
   }, [currentConversation, currentUser?.id]);
 
   const renderMessage = (props) => {
-    const { currentMessage } = props
+    const { currentMessage, previousMessage } = props
     // if (currentMessage.type === 'missed_voice_call' || currentMessage.type === 'missed_video_call' || currentMessage.type === 'voice_call' || currentMessage.type === 'video_call') {
     let contentView = null
 
@@ -423,10 +493,10 @@ const MessageScreen = ({ navigation, route }) => {
           <Image source={currentMessage?.user?._id === currentUser?.id ? images.out_voice_call : images.missed_voice_call}
             style={{ width: 30, height: 30 }} contentFit="contain" />
           <TouchableOpacity onPress={() => calling(true)} style={{ gap: 1 }}>
-            <Text style={{ fontSize: 13, fontWeight: 'bold', lineHeight: 20, color: 'black' }}>{currentMessage?.user?._id === currentUser?.id ? 'Voice call' : 'Missed voice call'}</Text>
+            <Text style={{ fontSize: 13, fontWeight: 'bold', lineHeight: 20, color: currentMessage?.user?._id !== currentUser?.id ? '#f0f0f0' : 'black' }}>{currentMessage?.user?._id === currentUser?.id ? 'Voice call' : 'Missed voice call'}</Text>
             <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
-              <Text style={{ fontSize: 13, color: '#4c4c4c', lineHeight: 20 }}>{currentMessage?.user?._id === currentUser?.id ? 'No answer' : 'tap to call back'}</Text>
-              <Text style={{ color: '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
+              <Text style={{ fontSize: 13, color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#4c4c4c', lineHeight: 20 }}>{currentMessage?.user?._id === currentUser?.id ? 'No answer' : 'tap to call back'}</Text>
+              <Text style={{ color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -437,10 +507,10 @@ const MessageScreen = ({ navigation, route }) => {
           <Image source={currentMessage?.user?._id === currentUser?.id ? images.out_video_call : images.missed_video_call}
             style={{ width: 30, height: 30 }} contentFit="contain" />
           <TouchableOpacity onPress={() => calling(true)} style={{ gap: 1 }}>
-            <Text style={{ fontSize: 13, fontWeight: 'bold', lineHeight: 20, color: 'black' }}>{currentMessage?.user?._id === currentUser?.id ? 'Video call' : 'Missed video call'}</Text>
+            <Text style={{ fontSize: 13, fontWeight: 'bold', lineHeight: 20, color: currentMessage?.user?._id !== currentUser?.id ? '#f0f0f0' : 'black' }}>{currentMessage?.user?._id === currentUser?.id ? 'Video call' : 'Missed video call'}</Text>
             <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
-              <Text style={{ fontSize: 13, color: '#4c4c4c', lineHeight: 20 }}>{currentMessage?.user?._id === currentUser?.id ? 'No answer' : 'tap to call back'}</Text>
-              <Text style={{ color: '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
+              <Text style={{ fontSize: 13, color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#4c4c4c', lineHeight: 20 }}>{currentMessage?.user?._id === currentUser?.id ? 'No answer' : 'tap to call back'}</Text>
+              <Text style={{ color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -451,10 +521,10 @@ const MessageScreen = ({ navigation, route }) => {
           <Image source={currentMessage.type === 'video_call' ? images.out_video_call : images.out_voice_call}
             style={{ width: 30, height: 30 }} contentFit="contain" />
           <View style={{ gap: 1 }}>
-            <Text style={{ fontSize: 13, fontWeight: 'bold', lineHeight: 20, color: 'black' }}>{currentMessage.type === 'video_call' ? 'Video call' : 'Voice call'}</Text>
+            <Text style={{ fontSize: 13, fontWeight: 'bold', lineHeight: 20, color: currentMessage?.user?._id !== currentUser?.id ? '#f0f0f0' : 'black' }}>{currentMessage.type === 'video_call' ? 'Video call' : 'Voice call'}</Text>
             <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
-              <Text style={{ fontSize: 13, color: '#4c4c4c', lineHeight: 20 }}>{currentMessage?.text}</Text>
-              <Text style={{ color: '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
+              <Text style={{ fontSize: 13, color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#4c4c4c', lineHeight: 20 }}>{currentMessage?.text}</Text>
+              <Text style={{ color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
             </View>
           </View>
         </View>
@@ -462,38 +532,46 @@ const MessageScreen = ({ navigation, route }) => {
     } else {
       contentView = (
         <View style={{ gap: 1, alignItems: 'flex-end' }}>
-          <Text style={{ fontSize: 13, color: 'black', lineHeight: 20 }}>{currentMessage?.text}</Text>
-          <Text style={{ color: '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
+          <Text selectable style={{ fontSize: 13, color: currentMessage?.user?._id !== currentUser?.id ? '#f0f0f0' : 'black', lineHeight: 20 }}>{currentMessage?.text}</Text>
+          <Text style={{ color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
         </View>
       )
     }
 
-    return (
-      <View style={{
-        width: '100%', paddingHorizontal: 8,
-        flexDirection: 'row', alignItems: 'center',
-        justifyContent: currentMessage?.user?._id === currentUser?.id ? 'flex-end' : 'flex-start',
-        gap: 8, paddingBottom: 3
-      }}>
-        <View style={{ width: 45 }}>
-          {
-            ((currentMessage.showUserAvatar || currentMessage.isTyping) && currentMessage?.user?._id !== currentUser?.id) && renderAvatar(props)
-          }
-        </View>
-        <View style={[currentMessage?.user?._id === currentUser?.id ? styles.rightMessageContainer : styles.leftMessageContainer, {
-          maxWidth: Dimensions.get('screen').width - 28 - (currentMessage?.user?._id !== currentUser?.id ? 45 : 0)
-        }]}>
-          {contentView}
-        </View>
+    const isNewDay =
+      !previousMessage ||
+      new Date(previousMessage.createdAt).toDateString() !==
+      new Date(currentMessage.createdAt).toDateString();
 
-        <View style={{ position: 'absolute', bottom: 6, right: 8 }}>
-          {!!currentMessage.received && currentMessage.user._id === currentUser?.id && currentUser?.id && (
-            <Text style={{ color: "#6C6C6C", fontWeight: "bold", fontSize: 8 }}>Read</Text>
-          )}
-          {!!currentMessage.sent &&
-            !currentMessage.received &&
-            currentMessage.user._id === currentUser?.id &&
-            currentUser?.id && <Text style={{ color: "#6C6C6C", fontSize: 8 }}>Delivered</Text>}
+    return (
+      <View>
+        {isNewDay && <Day {...props} />}
+        <View style={{
+          width: '100%', paddingHorizontal: 8,
+          flexDirection: 'row', alignItems: 'center',
+          justifyContent: currentMessage?.user?._id === currentUser?.id ? 'flex-end' : 'flex-start',
+          gap: 8, paddingBottom: 2, paddingTop: 2
+        }}>
+          <View style={{ width: 45 }}>
+            {
+              ((currentMessage.showUserAvatar || currentMessage.isTyping) && currentMessage?.user?._id !== currentUser?.id) && renderAvatar(props)
+            }
+          </View>
+          <View style={[currentMessage?.user?._id === currentUser?.id ? styles.rightMessageContainer : (currentMessage?.user?._id === 0 ? styles.botMessageContainer : styles.leftMessageContainer), {
+            maxWidth: Dimensions.get('screen').width - 28 - (currentMessage?.user?._id !== currentUser?.id ? 45 : 0)
+          }]}>
+            {contentView}
+          </View>
+
+          <View style={{ position: 'absolute', bottom: 6, right: 8 }}>
+            {!!currentMessage.received && currentMessage.user._id === currentUser?.id && currentUser?.id && (
+              <Text style={{ color: "#6C6C6C", fontWeight: "bold", fontSize: 8 }}>Read</Text>
+            )}
+            {!!currentMessage.sent &&
+              !currentMessage.received &&
+              currentMessage.user._id === currentUser?.id &&
+              currentUser?.id && <Text style={{ color: "#6C6C6C", fontSize: 8 }}>Delivered</Text>}
+          </View>
         </View>
       </View>
     )
@@ -501,41 +579,6 @@ const MessageScreen = ({ navigation, route }) => {
 
     // return <Message {...props} />
   }
-
-  const renderBubble = (bubbleProps) => {
-    return (
-      <Bubble
-        {...bubbleProps}
-        wrapperStyle={{
-          right: styles.rightMessageContainer,
-          left: styles.leftMessageContainer,
-        }}
-        textStyle={{
-          right: {
-            color: "black",
-          },
-          left: {
-            color: "black",
-          },
-        }}
-        renderTime={(props) => (
-          <Time
-            {...props}
-            timeTextStyle={{
-              left: {
-                fontSize: 10,
-                color: "#646464",
-              },
-              right: {
-                fontSize: 10,
-                color: "#646464",
-              },
-            }}
-          />
-        )}
-      />
-    );
-  };
 
   const renderInputToolbar = (props) => {
     return (
@@ -684,6 +727,13 @@ const MessageScreen = ({ navigation, route }) => {
   }
 
   const calling = async (isVideoCall) => {
+    if(isVideoCall) {
+      analytics().logEvent('video_call')
+    } else {
+      analytics().logEvent('voice_call')
+    }
+
+
     try {
       await authenticate();
       const callProps = await SendbirdCalls.dial(
@@ -729,6 +779,8 @@ const MessageScreen = ({ navigation, route }) => {
   };
 
   const onBlock = async () => {
+    analytics().logEvent('block_button_clicked')
+
     await SheetManager.show("confirm-action-sheets", {
       payload: {
         onCancel: () => {
@@ -759,6 +811,8 @@ const MessageScreen = ({ navigation, route }) => {
   };
 
   const onReport = async () => {
+    analytics().logEvent('report_button_clicked')
+
     const options = [
       { text: "Inappropriate", color: "#333333" },
       { text: "Nudity or sexual activity", color: "#333333" },
@@ -834,10 +888,14 @@ const MessageScreen = ({ navigation, route }) => {
   };
 
   const onReview = () => {
+    analytics().logEvent('review_button_clicked')
+
     navigation.push("ReviewMatchScreen", { profile: currentConversation.profile });
   };
 
   const likeAction = () => {
+    analytics().logEvent('accept_request_clicked')
+
     setLoading(true)
     apiClient
       .post("matches/accept", { friend_id: conversation.profile?.id })
@@ -848,7 +906,7 @@ const MessageScreen = ({ navigation, route }) => {
         if (res && res.data && res.data.success && res.data.data) {
           setCurrentConversation(res.data.data);
           NavigationService.replace("GetMatchScreen", { match: res.data.data });
-        } else if(res && res.data && res.data.message) {
+        } else if (res && res.data && res.data.message) {
           showAlert('Hold on', res.data.message)
         }
       })
@@ -859,6 +917,8 @@ const MessageScreen = ({ navigation, route }) => {
   };
 
   const rejectAction = () => {
+    analytics().logEvent('reject_request_clicked')
+
     setLoading(true)
     apiClient
       .post("matches/reject", { friend_id: conversation.profile?.id })
@@ -877,12 +937,27 @@ const MessageScreen = ({ navigation, route }) => {
   };
 
   const renderHeaderView = () => {
-    return (
-      <MessageHeader conversation={currentConversation} rejectAction={rejectAction} likeAction={likeAction} />
-    )
+    if (isHeaderVisible)
+      return (
+        <MessageHeader conversation={currentConversation} rejectAction={rejectAction} likeAction={likeAction} />
+      )
+    else
+      return null
   };
 
   const renderAvatar = (props) => {
+    if (props.currentMessage.user._id === 0) {
+      return (
+        <TouchableOpacity onPress={() => navigation.navigate("BotProfileScreen")}>
+          <Image
+            style={{ width: 48, height: 48, borderRadius: 24 }}
+            source={images.bot_avatar}
+          />
+        </TouchableOpacity>
+
+      )
+    }
+
     return (
       <TouchableOpacity
         onPress={openProfile}
@@ -917,33 +992,7 @@ const MessageScreen = ({ navigation, route }) => {
     } else {
       updateTypingStatus(false)
     }
-    // try {
-    //   if (text && text.length > 0) {
-    //     updateTypingStatus(true)
-    //     clearTimeout(typingTimeoutRef.current);
-    //     typingTimeoutRef.current = setTimeout(() => {
-    //       updateTypingStatus(false)
-    //     }, 2000);
-    //   } else {
-    //     updateTypingStatus(false)
-    //   }
-    // } catch (error) {
-    //   console.log({ error })
-    // }
   }
-
-  // const renderFooter = () => {
-  //   if (isTypingUsers.length > 0) {
-  //     return (
-  //       <View style={{ padding: 10 }}>
-  //         <Text style={{ fontSize: 11, fontStyle: 'italic', color: 'gray' }}>
-  //           {isTypingUsers.join(', ')} {isTypingUsers.length > 1 ? 'are' : 'is'} typing...
-  //         </Text>
-  //       </View>
-  //     );
-  //   }
-  //   return null;
-  // }
 
   const openProfile = () => {
     navigation.push("ConnectProfileScreen", {
@@ -951,6 +1000,8 @@ const MessageScreen = ({ navigation, route }) => {
       showAcceptReject: false,
     });
   };
+
+  const isRecentOnline = currentConversation?.profile && currentConversation?.profile.last_active_time ? dayjs().diff(dayjs(currentConversation?.profile.last_active_time), 'minute') < 60 : false
 
   return (
     <View style={styles.container}>
@@ -989,14 +1040,20 @@ const MessageScreen = ({ navigation, route }) => {
               width: 50,
               height: 50,
               borderWidth: 2,
-              borderColor: "white",
+              borderColor: isRecentOnline ? '#47F644' : "white",
               borderRadius: 25,
             }}
           />
+          {isRecentOnline &&
+            <View style={styles.onlineStatusBg}>
+              <OnlineStatus isRecentOnline={isRecentOnline} status={currentConversation?.profile?.online_status} radius={12} />
+            </View>
+          }
         </TouchableOpacity>
         <Text onPress={openProfile} style={{ flex: 1, fontSize: 18, color: "white", fontWeight: "bold" }}>
           {currentConversation?.profile?.full_name}
         </Text>
+
         <View
           style={{
             flex: 1,
@@ -1043,44 +1100,22 @@ const MessageScreen = ({ navigation, route }) => {
         renderComposer={renderComposer}
         renderSend={renderSend}
         renderAvatar={renderAvatar}
-        // renderTicks={(currentMessage) => {
-        //   const tickedUser = currentMessage.user._id;
-        //   return (
-        //     <View style={{ position: "absolute", bottom: -20, right: -8 }}>
-        //       {!!currentMessage.received && tickedUser === currentUser?.id && currentUser?.id && (
-        //         <Text style={{ color: "#6C6C6C", fontWeight: "bold", fontSize: 8 }}>Read</Text>
-        //       )}
-        //       {!!currentMessage.sent &&
-        //         !currentMessage.received &&
-        //         tickedUser === currentUser?.id &&
-        //         currentUser?.id && <Text style={{ color: "#6C6C6C", fontSize: 8 }}>Delivered</Text>}
-        //     </View>
-        //   );
-        // }}
-        renderTime={(props) => (
-          <Time
-            {...props}
-            timeTextStyle={{
-              left: {
-                fontSize: 10,
-                color: "#646464",
-              },
-              right: {
-                fontSize: 10,
-                color: "#646464",
-              },
-            }}
-          />
-        )}
         renderMessage={renderMessage}
-        renderBubble={renderBubble}
         user={{
           _id: currentUser?.id,
           name: currentUser?.full_name ?? "",
         }}
         onInputTextChanged={handleTyping}
-        // renderFooter={renderFooter}
         alwaysShowSend
+        listViewProps={{
+          onScroll: handleScroll,
+          scrollEventThrottle: 16,
+          contentContainerStyle: {
+            flexGrow: 1,
+            justifyContent: "flex-start",
+            paddingBottom: keyboardHeight,
+          },
+        }}
       />
       {loading && (
         <LoadingView />

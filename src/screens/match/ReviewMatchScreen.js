@@ -13,6 +13,7 @@ import { Dimensions, Keyboard, StyleSheet, TouchableOpacity, View } from "react-
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -33,6 +34,13 @@ const ReviewMatchScreen = ({ navigation, route }) => {
   const [note, setNote] = useState("");
   const [rating, setRating] = useState(0);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: "ReviewMatchScreen",
+      screen_class: "ReviewMatchScreen",
+    })
+  }, [])
 
   const onSubmit = () => {
     Keyboard.dismiss();

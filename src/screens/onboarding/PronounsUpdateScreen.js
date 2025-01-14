@@ -2,7 +2,7 @@ import Text from '@/components/Text'
 import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Dimensions, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -18,6 +18,7 @@ import apiClient from '@/utils/apiClient'
 import ButtonWithLoading from '@/components/ButtonWithLoading'
 import { useAtom } from 'jotai'
 import { userAtom } from '@/actions/global'
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
     container: {
@@ -56,6 +57,13 @@ const PronounsUpdateScreen = ({ navigation, route }) => {
     const [isPublic, setPublic] = useState(true);
     const [loading, setLoading] = useState(false)
     const [currentUser, setUser] = useAtom(userAtom)
+
+    useEffect(() => {
+        analytics().logScreenView({
+            screen_name: 'PronounsUpdateScreen',
+            screen_class: 'PronounsUpdateScreen'
+        })
+    }, [])
 
     const onContinue = () => {
         try {

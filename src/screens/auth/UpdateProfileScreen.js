@@ -7,12 +7,13 @@ import images from "@/utils/images";
 import NavigationService from "@/utils/NavigationService";
 import { Image } from "expo-image";
 import { useAtom } from "jotai";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Keyboard, Linking, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SheetManager } from "react-native-actions-sheet";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -36,6 +37,13 @@ const UpdateProfileScreen = ({ navigation }) => {
   const [currentUser, setUser] = useAtom(userAtom);
   const [fullName, setFullName] = useState(currentUser?.full_name);
   const [loading, setLoading] = useState(false);
+  
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: 'UpdateProfileScreen',
+      screen_class: 'UpdateProfileScreen'
+    })
+  }, [])
 
   const moreAction = async () => {
     const options = currentUser?.login_type === "email" ? [{ text: "Update Password" }] : [];

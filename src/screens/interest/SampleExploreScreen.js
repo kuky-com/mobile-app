@@ -13,15 +13,22 @@ import { useAtom } from 'jotai';
 import { notiCounterAtom } from '@/actions/global';
 import { sampleProfileViewAtom } from '../../actions/global';
 import NavigationService from '@/utils/NavigationService'
+import analytics from '@react-native-firebase/analytics'
 
 const ITEM_WIDTH = Platform.isPad ? Dimensions.get('screen').width / 4 - 20 : Dimensions.get('screen').width / 2 - 24;
-const PAGE_SIZE = 8
 
 const SampleExploreScreen = ({ navigation }) => {
     const insets = useSafeAreaInsets()
     const [suggestions, setSuggestions] = useState([])
     const [isFetching, setFetching] = useState(false)
     const [counter, setCounter] = useState(0)
+
+    useEffect(() => {
+        analytics().logScreenView({
+            screen_name: "SampleExploreScreen",
+            screen_class: "SampleExploreScreen",
+        })
+    }, [])
 
     useEffect(() => {
         onRefresh()

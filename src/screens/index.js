@@ -77,7 +77,6 @@ import { getSendbirdToken } from "../utils/api";
 import { authenticate, registerToken } from "../utils/sendbird";
 import { VoiceCallScreen } from "./chat/VoiceCallScreen";
 import { VideoCallScreen } from "./chat/VideoCallScreen";
-import { CALL_PERMISSIONS, usePermissions } from "@/hooks/usePermissions";
 import DisclaimeScreen from "./onboarding/DisclaimeScreen";
 import OnboardingSampleProfileScreen from "./onboarding/OnboardingSampleProfileScreen";
 import ProfileVideoProcessingScreen from "./profile/ProfileVideoProcessingScreen";
@@ -92,6 +91,9 @@ import { LogLevel, OneSignal } from "react-native-onesignal";
 
 const ONESIGNAL_APP_ID = "c3fb597e-e318-4eab-9d90-cd43b9491bc1";
 import LetDiscoverScreen from "./auth/LetDiscoverScreen";
+import BotProfileScreen from "./chat/BotProfileScreen";
+import OnlineStatusScreen from "./profile/OnlineStatusScreen";
+import RegisterSuggestionScreen from "./onboarding/RegisterSuggestionScreen";
 
 SendbirdCalls.setListener({
   onRinging: async (callProps) => {
@@ -181,24 +183,22 @@ const AppStack = ({ navgation }) => {
   const [currentUser, setUser] = useAtom(userAtom);
   const showUpdateAlert = useAppUpdateAlert();
   const appState = useRef(AppState.currentState);
-  usePermissions(CALL_PERMISSIONS);
 
   //config onesignal
   useEffect(() => {
     OneSignal.initialize(ONESIGNAL_APP_ID);
-    OneSignal.Notifications.requestPermission(true);
   }, []);
 
   // config purchase status
   useEffect(() => {
     if (currentUser && currentUser?.email) {
       Purchases.logIn(currentUser?.email)
-        .then(() => {})
-        .catch(() => {});
+        .then(() => { })
+        .catch(() => { });
     } else {
       Purchases.logOut()
-        .then(() => {})
-        .catch(() => {});
+        .then(() => { })
+        .catch(() => { });
     }
   }, [currentUser]);
 
@@ -220,7 +220,7 @@ const AppStack = ({ navgation }) => {
             }
           }
           await AsyncStorage.setItem("LAST_PROFILE_STATUS_CHECK", dayjs().format());
-        } catch (error) {}
+        } catch (error) { }
       }
     };
 
@@ -299,7 +299,7 @@ const AppStack = ({ navgation }) => {
               message: notification.body,
             });
           }
-        } catch (error) {}
+        } catch (error) { }
       }
     });
   }, []);
@@ -450,9 +450,9 @@ const AppStack = ({ navgation }) => {
                 });
             }
           })
-          .catch((error) => {});
+          .catch((error) => { });
       }, 2000);
-    } catch (error) {}
+    } catch (error) { }
   }, []);
 
   // config purchases
@@ -501,12 +501,23 @@ const AppStack = ({ navgation }) => {
       const deviceId = await DeviceInfo.getUniqueId();
       setDeviceId(deviceId);
       AsyncStorage.setItem("DEVICE_ID", deviceId)
-        .then(() => {})
-        .catch(() => {});
+        .then(() => { })
+        .catch(() => { });
     };
 
     getDeviceId();
   }, []);
+
+  //update last active time
+  useEffect(() => {
+    if (currentUser) {
+      apiClient.get('users/update-last-active')
+        .then((data) => { })
+        .catch((error) => {
+          console.log(({ error }))
+        })
+    }
+  }, [currentUser])
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="SplashScreen">
@@ -579,6 +590,9 @@ const AppStack = ({ navgation }) => {
       <Stack.Screen name="SampleProfileScreen" component={SampleProfileScreen} />
       <Stack.Screen name="OnboardingVideoWalkthroughtScreen" component={OnboardingVideoWalkthroughtScreen} />
       <Stack.Screen name="RegisterSuccessScreen" component={RegisterSuccessScreen} />
+      <Stack.Screen name="RegisterSuggestionScreen" component={RegisterSuggestionScreen} />
+      <Stack.Screen name="BotProfileScreen" component={BotProfileScreen} options={{ ...TransitionPresets.ModalSlideFromBottomIOS }} />
+      <Stack.Screen name="OnlineStatusScreen" component={OnlineStatusScreen} options={{ ...TransitionPresets.ModalSlideFromBottomIOS }} />
     </Stack.Navigator>
   );
 };

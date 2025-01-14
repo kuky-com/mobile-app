@@ -41,6 +41,8 @@ import customParseFormat from "dayjs/plugin/customParseFormat"
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import { SendbirdCalls } from "@sendbird/calls-react-native";
 import { AlertIconProvider } from "./src/components/AlertIconProvider";
+import DeviceInfo from "react-native-device-info";
+import { NODE_ENV } from "./src/utils/apiClient";
 
 dayjs.extend(advancedFormat);
 dayjs.extend(relativeTime);
@@ -48,6 +50,12 @@ dayjs.extend(customParseFormat);
 dayjs.extend(duration)
 
 const queryClient = new QueryClient();
+
+if(NODE_ENV === 'development') {
+  analytics().setAnalyticsCollectionEnabled(false)
+} else {
+  analytics().setAnalyticsCollectionEnabled(true)
+}
 
 {
   /* <BaseToast
@@ -205,8 +213,8 @@ export default function App() {
       <SafeAreaProvider>
         <SheetProvider>
           <AppUpdateAlertProvider>
-            <AlertProvider>
-              <AlertIconProvider>
+            <AlertIconProvider>
+              <AlertProvider>
                 <NavigationContainer
                   ref={navigationRef}
                   linking={linking}
@@ -223,8 +231,8 @@ export default function App() {
                     </QueryClientProvider>
                   </Suspense>
                 </NavigationContainer>
-              </AlertIconProvider>
-            </AlertProvider>
+              </AlertProvider>
+            </AlertIconProvider>
           </AppUpdateAlertProvider>
         </SheetProvider>
       </SafeAreaProvider>

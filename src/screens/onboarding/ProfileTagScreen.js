@@ -21,6 +21,7 @@ import { useAtom, useAtomValue } from 'jotai'
 import constants from '@/utils/constants'
 import ButtonWithLoading from '@/components/ButtonWithLoading'
 import AvatarImage from '@/components/AvatarImage'
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
     container: {
@@ -77,6 +78,12 @@ const ProfileTagScreen = ({ navigation, route }) => {
     const [currentUser, setCurrentUser] = useAtom(userAtom)
     const [loading, setLoading] = useState(false)
 
+    useEffect(() => {
+        analytics().logScreenView({
+            screen_name: 'ProfileTagScreen',
+            screen_class: 'ProfileTagScreen'
+        })
+    }, [])
 
     const getNewTag = () => {
         setLoading(true)
@@ -130,8 +137,8 @@ const ProfileTagScreen = ({ navigation, route }) => {
                         />
                         {/* <Text style={styles.name}>{`${currentUser?.full_name}, ${dayjs().diff(dayjs(currentUser?.birthday, 'DD/MM/YYYY'), 'years')}`}</Text> */}
 
-                        {currentUser?.birthday && currentUser?.birthday.includes('-') && <Text style={styles.name}>{`${currentUser?.full_name}, ${dayjs().diff(dayjs(currentUser?.birthday, 'MM-DD-YYYY'), 'years')}`}</Text>}
-                        {currentUser?.birthday && currentUser?.birthday.includes('/') && <Text style={styles.name}>{`${currentUser?.full_name}, ${dayjs().diff(dayjs(currentUser?.birthday, 'DD/MM/YYYY'), 'years')}`}</Text>}
+                        {currentUser?.birthday && currentUser?.birthday.includes('-') && <Text style={styles.name}>{`${currentUser?.full_name}, ${dayjs().diff(dayjs(currentUser?.birthday, 'MM-DD-YYYY'), 'year')}`}</Text>}
+                        {currentUser?.birthday && currentUser?.birthday.includes('/') && <Text style={styles.name}>{`${currentUser?.full_name}, ${dayjs().diff(dayjs(currentUser?.birthday, 'DD/MM/YYYY'), 'year')}`}</Text>}
                         {!currentUser?.birthday && <Text style={styles.name}>{`${currentUser?.full_name}`}</Text>}
                     </View>
                 </View>

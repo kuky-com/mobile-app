@@ -10,7 +10,7 @@ import { SendbirdCalls } from "@sendbird/calls-react-native";
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 import { useSetAtom } from "jotai";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Linking, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SheetManager } from "react-native-actions-sheet";
 import { getBuildNumber, getVersion } from "react-native-device-info";
@@ -18,6 +18,7 @@ import Purchases from "react-native-purchases";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { NODE_ENV } from "../../utils/apiClient";
+import analytics from '@react-native-firebase/analytics'
 
 const styles = StyleSheet.create({
   container: {
@@ -46,6 +47,13 @@ const SettingScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const showUpdateAlert = useAppUpdateAlert();
 
+  useEffect(() => {
+    analytics().logScreenView({
+      screen_name: 'SettingScreen',
+      screen_class: 'SettingScreen'
+    })
+  }, [])
+
   const onSupport = () => {
     Linking.openURL("https://www.kuky.com/");
   };
@@ -61,8 +69,8 @@ const SettingScreen = ({ navigation }) => {
   const onLogout = async () => {
     setLoading(true);
     Purchases.logOut()
-      .then(() => {})
-      .catch(() => {});
+      .then(() => { })
+      .catch(() => { });
 
     apiClient
       .get("auth/logout")
@@ -111,7 +119,7 @@ const SettingScreen = ({ navigation }) => {
   const onDeleteAccount = async (reason) => {
     await SheetManager.show("confirm-action-sheets", {
       payload: {
-        onCancel: () => {},
+        onCancel: () => { },
         onConfirm: async () => {
           const options = [
             { text: "I met someone", color: "#333333" },
@@ -171,7 +179,7 @@ const SettingScreen = ({ navigation }) => {
   const deactiveAccount = async () => {
     await SheetManager.show("confirm-action-sheets", {
       payload: {
-        onCancel: () => {},
+        onCancel: () => { },
         onConfirm: async () => {
           const options = [
             { text: "I met someone", color: "#333333" },
