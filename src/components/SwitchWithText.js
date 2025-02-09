@@ -27,7 +27,7 @@ export default function SwitchWithText({enable = true, setEnable = () => {}}) {
 
   const thumbColor = animation.interpolate({
     inputRange: [0, 1],
-    outputRange: ['#66E290', '#FF8B8B'], 
+    outputRange: ['#725ED4', '#FF8B8B'], 
   });
 
   return (
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     position: 'relative',
-    backgroundColor: '#E5E5E5',
+    backgroundColor: '#CDB8E250',
   },
   thumb: {
     width: 26,

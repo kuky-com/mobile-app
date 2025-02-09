@@ -17,6 +17,7 @@ import { useAtom, useSetAtom } from 'jotai'
 import { userAtom } from '@/actions/global'
 import { getAuthenScreen } from '@/utils/utils'
 import analytics from '@react-native-firebase/analytics'
+import { FontAwesome6 } from '@expo/vector-icons'
 
 const imageImage = `avatar${dayjs().unix()}.png`
 
@@ -87,18 +88,18 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
     const onContinue = () => {
         try {
             setLoading(true)
-            console.log({imageUrl})
+            console.log({ imageUrl })
             apiClient.post('users/update', { avatar: imageUrl })
                 .then((res) => {
                     setLoading(false)
                     if (res && res.data && res.data.success) {
                         setUser(res.data.data)
-                        console.log({user: res.data.data})
+                        console.log({ user: res.data.data })
                         // NavigationService.reset('PurposeUpdateScreen', { onboarding: true })
-                        // NavigationService.reset(getAuthenScreen(res.data.data))
+                        NavigationService.reset(getAuthenScreen(res.data.data))
                         // Toast.show({ text1: res.data.message, type: 'success' })
 
-                        navigation.goBack()
+                        // navigation.goBack()
                     } else {
                         Toast.show({ text1: res.data.message, type: 'error' })
                     }
@@ -114,8 +115,8 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
     }
 
     const onSkip = () => {
-        // NavigationService.reset(getAuthenScreen(currentUser))
-        navigation.goBack()
+        NavigationService.reset('Dashboard')
+        // navigation.goBack()
     }
 
     const openPicker = async () => {
@@ -154,7 +155,7 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
     }
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 16 }]}>
+        <View style={[styles.container, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 8 }]}>
             <StatusBar translucent style='dark' />
             {/* {
                 !onboarding &&
@@ -163,9 +164,10 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
                 </TouchableOpacity>
             } */}
             <View style={{ flex: 1, gap: 16, width: Platform.isPad ? 600 : '100%', alignSelf: 'center' }}>
-                <Image source={images.logo_with_text} style={{ width: 120, height: 40, marginBottom: 32 }} contentFit='contain' />
-                <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'black' }}>{`Add your \nprofile photos`}</Text>
-                <Text style={{ fontSize: 16, fontWeight: '500', color: 'black' }}>{`This is your main photo public to everyone`}</Text>
+                <Image source={images.logo_icon} style={{ width: 40, height: 40, marginBottom: 8 }} contentFit='contain' />
+                <Text style={{ fontSize: 24, lineHeight: 40, maxWidth: '80%', fontWeight: 'bold', color: 'black' }}>{`Let’s complete your profile!`}</Text>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: 'black' }}>{`Add your profile photos`}</Text>
+
                 <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 8 }}>
                     {!image &&
                         <TouchableOpacity onPress={openPicker} style={styles.imageContainer}>
@@ -182,11 +184,19 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
                     }
                 </View>
             </View>
+
+            <TouchableOpacity style={{
+                position: 'absolute', top: insets.top + 5, right: 16,
+                width: 25, height: 25, alignItems: 'center', justifyContent: 'center'
+            }}
+                onPress={() => NavigationService.push('SkipOnboardingScreen')}>
+                <FontAwesome6 name='xmark' size={20} color='#333333' />
+            </TouchableOpacity>
             <TouchableOpacity onPress={imageUrl ? onContinue : onUpload} disabled={image === null} style={{ width: Platform.isPad ? 600 : '100%', alignSelf: 'center', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: image === null ? '#9A9A9A' : '#333333', }}>
                 <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>{imageUrl ? 'Continue' : 'Upload'}</Text>
             </TouchableOpacity>
-            <View style={{width: '100%', alignItems: 'center'}}>
-                <Text style={{padding: 8, fontSize: 14, fontWeight: 'bold'}} onPress={onSkip}>Skip for now</Text>
+            <View style={{ width: '100%', alignItems: 'center' }}>
+                <Text style={{ padding: 8, fontSize: 14, fontWeight: 'bold' }} onPress={onSkip}>Skip for now</Text>
             </View>
             {
                 loading && <LoadingView />

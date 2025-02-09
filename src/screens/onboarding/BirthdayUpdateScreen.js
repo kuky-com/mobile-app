@@ -11,7 +11,7 @@ import { StatusBar } from 'expo-status-bar'
 import dayjs from 'dayjs'
 import Toast from 'react-native-toast-message'
 import axios from 'axios'
-import { useAtomValue } from 'jotai'
+import { useAtomValue, useSetAtom } from 'jotai'
 import { tokenAtom } from '@/actions/global'
 import apiClient from '@/utils/apiClient'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
@@ -19,6 +19,8 @@ import ButtonWithLoading from '@/components/ButtonWithLoading'
 import { getAuthenScreen } from '@/utils/utils'
 import TextInput from '@/components/TextInput'
 import analytics from '@react-native-firebase/analytics'
+import { FontAwesome6 } from '@expo/vector-icons'
+import { userAtom } from '../../actions/global'
 
 const styles = StyleSheet.create({
     container: {
@@ -30,14 +32,11 @@ const styles = StyleSheet.create({
         gap: 24
     },
     inputContainer: {
-        backgroundColor: '#ECECEC',
+        backgroundColor: '#FFFFFF',
         alignItems: 'center',
         justifyContent: 'center',
         flex: 1, height: 55, borderRadius: 20,
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.25,
-        elevation: 1,
-        shadowColor: '#000000',
+        borderWidth: 1, borderColor: '#726E70'
     },
     input: {
         fontSize: 16,
@@ -58,6 +57,8 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
     const [month, setMonth] = useState('');
     const [day, setDay] = useState('');
     const [year, setYear] = useState('');
+
+    const setUser = useSetAtom(userAtom)
 
     const [loading, setLoading] = useState('')
 
@@ -126,9 +127,8 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
                     .then((res) => {
                         setLoading(false)
                         if (res && res.data && res.data.success) {
-                            // NavigationService.reset('GenderUpdateScreen')
-                            NavigationService.reset(getAuthenScreen(res.data.data))
-                            // Toast.show({ text1: res.data.message, type: 'success' })
+                            setUser(res.data.data)
+                            NavigationService.reset('AskUpdateInfoScreen', { fromView: 'birthday' })
                         } else {
                             Toast.show({ text1: res.data.message, type: 'error' })
                         }
@@ -147,14 +147,14 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
     }
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 16 }]}>
+        <View style={[styles.container, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 8 }]}>
             <StatusBar translucent style='dark' />
             <KeyboardAwareScrollView style={{ flex: 1, width: '100%' }}>
                 <View style={{ flex: 1, gap: 16, width: Platform.isPad ? 600 : '100%', alignSelf: 'center' }}>
-                    <Image source={images.logo_with_text} style={{ width: 120, height: 40, marginBottom: 32 }} contentFit='contain' />
-                    <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'black' }}>{`What’s your \nbirthday?`}</Text>
-                    <Text style={{ fontSize: 16, fontWeight: '500', color: 'black' }}>{`Your age will be shown to other users.`}</Text>
-                    <View style={{ flex: 1, paddingVertical: 50, width: '100%', flexDirection: 'row', gap: 10, alignItems: 'flex-start', justifyContent: 'center' }}>
+                    <Image source={images.logo_icon} style={{ width: 40, height: 40, marginBottom: 8 }} contentFit='contain' />
+                    <Text style={{ fontSize: 24, lineHeight: 40, maxWidth: '80%', fontWeight: 'bold', color: 'black' }}>{`Let’s complete your profile!`}</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: 'black' }}>{`What’s your birthday?`}</Text>
+                    <View style={{ flex: 1, paddingVertical: 10, width: '100%', flexDirection: 'row', gap: 10, alignItems: 'flex-start', justifyContent: 'center' }}>
                         <View style={styles.inputContainer}>
                             <TextInput
                                 style={styles.input}
@@ -192,15 +192,29 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
                             />
                         </View>
                     </View>
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: '#7A7A7A' }}>{`Your age will be shown to other users.`}</Text>
                 </View>
             </KeyboardAwareScrollView>
 
-            <ButtonWithLoading 
+            <TouchableOpacity style={{
+                position: 'absolute', top: insets.top + 5, right: 16,
+                width: 25, height: 25, alignItems: 'center', justifyContent: 'center'
+            }}
+                onPress={() => NavigationService.push('SkipOnboardingScreen')}>
+                <FontAwesome6 name='xmark' size={20} color='#333333' />
+            </TouchableOpacity>
+            <ButtonWithLoading
                 text='Continue'
                 disabled={(month === '' || day === '' || year === '')}
                 onPress={onContinue}
                 loading={loading}
             />
+            <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 8 }}
+                    onPress={() => NavigationService.reset('OnboardingVideoTutorialScreen')}>
+                    <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#333333' }}>Record a video instead</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     )
 }

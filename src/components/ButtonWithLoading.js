@@ -11,7 +11,7 @@ const ButtonWithLoading = ({ text = {}, textStyle = {}, onPress, loading = false
             disabled={!!disabled || !!loading}
             style={[{
                 width: Platform.isPad ? 600 : '100%', alignSelf: 'center',
-                height: getUnit(60), borderRadius: getUnit(30),
+                height: getUnit(50), borderRadius: getUnit(25),
                 alignItems: 'center', justifyContent: 'center',
                 backgroundColor: disabled ? '#9A9A9A' : '#333333',
                 gap: getUnit(8),

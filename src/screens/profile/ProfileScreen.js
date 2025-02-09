@@ -136,15 +136,18 @@ const ProfileScreen = ({ navigation }) => {
     }
 
     const onAddDislikes = () => {
-        navigation.push('DislikeUpdateScreen', { dislikes: dislikes, onUpdated: (newList) => setDislikes(newList) })
+        // navigation.push('DislikeUpdateScreen', { dislikes: dislikes, onUpdated: (newList) => setDislikes(newList) })
+        navigation.push('MatchingInfoUpdateScreen', {canClose: true})
     }
 
     const onAddLikes = () => {
-        navigation.push('InterestUpdateScreen', { likes: likes, onUpdated: (newList) => setLikes(newList) })
+        // navigation.push('InterestUpdateScreen', { likes: likes, onUpdated: (newList) => setLikes(newList) })
+        navigation.push('MatchingInfoUpdateScreen', {canClose: true})
     }
 
     const onEditPurposes = () => {
-        navigation.push('PurposeProfileScreen', { purposes: purposes, onUpdated: (newList) => setPurposes(newList) })
+        // navigation.push('PurposeProfileScreen', { purposes: purposes, onUpdated: (newList) => setPurposes(newList) })
+        navigation.push('MatchingInfoUpdateScreen', {canClose: true})
     }
 
     const openNameEdit = () => {
@@ -242,7 +245,7 @@ const ProfileScreen = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <StatusBar translucent style='dark' />
-            <View style={{ gap: 8, borderBottomLeftRadius: 45, borderBottomRightRadius: 45, backgroundColor: '#725ED4', paddingHorizontal: 16, paddingBottom: 12, paddingTop: insets.top, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ gap: 3, borderBottomLeftRadius: 10, borderBottomRightRadius: 10, backgroundColor: '#725ED4', paddingHorizontal: 16, paddingBottom: 12, paddingTop: insets.top, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
                 {/* <View style={{ width: '100%', height: 30, alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
                     <TouchableOpacity onPress={openSetting} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
                         <Image source={images.setting_icon} style={{ width: 22, height: 22 }} contentFit='contain' />
@@ -252,8 +255,8 @@ const ProfileScreen = ({ navigation }) => {
                     <TouchableOpacity onPress={onShareProfile} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
                         <FontAwesome6 name='share-from-square' color='white' size={22} />
                     </TouchableOpacity>
-                    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3 }}>
-                        <Text style={{ flex: 1, textAlign: 'center', fontSize: 18, color: 'white', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text>
+                    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 0 }}>
+                        <Text style={{ flex: 1, textAlign: 'center', fontSize: 16, color: 'white', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text>
                         <Text style={{ fontSize: 12, fontWeight: 'bold', color: 'white' }}>{capitalize(currentUser?.online_status)}</Text>
                     </View>
                     <TouchableOpacity onPress={openSetting} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>

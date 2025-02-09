@@ -52,10 +52,10 @@ const styles = StyleSheet.create({
 })
 
 const PurposeUpdateScreen = ({ navigation, route }) => {
-    const { purposes: existPurposes, onUpdated } = route.params
+    const { purposes: existPurposes, onUpdated } = route && route.params ? route.params : {}
     const insets = useSafeAreaInsets()
     const [tagName, setTagName] = useState('')
-    const [purposes, setPurposes] = useState(existPurposes);
+    const [purposes, setPurposes] = useState(existPurposes || []);
     const [loading, setLoading] = useState(false)
     const inputRef = useRef()
     const showAlert = useAlert()

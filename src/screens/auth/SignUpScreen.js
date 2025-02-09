@@ -20,11 +20,12 @@ import colors from "../../utils/colors";
 import analytics from '@react-native-firebase/analytics'
 import { getBuildNumber, getVersion } from "react-native-device-info";
 import { NODE_ENV } from "../../utils/apiClient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#eeeeee",
+    backgroundColor: "#725ED4",
   },
   shadow: {
     shadowOffset: { width: 1, height: 1 },
@@ -41,6 +42,7 @@ const SignUpScreen = ({ navigation }) => {
   const pushToken = useAtomValue(pushTokenAtom);
   const [loading, setLoading] = useState(false);
   const [accepted, setAccepted] = useState(false)
+  const insets = useSafeAreaInsets()
 
   useEffect(() => {
     analytics().logScreenView({
@@ -209,96 +211,84 @@ const SignUpScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <StatusBar translucent style="light" />
-      <View style={{ flex: 1 }}>
-        <Image source={images.sign_up_bg} style={{ width: "100%", height: "100%" }} />
-      </View>
       <View
         style={{
-          marginTop: -30,
-          backgroundColor: "white",
-          borderRadius: 25,
-          overflow: "hidden",
           padding: 28,
           gap: 20,
           alignItems: "center",
-          paddingBottom: 48,
+          justifyContent: "center",
+          paddingBottom: insets.bottom + 8,
+          paddingTop: insets.top + 8,
+          flex: 1
         }}
       >
-        <View style={{ paddingVertical: 16, alignItems: 'center', justifyContent: 'center', width: '100%', gap: 32 }}>
-          <Text style={{ fontSize: 22, fontWeight: 'bold', color: '#333333' }}>Welcome to Kuky</Text>
-          <TouchableOpacity
-            onPress={onSignUp}
-            style={{
-              width: Platform.isPad ? 600 : "100%",
-              alignSelf: "center",
-              height: 60,
-              borderRadius: 30,
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "#333333",
-            }}
-          >
-            <Text style={{ fontSize: 18, fontWeight: "700", color: "white" }}>
-              Sign up
+        <View style={{ flexDirection: 'row', width: '100%', justifyContent: 'flex-end' }}>
+          <TouchableOpacity onPress={onSignIn} style={{ height: 30, borderRadius: 15, backgroundColor: '#C9DACC', paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontSize: 13, fontWeight: "bold", color: '#333333' }}>
+              Sign in
             </Text>
           </TouchableOpacity>
-          {/* <View
-          style={{ alignItems: "center", justifyContent: "center", gap: 16, flexDirection: "row" }}
+        </View>
+        <View style={{ flex: 1, paddingVertical: 16, alignItems: 'center', justifyContent: 'center', width: '100%', gap: 16 }}>
+          <Image source={images.logo_icon} style={{ width: 30, height: 30, tintColor: 'white' }} contentFit="contain" />
+          <Image source={images.logo_text} style={{ width: 100, height: 30, tintColor: 'white' }} contentFit="contain" />
+          <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#ffffff' }}>Better Together</Text>
+
+        </View>
+
+        <TouchableOpacity
+          onPress={onSignUp}
+          style={{
+            width: Platform.isPad ? 600 : "100%",
+            alignSelf: "center",
+            height: 50,
+            borderRadius: 25,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "#333333",
+          }}
         >
-          {Platform.OS === "ios" && (
-            <TouchableOpacity
-              onPress={onApple}
-              disabled={!accepted}
-              style={[{
-                height: 54,
-                borderRadius: 25,
-                alignItems: "center",
-                justifyContent: "center",
-                width: 80,
-                backgroundColor: "#EEEEEE",
-              }, styles.shadow]}
-            >
-              <Image
-                source={images.apple_icon}
-                style={{ width: 20, height: 20, tintColor: accepted ? "#333333" : '#999999' }}
-                contentFit="contain"
-              />
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity
-            onPress={onGoogle}
-            disabled={!accepted}
-            style={[{
-              height: 54,
-              borderRadius: 25,
-              alignItems: "center",
-              justifyContent: "center",
-              width: 80,
-              backgroundColor: "#EEEEEE",
-            }, styles.shadow]}
-          >
-            <Image
-              source={images.google_icon}
-              style={{ width: 20, height: 20, tintColor: accepted ? "#333333" : '#999999' }}
-              contentFit="contain"
-            />
-          </TouchableOpacity>
-        </View>
-
-        <View style={{ alignSelf: "center", width: Platform.isPad ? 600 : "100%", flexDirection: 'row', alignItems: 'flex-start', gap: 4, paddingHorizontal: 8 }}>
-          <TouchableOpacity onPress={() => setAccepted(old => !old)} style={{ width: 20, height: 20, marginTop: 3 }}>
-            <FontAwesome5 name={accepted ? 'check-square' : 'square'} solid={accepted} size={20} color={colors.mainColor} />
-          </TouchableOpacity>
-          <Text onPress={() => setAccepted(old => !old)} style={{ flex: 1, fontSize: 14, fontWeight: 'bold', color: 'black', lineHeight: 25 }}>{`I acknowledge that Kuky is not a substitute for professional mental health services or advice. I understand that Kuky's content is for informational and supportive purposes only.`}</Text>
-        </View> */}
-
-          <Text onPress={onSignIn} style={{ textDecorationLine: 'underline', fontSize: 20, fontWeight: "bold", color: colors.mainColor }}>
-            Sign in
+          <Text style={{ fontSize: 18, fontWeight: "700", color: "white" }}>
+            Use my Email address
           </Text>
-        </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={onApple}
+          style={{
+            width: Platform.isPad ? 600 : "100%",
+            alignSelf: "center",
+            height: 50,
+            borderRadius: 25,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "#333333",
+          }}
+        >
+          <Text style={{ fontSize: 18, fontWeight: "700", color: "white" }}>
+            Connect with Apple
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={onGoogle}
+          style={{
+            width: Platform.isPad ? 600 : "100%",
+            alignSelf: "center",
+            height: 50,
+            borderRadius: 25,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "#333333",
+          }}
+        >
+          <Text style={{ fontSize: 18, fontWeight: "700", color: "white" }}>
+            Connect with Google
+          </Text>
+        </TouchableOpacity>
 
         <View style={{ width: '100%', height: 1, backgroundColor: '#726E7030' }} />
-        <Text style={{ color: '#666666', fontSize: 12, textAlign: "center", fontWeight: "500", lineHeight: 17 }}>
+        <Text style={{ color: '#ffffff', fontSize: 12, textAlign: "center", fontWeight: "500", lineHeight: 17 }}>
           {`By tapping Sign Up / Login, you agree to our `}
           <Text onPress={openTerm} style={{ textDecorationLine: "underline", fontWeight: "bold" }}>Terms</Text>
           {` .\nLearn how we process your data in our  `}
@@ -320,8 +310,8 @@ const SignUpScreen = ({ navigation }) => {
 
         <Text
           style={{
-            fontSize: 9,
-            color: "#aaaaaa",
+            fontSize: 10,
+            color: "#eeeeee",
             fontWeight: "bold",
             width: "100%",
             textAlign: "center",

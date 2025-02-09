@@ -236,6 +236,7 @@ const SampleProfileScreen = ({ navigation, route }) => {
                   borderRadius: 10,
                 }}
                 ref={videoRef}
+                posterSource={{uri: currentProfile?.avatar}}
                 source={{ uri: currentProfile?.video_intro }}
                 resizeMode={ResizeMode.COVER}
                 onPlaybackStatusUpdate={(status) => {

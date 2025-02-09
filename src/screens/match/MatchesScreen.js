@@ -82,7 +82,9 @@ const MatchesScreen = ({ navigation }) => {
       .get("matches/matches")
       .then((res) => {
         setFetching(false);
+        console.log({ matches: res.data });
         if (res && res.data && res.data.success) {
+          
           setMatches(res.data.data);
         } else {
           setMatches([]);
