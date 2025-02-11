@@ -249,7 +249,7 @@ const SignInScreen = ({ navigation }) => {
   };
 
   const onSignUp = () => {
-    NavigationService.reset("SignUpEmailScreen");
+    NavigationService.reset("SignUpScreen");
   };
 
   return (

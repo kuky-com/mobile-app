@@ -75,13 +75,16 @@ const AskUpdateInfoScreen = ({ navigation, route }) => {
             subtitle = 'Let’s keep going to make your profile even better.'
         }
     } else {
-        if (currentUser?.birthday && !currentUser?.gender) {
+        if (currentUser?.birthday && (!currentUser?.gender || !currentUser?.pronouns)) {
             title = 'Make your profile even better!'
             subtitle = 'Adding your gender helps us create a more personalized and inclusive experience for you'
-        } else if (currentUser?.birthday && currentUser?.gender && !currentUser?.location) {
+        } else if(currentUser?.birthday && ((currentUser?.likeCount ?? 0) === 0 || (currentUser?.purposeCount ?? 0) === 0)) {
+            title = 'Make your profile even better!'
+            subtitle = 'Adding more details like your journey and interests will help us personalize your experience.'
+        } else if (currentUser?.birthday && currentUser?.gender && currentUser?.pronouns && !currentUser?.location) {
             title = 'Make your profile even better!'
             subtitle = 'Adding your location helps us create a more personalized and inclusive experience for you'
-        } else if (currentUser?.birthday && currentUser?.gender && currentUser?.location && !currentUser?.avatar) {
+        } else if (currentUser?.birthday && currentUser?.gender && currentUser?.pronouns && currentUser?.location && !currentUser?.avatar) {
             title = 'Make your profile even better!'
             subtitle = 'Adding your avatar helps us create a more personalized and inclusive experience for you'
         } else {
@@ -115,38 +118,41 @@ const AskUpdateInfoScreen = ({ navigation, route }) => {
                 <FontAwesome6 name='xmark' size={20} color='#ffffff' />
             </TouchableOpacity>
             {
-                !currentUser?.birthday && !currentUser?.gender && !currentUser?.location &&
+                !currentUser?.birthday &&
                 <ButtonWithLoading
                     text={'Add Manually'}
                     onPress={openBirthday}
                 />
             }
             {
-                currentUser?.birthday && !currentUser?.gender && !currentUser?.location &&
+                currentUser?.birthday && ((currentUser?.likeCount ?? 0) === 0 || (currentUser?.purposeCount ?? 0) === 0) &&
+                <ButtonWithLoading
+                    text={'Add My Interests'}
+                    onPress={openInterest}
+                />
+            }
+            {
+                currentUser?.birthday && ((currentUser?.likeCount ?? 0) > 0 && (currentUser?.purposeCount ?? 0) > 0) && 
+                (!currentUser?.gender || !currentUser?.pronouns) &&
                 <ButtonWithLoading
                     text={'Add My Gender'}
                     onPress={openGender}
                 />
             }
             {
-                currentUser?.birthday && currentUser?.gender && !currentUser?.location &&
+                currentUser?.birthday && ((currentUser?.likeCount ?? 0) > 0 && (currentUser?.purposeCount ?? 0) > 0) && 
+                currentUser?.gender && !currentUser?.location &&
                 <ButtonWithLoading
                     text={'Add My Location'}
                     onPress={openLocation}
                 />
             }
             {
-                currentUser?.birthday && currentUser?.gender && currentUser?.location && !currentUser?.avatar &&
+                currentUser?.birthday && ((currentUser?.likeCount ?? 0) > 0 && (currentUser?.purposeCount ?? 0) > 0) &&
+                currentUser?.gender && currentUser?.location && !currentUser?.avatar &&
                 <ButtonWithLoading
                     text={'Add My Avatar'}
                     onPress={openAvatar}
-                />
-            }
-            {
-                currentUser?.birthday && currentUser?.gender && currentUser?.location && currentUser?.avatar &&
-                <ButtonWithLoading
-                    text={'Add My Interests'}
-                    onPress={openInterest}
                 />
             }
             <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>

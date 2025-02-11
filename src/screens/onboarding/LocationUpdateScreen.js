@@ -124,7 +124,8 @@ const LocationUpdateScreen = ({ navigation, route }) => {
                         if (res && res.data && res.data.success) {
                             setUser(res.data.data)
                             // NavigationService.reset('AskUpdateInfoScreen', { fromView: 'gender' })
-                            NavigationService.reset('MatchingInfoUpdateScreen')
+                            // NavigationService.reset('MatchingInfoUpdateScreen')
+                            NavigationService.reset('AvatarUpdateScreen')
                         } else {
                             Toast.show({ text1: res.data.message, type: 'error' })
                         }

@@ -14,6 +14,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import analytics from '@react-native-firebase/analytics'
+import colors from "../../utils/colors";
 
 const styles = StyleSheet.create({
   container: {
@@ -95,8 +96,10 @@ const ReviewMatchScreen = ({ navigation, route }) => {
           <Text style={{ fontSize: 13, fontWeight: "bold", color: "black" }}>
             Share your feedback!
           </Text>
+          <Text style={{fontSize: 18, color: colors.mainColor, fontWeight: 'bold'}}>{profile?.full_name}</Text>
           <AvatarImage
             avatar={profile?.avatar}
+            full_name={profile?.full_name}
             style={{ width: 90, height: 90, borderRadius: 45 }}
             contentFit="contain"
           />

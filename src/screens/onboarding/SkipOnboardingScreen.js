@@ -55,16 +55,16 @@ const SkipOnboardingScreen = ({ navigation }) => {
                         <Text style={{ fontSize: 18, lineHeight: 30, fontWeight: 'bold', color: 'white' }}>Birthday</Text>
                     </View>
                     <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+                        <FontAwesome6 iconStyle='solid' name={!((currentUser?.likeCount ?? 0) === 0 || (currentUser?.purposeCount ?? 0) === 0) ? 'check-circle' : 'circle'} size={20} color={!((currentUser?.likeCount ?? 0) === 0 || (currentUser?.purposeCount ?? 0) === 0) ? '#68C668' : '#C2C2C2'} />
+                        <Text style={{ fontSize: 18, lineHeight: 30, fontWeight: 'bold', color: 'white' }}>Goals & Interests</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
                         <FontAwesome6 iconStyle='solid' name={currentUser?.gender ? 'check-circle' : 'circle'} size={20} color={currentUser?.gender ? '#68C668' : '#C2C2C2'} />
                         <Text style={{ fontSize: 18, lineHeight: 30, fontWeight: 'bold', color: 'white' }}>Gender</Text>
                     </View>
                     <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
                         <FontAwesome6 iconStyle='solid' name={currentUser?.location ? 'check-circle' : 'circle'} size={20} color={currentUser?.location ? '#68C668' : '#C2C2C2'} />
                         <Text style={{ fontSize: 18, lineHeight: 30, fontWeight: 'bold', color: 'white' }}>Location</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-                        <FontAwesome6 iconStyle='solid' name={!((currentUser?.likeCount ?? 0) === 0 || (currentUser?.purposeCount ?? 0) === 0) ? 'check-circle' : 'circle'} size={20} color={!((currentUser?.likeCount ?? 0) === 0 || (currentUser?.purposeCount ?? 0) === 0) ? '#68C668' : '#C2C2C2'} />
-                        <Text style={{ fontSize: 18, lineHeight: 30, fontWeight: 'bold', color: 'white' }}>Goals & Interests</Text>
                     </View>
                     <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
                         <FontAwesome6 iconStyle='solid' name={currentUser?.avatar ? 'check-circle' : 'circle'} size={20} color={currentUser?.avatar ? '#68C668' : '#C2C2C2'} />

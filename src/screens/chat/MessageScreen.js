@@ -60,6 +60,8 @@ import storage from '@react-native-firebase/storage'
 import ImageView from 'react-native-image-viewing'
 import MessageImagePicker from "./components/MessageImagePicker";
 import colors from "../../utils/colors";
+import { useAlertWithIcon } from "../../components/AlertIconProvider";
+import * as Progress from "react-native-progress";
 
 const styles = StyleSheet.create({
   container: {
@@ -218,6 +220,7 @@ const MessageScreen = ({ navigation, route }) => {
   const appState = useRef(AppState.currentState);
   const [loading, setLoading] = useState(false);
   const showAlert = useAlert();
+  const showAlertIcon = useAlertWithIcon()
   const [isTyping, setIsTyping] = useState(false);
   const [isCallAvailable, setIsCallAvailable] = useState(false)
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
@@ -225,6 +228,8 @@ const MessageScreen = ({ navigation, route }) => {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [imageViewList, setImageViewList] = useState([])
   const [imagePickerVisible, setImagePickerVisible] = useState(false)
+
+  const [sendingImage, setSendingImage] = useState(false)
 
   usePermissions(CALL_PERMISSIONS);
 
@@ -284,6 +289,7 @@ const MessageScreen = ({ navigation, route }) => {
 
   const uploadImages = async (imageUrls) => {
     try {
+      setSendingImage(true)
       const urls = []
       for (let i = 0; i < imageUrls.length; i++) {
         const imageUrl = imageUrls[i]
@@ -324,15 +330,21 @@ const MessageScreen = ({ navigation, route }) => {
           .catch((error) => {
             console.log({ error });
           });
+
+        setSendingImage(false)
       } catch (error) {
         console.log({ error })
+        setSendingImage(false)
       }
     } catch (error) {
       console.log({ error })
+
+      setSendingImage(false)
     }
   }
 
   const sendAttachment = async () => {
+    if(sendingImage) return
 
     const options = [
       { text: 'Take new picture' },
@@ -860,9 +872,31 @@ const MessageScreen = ({ navigation, route }) => {
           console.log({ error });
         });
     } catch (error) { }
+
+    if (duration > 3) {
+      showAlertIcon(null, `How Was Your Conversation with ${conversation?.profile?.full_name}?`, 'Take a moment to leave a review to help improve connections for everyone.',
+        null,
+        [
+          {
+            text: "Leave a Review",
+            onPress: () => {
+              onReview()
+            },
+          },
+        ],
+        [
+          {
+            text: "Skip for now",
+            onPress: () => {
+            },
+          },
+        ],
+      )
+    }
   }
 
   const calling = async (isVideoCall) => {
+    Keyboard.dismiss()
     if (messages.length < 3) {
       showAlert(
         "Unlock Calls by Chatting First",
@@ -883,7 +917,6 @@ const MessageScreen = ({ navigation, route }) => {
       } else {
         analytics().logEvent('voice_call')
       }
-
 
       try {
         await authenticate();
@@ -1251,6 +1284,11 @@ const MessageScreen = ({ navigation, route }) => {
         renderSend={renderSend}
         renderAvatar={renderAvatar}
         renderMessage={renderMessage}
+        renderFooter={() => sendingImage ?
+          <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 8, width: '100%'}}>
+            <Progress.Bar indeterminate indeterminateAnimationDuration={3000} color="#725ED4" height={6} borderRadius={3} style={{flex: 1}} />
+            <Text style={{fontSize: 10, fontWeight: '500'}}>{'Uploading images'}</Text>
+          </View> : null}
         user={{
           _id: currentUser?.id,
           name: currentUser?.full_name ?? "",

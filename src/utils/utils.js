@@ -36,26 +36,12 @@ export const getAuthenScreen = (currentUser, skipVideo = false) => {
     //     return 'ProfileTagScreen'
     // }
 
-    console.log({ currentUser })
     if (!currentUser?.full_name) {
         return 'NameUpdateScreen'
-    } else if (!currentUser?.birthday || !currentUser?.gender || !currentUser?.pronouns || !currentUser?.location) {
+    } else if (!currentUser?.birthday || !currentUser?.gender || !currentUser?.pronouns || !currentUser?.location || ((currentUser?.likeCount ?? 0) === 0 || (currentUser?.purposeCount ?? 0) === 0)) {
         return 'AskUpdateInfoScreen'
-    }
-    // else if (!currentUser?.gender) {
-    //     return 'GenderUpdateScreen'
-    // } else if (!currentUser?.pronouns) {
-    //     return 'PronounsUpdateScreen'
-    // } else if (!currentUser?.location) {
-    //     return 'LocationUpdateScreen'
-    // }
-    // else if (!currentUser?.avatar && exclude !== 'AvatarUpdateScreen') {
-    //     return 'AvatarUpdateScreen'
-    // } 
-    else if ((currentUser?.likeCount ?? 0) === 0 || (currentUser?.purposeCount ?? 0) === 0) {
-        return 'MatchingInfoUpdateScreen'
     } else if (!currentUser?.profile_tag) {
-        return 'MatchingInfoUpdateScreen'
+        return 'AIMatchingScreen'
     } else if (!currentUser?.avatar) {
         return 'AskUpdateInfoScreen'
     } else if (!currentUser?.video_intro) {

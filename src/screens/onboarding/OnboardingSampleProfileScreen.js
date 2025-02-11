@@ -283,7 +283,7 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                                     bottom: 0,
                                     borderRadius: 10,
                                 }}
-                                posterSource={{uri: currentProfile?.avatar}}
+                                posterSource={{ uri: currentProfile?.avatar }}
                                 ref={videoRef}
                                 resizeMode={ResizeMode.COVER}
                                 source={{ uri: currentProfile?.video_intro }}
@@ -300,6 +300,20 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                                 }}
                                 isMuted={isMute}
                                 shouldPlay={true}
+                            />
+                        )}
+                        {!playing && !pendingVideo && (
+                            <AvatarImage
+                                avatar={currentProfile?.avatar}
+                                full_name={currentProfile?.full_name}
+                                style={{
+                                    position: "absolute",
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    borderRadius: 10,
+                                }}
                             />
                         )}
                         <LinearGradient

@@ -8,8 +8,6 @@ import { Image } from 'expo-image';
 import AvatarImage from './AvatarImage';
 import OnlineStatus from './OnlineStatus';
 
-const ITEM_WIDTH = Platform.isPad ? Dimensions.get('screen').width / 4 - 20 : Dimensions.get('screen').width / 2 - 24;
-
 const DynamicLikeItem = ({ itemWidth, item, onPress }) => {
     const [itemHeight, setItemHeight] = useState(Math.round(itemWidth * 1024 / 800));
     const isRecentOnline = item?.last_active_time ? dayjs().diff(dayjs(item?.last_active_time), 'minute') < 60 : false
@@ -31,9 +29,9 @@ const DynamicLikeItem = ({ itemWidth, item, onPress }) => {
                     style={styles.nameBackground}
                 />
                 <View style={styles.nameContainer}>
-                    {item.birthday && item.birthday.includes('-') && <Text style={styles.name}>{`${item.full_name}, ${dayjs().diff(dayjs(item.birthday, 'MM-DD-YYYY'), 'year')}`}</Text>}
-                    {item.birthday && item.birthday.includes('/') && <Text style={styles.name}>{`${item.full_name}, ${dayjs().diff(dayjs(item.birthday, 'DD/MM/YYYY'), 'year')}`}</Text>}
-                    {!item.birthday && <Text style={styles.name}>{`${item.full_name}`}</Text>}
+                    {item.birthday && item.birthday.includes('-') && <Text style={[styles.name, {maxWidth: itemWidth - 30}]}>{`${item.full_name}, ${dayjs().diff(dayjs(item.birthday, 'MM-DD-YYYY'), 'year')}`}</Text>}
+                    {item.birthday && item.birthday.includes('/') && <Text style={[styles.name, {maxWidth: itemWidth - 30}]}>{`${item.full_name}, ${dayjs().diff(dayjs(item.birthday, 'DD/MM/YYYY'), 'year')}`}</Text>}
+                    {!item.birthday && <Text style={[styles.name, {maxWidth: itemWidth - 30}]}>{`${item.full_name}`}</Text>}
                     {isRecentOnline &&
                         <OnlineStatus isRecentOnline={isRecentOnline} status={item?.online_status} radius={12} />
                     }
@@ -75,7 +73,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: Platform.isPad ? 20 : 14,
         textAlign: 'left',
-        color: 'white', maxWidth: ITEM_WIDTH - 30
+        color: 'white'
     },
     bottomContainer: {
         position: 'absolute',
