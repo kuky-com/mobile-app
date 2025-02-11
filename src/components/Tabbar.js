@@ -67,6 +67,11 @@ const Tabbar = ({ navigation, state }) => {
   const [notiCounter, setNotiCounter] = useAtom(notiCounterAtom);
   const url = Linking.useURL();
   const urlHandleRef = useRef(null);
+  const [windowWidth, setWindowWidth] = useState(Dimensions.get("window").width);
+
+  Dimensions.addEventListener('change', ({ window: { width, height } }) => {
+    setWindowWidth(width)
+  });
 
   const openTab = (tabIndex) => {
     const { routes } = state;
@@ -76,12 +81,12 @@ const Tabbar = ({ navigation, state }) => {
 
   const updateLastActive = () => {
     apiClient.get('users/update-last-active')
-        .then((data) => { 
-          console.log({data})
-        })
-        .catch((error) => {
-          console.log(({ error }))
-        })
+      .then((data) => {
+        console.log({ data })
+      })
+      .catch((error) => {
+        console.log(({ error }))
+      })
   }
 
   useEffect(() => {
@@ -199,7 +204,7 @@ const Tabbar = ({ navigation, state }) => {
     <View
       style={[
         styles.container,
-        { bottom: insets.bottom + Platform.select({ ios: 0, android: 16 }) },
+        { width: windowWidth - 32, bottom: insets.bottom + Platform.select({ ios: 0, android: 16 }) },
       ]}
     >
       <TouchableWithoutFeedback onPress={() => openTab(0)}>

@@ -28,6 +28,7 @@ const GetStartScreen = ({ navigation }) => {
     }, [])
 
     const getStart = () => {
+        // NavigationService.reset('SampleExploreScreen')
         NavigationService.reset('SignUpScreen')
     }
 

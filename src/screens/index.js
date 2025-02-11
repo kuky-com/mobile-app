@@ -94,6 +94,12 @@ import LetDiscoverScreen from "./auth/LetDiscoverScreen";
 import BotProfileScreen from "./chat/BotProfileScreen";
 import OnlineStatusScreen from "./profile/OnlineStatusScreen";
 import RegisterSuggestionScreen from "./onboarding/RegisterSuggestionScreen";
+import SkipOnboardingScreen from "./onboarding/SkipOnboardingScreen";
+import AskUpdateInfoScreen from "./onboarding/AskUpdateInfoScreen";
+import ReferralUpdateScreen from "./onboarding/ReferralUpdateScreen";
+import MatchingInfoUpdateScreen from "./onboarding/MatchingInfoUpdateScreen";
+import AIMatchingScreen from "./profile/AIMatchingScreen";
+import AcceptTermScreen from "./auth/AcceptTermScreen";
 
 SendbirdCalls.setListener({
   onRinging: async (callProps) => {
@@ -593,6 +599,12 @@ const AppStack = ({ navgation }) => {
       <Stack.Screen name="RegisterSuggestionScreen" component={RegisterSuggestionScreen} />
       <Stack.Screen name="BotProfileScreen" component={BotProfileScreen} options={{ ...TransitionPresets.ModalSlideFromBottomIOS }} />
       <Stack.Screen name="OnlineStatusScreen" component={OnlineStatusScreen} options={{ ...TransitionPresets.ModalSlideFromBottomIOS }} />
+      <Stack.Screen name="SkipOnboardingScreen" component={SkipOnboardingScreen} options={{ ...TransitionPresets.ModalSlideFromBottomIOS }} />
+      <Stack.Screen name="AskUpdateInfoScreen" component={AskUpdateInfoScreen} />
+      <Stack.Screen name="ReferralUpdateScreen" component={ReferralUpdateScreen} />
+      <Stack.Screen name="MatchingInfoUpdateScreen" component={MatchingInfoUpdateScreen} />
+      <Stack.Screen name="AIMatchingScreen" component={AIMatchingScreen} />
+      <Stack.Screen name="AcceptTermScreen" component={AcceptTermScreen} options={{ ...TransitionPresets.ModalSlideFromBottomIOS }} />
     </Stack.Navigator>
   );
 };

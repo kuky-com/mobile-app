@@ -19,6 +19,7 @@ import ButtonWithLoading from '@/components/ButtonWithLoading'
 import { useAtom } from 'jotai'
 import { userAtom } from '@/actions/global'
 import analytics from '@react-native-firebase/analytics'
+import { FontAwesome6 } from '@expo/vector-icons'
 
 const styles = StyleSheet.create({
     container: {
@@ -30,10 +31,10 @@ const styles = StyleSheet.create({
         gap: 24
     },
     itemContainer: {
-        backgroundColor: '#ECECEC',
+        backgroundColor: 'white',
         alignItems: 'center',
         justifyContent: 'center',
-        height: 55, borderRadius: 20,
+        height: 45, borderRadius: 15,
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.25,
         elevation: 1,
@@ -73,10 +74,9 @@ const PronounsUpdateScreen = ({ navigation, route }) => {
                     console.log({ res })
                     setLoading(false)
                     if (res && res.data && res.data.success) {
-                        // NavigationService.reset('LocationUpdateScreen')
                         setUser(res.data.data)
-                        NavigationService.reset(getAuthenScreen(res.data.data, null))
-                        // Toast.show({ text1: res.data.message, type: 'success' })
+                        // NavigationService.reset('AskUpdateInfoScreen', { fromView: 'gender' })
+                        NavigationService.reset('LocationUpdateScreen')
                     } else {
                         Toast.show({ text1: res.data.message, type: 'error' })
                     }
@@ -92,13 +92,14 @@ const PronounsUpdateScreen = ({ navigation, route }) => {
     }
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 16 }]}>
+        <View style={[styles.container, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 8 }]}>
             <StatusBar translucent style='dark' />
             <View style={{ flex: 1, gap: 16, width: Platform.isPad ? 600 : '100%', alignSelf: 'center' }}>
-                <Image source={images.logo_with_text} style={{ width: 120, height: 40, marginBottom: 32 }} contentFit='contain' />
-                <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'black' }}>{`What pronouns do you use?`}</Text>
+                <Image source={images.logo_icon} style={{ width: 40, height: 40, marginBottom: 8 }} contentFit='contain' />
+                <Text style={{ fontSize: 24, lineHeight: 40, maxWidth: '80%', fontWeight: 'bold', color: 'black' }}>{`Let’s complete your profile!`}</Text>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: 'black' }}>{`What pronouns do you use?`}</Text>
                 <ScrollView style={{ flex: 1, width: '100%' }} showsVerticalScrollIndicator={false}>
-                    <View style={{ flex: 1, width: '100%', paddingHorizontal: 8, paddingVertical: 24, gap: 16, alignItems: 'flex-start', justifyContent: 'flex-start' }}>
+                    <View style={{ flex: 1, width: '100%', paddingHorizontal: 8, paddingVertical: 16, gap: 16, alignItems: 'flex-start', justifyContent: 'flex-start' }}>
                         {
                             ['He/ Him/ His', 'She/ Her/ Hers', 'They/ Them/ Theirs', 'Ve/ Ver/ vis', 'Ze/ Hirs', 'Not shown above'].map((item) => (
                                 <TouchableOpacity key={item} onPress={() => setPronouns(item)} style={styles.itemContainer}>
@@ -111,12 +112,26 @@ const PronounsUpdateScreen = ({ navigation, route }) => {
                     </View>
                 </ScrollView>
             </View>
+
+            <TouchableOpacity style={{
+                position: 'absolute', top: insets.top + 5, right: 16,
+                width: 25, height: 25, alignItems: 'center', justifyContent: 'center'
+            }}
+                onPress={() => NavigationService.push('SkipOnboardingScreen')}>
+                <FontAwesome6 name='xmark' size={20} color='#333333' />
+            </TouchableOpacity>
             <ButtonWithLoading
                 text={'Continue'}
                 onPress={onContinue}
                 disabled={pronouns === null}
                 loading={loading}
             />
+            <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 8 }}
+                    onPress={() => NavigationService.reset('OnboardingVideoTutorialScreen')}>
+                    <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#333333' }}>Record a video instead</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     )
 }

@@ -477,6 +477,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                   bottom: 0,
                   borderRadius: 10,
                 }}
+                posterSource={{uri: currentProfile?.avatar}}
                 ref={videoRef}
                 source={{ uri: currentProfile?.video_intro }}
                 resizeMode={ResizeMode.COVER}

@@ -38,6 +38,7 @@ const MatchesScreen = ({ navigation }) => {
   const [isFetching, setFetching] = useState(false);
   const unreadMessage = useAtomValue(totalMessageCounterAtom);
   const setUnreadCounter = useSetAtom(totalMessageUnreadAtom);
+  const [viewMode, setViewMode] = useState("received");
 
   useEffect(() => {
     analytics().logScreenView({
@@ -82,7 +83,9 @@ const MatchesScreen = ({ navigation }) => {
       .get("matches/matches")
       .then((res) => {
         setFetching(false);
+        console.log({ matches: res.data });
         if (res && res.data && res.data.success) {
+
           setMatches(res.data.data);
         } else {
           setMatches([]);
@@ -97,14 +100,6 @@ const MatchesScreen = ({ navigation }) => {
 
   const openChat = (item) => {
     navigation.push("MessageScreen", { conversation: item });
-  };
-
-  const renderHeader = () => {
-    return (
-      <View style={{ paddingVertical: 16 }}>
-        <Text style={{ fontSize: 24, fontWeight: "700", color: "black" }}>Connections</Text>
-      </View>
-    );
   };
 
   const renderEmpty = () => {
@@ -174,7 +169,7 @@ const MatchesScreen = ({ navigation }) => {
               Toast.show({ text1: error, type: "error" });
             });
         },
-        onConfirm: () => {},
+        onConfirm: () => { },
         cancelText: "End Connection",
         confirmText: "Cancel",
         header: "Do you want to end the connection with this user?",
@@ -195,20 +190,39 @@ const MatchesScreen = ({ navigation }) => {
     );
   };
 
+  const receivedMatches = matches.filter((match) => match.receiver_id === currentUser.id)
+  const sentMatches = matches.filter((match) => match.sender_id === currentUser.id)
+
   return (
     <View style={styles.container}>
       <Header showLogo />
+      <View style={{ paddingVertical: 16, gap: 8 }}>
+        <Text style={{ marginHorizontal: 16, fontSize: 24, fontWeight: "700", color: "black" }}>Connections</Text>
+        <View style={{ flexDirection: 'row', backgroundColor: 'white', paddingVertical: 4, paddingHorizontal: 8 }}>
+          <TouchableOpacity onPress={() => setViewMode('received')} style={{
+            flex: 1, paddingVertical: 8, alignItems: 'center', justifyContent: 'center',
+            borderBottomWidth: viewMode === 'received' ? 3 : 0, borderBottomColor: colors.mainColor
+          }}>
+            <Text style={{ color: viewMode === 'received' ? colors.mainColor : '#79797A', fontSize: 16, fontWeight: 'bold' }}>{`Received (${receivedMatches.length})`}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setViewMode('sent')} style={{
+            flex: 1, paddingVertical: 8, alignItems: 'center', justifyContent: 'center',
+            borderBottomWidth: viewMode === 'sent' ? 3 : 0, borderBottomColor: colors.mainColor
+          }}>
+            <Text style={{ color: viewMode === 'sent' ? colors.mainColor : '#79797A', fontSize: 16, fontWeight: 'bold' }}>{`Sent (${sentMatches.length})`}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
       <View style={{ paddingHorizontal: 16, flex: 1, alignItems: 'center' }}>
-      <FlatList
-        data={matches}
-        renderItem={renderItem}
-        style={{ width: Platform.isPad ? 600 : '100%', flex: 1 }}
-        ListHeaderComponent={renderHeader}
-        ListEmptyComponent={renderEmpty}
-        onRefresh={onRefresh}
-        refreshing={isFetching}
-        showsVerticalScrollIndicator={false}
-      />
+        <FlatList
+          data={viewMode === 'received' ? receivedMatches : sentMatches}
+          renderItem={renderItem}
+          style={{ width: Platform.isPad ? 600 : '100%', flex: 1 }}
+          ListEmptyComponent={renderEmpty}
+          onRefresh={onRefresh}
+          refreshing={isFetching}
+          showsVerticalScrollIndicator={false}
+        />
       </View>
     </View>
   );

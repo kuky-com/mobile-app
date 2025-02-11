@@ -22,7 +22,10 @@ import {
 import Purchases from "react-native-purchases";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
-import analytics from '@react-native-firebase/analytics'
+import analytics, { settings } from '@react-native-firebase/analytics'
+import apiClient from "../../utils/apiClient";
+import { useAtomValue } from "jotai";
+import { userAtom } from "../../actions/global";
 
 const styles = StyleSheet.create({
   container: {
@@ -35,7 +38,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const productList = Platform.select({
+const productListDefault = Platform.select({
   ios: ["com.kuky.ios.1month", "com.kuky.ios.6month", "com.kuky.ios.12month"],
   android: ["com.kuky.android.1month", "com.kuky.android.6month", "com.kuky.android.12month"],
 });
@@ -47,6 +50,7 @@ const PremiumRequestScreen = ({ navigation, route }) => {
   const [planIndex, setPlanIndex] = useState(null);
   const [subscriptions, setSubscriptions] = useState([]);
   const [customerInfo, setCustomerInfo] = useState();
+  const [freeTitle, setTitle] = useState('')
 
   useEffect(() => {
     analytics().logScreenView({
@@ -57,6 +61,17 @@ const PremiumRequestScreen = ({ navigation, route }) => {
 
   useEffect(() => {
     const loadSubscriptions = async () => {
+      const res = await apiClient.post(`users/iapProducts`, { platform: Platform.OS });
+
+      let productList = productListDefault;
+      console.log({ res: JSON.stringify(res) });
+      if (res && res.data && res.data.data) {
+        productList = res.data.data.products;
+        setTitle(res.data.data.title)
+      } else {
+        setTitle('Includes 1 Month free trial')
+      }
+
       const info = await Purchases.getCustomerInfo();
       setCustomerInfo(info);
 
@@ -280,7 +295,7 @@ const PremiumRequestScreen = ({ navigation, route }) => {
         </View>
       </ScrollView>
 
-      <Text style={{ fontSize: 15, color: 'white', width: '100%', textAlign: "center" }}>Includes 3 Months Free Trial</Text>
+      <Text style={{ fontSize: 15, color: 'white', width: '100%', textAlign: "center" }}>{freeTitle}</Text>
       {customerInfo &&
         customerInfo.latestExpirationDate &&
         dayjs().isBefore(dayjs(customerInfo.latestExpirationDate)) ? (

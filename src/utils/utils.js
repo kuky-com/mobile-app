@@ -24,39 +24,29 @@ export const getUnit = (unit) => {
 }
 
 export const getAuthenScreen = (currentUser, skipVideo = false) => {
-    if (!currentUser?.full_name) {
-        return 'NameUpdateScreen'
-    } else if (!currentUser?.video_intro && !skipVideo) {
-        return 'RegisterSuccessScreen'
-        // return 'OnboardingVideoTutorialScreen'
-        // return 'OnboardingSampleProfileScreen'
-    } else if (!currentUser?.purposes || currentUser?.purposes.length === 0 || !currentUser?.interests || currentUser?.interests.length === 0) {
-        return 'OnboardingReviewProfileScreen'
-    } else if (!currentUser?.profile_tag) {
-        return 'ProfileTagScreen'
-    }
-
     // if (!currentUser?.full_name) {
     //     return 'NameUpdateScreen'
-    // } else if (!currentUser?.birthday) {
-    //     return 'BirthdayUpdateScreen'
-    // } else if (!currentUser?.gender) {
-    //     return 'GenderUpdateScreen'
-    // } else if (!currentUser?.pronouns) {
-    //     return 'PronounsUpdateScreen'
-    // }  else if (!currentUser?.avatar && exclude !== 'AvatarUpdateScreen') {
-    //     return 'AvatarUpdateScreen'
-    // } else if (!currentUser?.purposes || currentUser?.purposes.length === 0) {
-    //     return 'PurposeUpdateScreen'
-    // } else if (!currentUser?.interests || currentUser?.interests.length === 0) {
+    // } else if (!currentUser?.video_intro && !skipVideo) {
+    //     // return 'RegisterSuccessScreen'
+    //     return 'OnboardingVideoTutorialScreen'
+    //     // return 'OnboardingSampleProfileScreen'
+    // } else if (!currentUser?.purposes || currentUser?.purposes.length === 0 || !currentUser?.interests || currentUser?.interests.length === 0) {
     //     return 'OnboardingReviewProfileScreen'
-    // // } else if (!currentUser?.video_intro) {
-    // //     return 'OnboardingVideoIntroScreen'
-    // // } else if (!currentUser?.video_purpose) {
-    // //     return 'OnboardingVideoPurposeScreen'
     // } else if (!currentUser?.profile_tag) {
     //     return 'ProfileTagScreen'
     // }
+
+    if (!currentUser?.full_name) {
+        return 'NameUpdateScreen'
+    } else if (!currentUser?.birthday || !currentUser?.gender || !currentUser?.pronouns || !currentUser?.location || ((currentUser?.likeCount ?? 0) === 0 || (currentUser?.purposeCount ?? 0) === 0)) {
+        return 'AskUpdateInfoScreen'
+    } else if (!currentUser?.profile_tag) {
+        return 'AIMatchingScreen'
+    } else if (!currentUser?.avatar) {
+        return 'AskUpdateInfoScreen'
+    } else if (!currentUser?.video_intro) {
+        return 'OnboardingVideoTutorialScreen'
+    }
 
     return 'Dashboard'
 }
@@ -106,3 +96,52 @@ export const formatCallSeconds = (milliseconds) => {
 export function isStringInteger(value) {
     return (Number.isInteger(value) || (typeof value === 'string' && Number.isInteger(Number(value))));
 }
+
+
+export const DEFAULT_PURPOSES = [
+    'Find support for anxiety',
+    'Cope with depression',
+    'Build confidence',
+    'Navigate a divorce or breakup',
+    'Overcome grief or loss',
+    'Manage stress better',
+    'Create healthier habits',
+    'Improve work-life balance',
+    'Learn mindfulness techniques',
+    'Connect with others facing similar challenges',
+]
+
+export const DEFAULT_LIKES = [
+    'Reading',
+    'Writing or journaling',
+    'Painting or drawing',
+    'Cooking or baking',
+    'Playing musical instruments',
+    'Listening to music',
+    'Watching movies or TV shows',
+    'Hiking or nature walks',
+    'Gardening',
+    'Fitness or working out',
+    'Yoga or meditation',
+    'Gaming',
+    'Traveling',
+    'Photography',
+    'Crafting or DIY projects',
+    'Dancing'
+]
+
+export const DEFAULT_DISLIKES = [
+    'Crowded places',
+    'Loud noises',
+    'Socializing with strangers',
+    'Conflict or arguments',
+    'Public speaking',
+    'Unstructured routines',
+    'Being alone for extended periods',
+    'Lack of support',
+    'Feeling judged',
+    'Overwhelming tasks',
+    'Poor communication',
+    'Toxic relationships',
+    'Excessive screen time',
+]

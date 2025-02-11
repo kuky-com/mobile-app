@@ -6,6 +6,7 @@ import React, { useEffect } from 'react'
 import { StyleSheet, TouchableOpacity, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import analytics from '@react-native-firebase/analytics'
+import { OneSignal } from 'react-native-onesignal'
 
 const styles = StyleSheet.create({
     container: {
@@ -27,7 +28,11 @@ const VerificationSuccessScreen = ({ navigation }) => {
     }, [])
 
     const onContinue = () => {
-        NavigationService.reset('RegisterSuccessScreen')
+        OneSignal.Notifications.requestPermission(true);
+        // NavigationService.reset('RegisterSuccessScreen')
+        // NavigationService.reset('OnboardingVideoTutorialScreen')
+
+        NavigationService.reset('ReferralUpdateScreen')
     }
 
     return (

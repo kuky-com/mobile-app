@@ -10,6 +10,7 @@ import {
   DeviceEventEmitter,
   Dimensions,
   Keyboard,
+  Linking,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -25,6 +26,7 @@ import {
   Time,
   Avatar,
   Day,
+  Actions,
 } from "react-native-gifted-chat";
 import { SheetManager } from "react-native-actions-sheet";
 import { StatusBar } from "expo-status-bar";
@@ -51,6 +53,15 @@ import LoadingView from "../../components/LoadingView";
 import { NODE_ENV } from "../../utils/apiClient";
 import analytics from '@react-native-firebase/analytics'
 import OnlineStatus from "../../components/OnlineStatus";
+import Hyperlink from 'react-native-hyperlink'
+import { FontAwesome6 } from "@expo/vector-icons";
+import ImagePicker from 'react-native-image-crop-picker'
+import storage from '@react-native-firebase/storage'
+import ImageView from 'react-native-image-viewing'
+import MessageImagePicker from "./components/MessageImagePicker";
+import colors from "../../utils/colors";
+import { useAlertWithIcon } from "../../components/AlertIconProvider";
+import * as Progress from "react-native-progress";
 
 const styles = StyleSheet.create({
   container: {
@@ -144,8 +155,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "black",
     paddingHorizontal: 16,
-    marginLeft: 16,
-    marginRight: 16,
+    flex: 1
   },
   inputContainer: {
     flex: 1,
@@ -210,11 +220,16 @@ const MessageScreen = ({ navigation, route }) => {
   const appState = useRef(AppState.currentState);
   const [loading, setLoading] = useState(false);
   const showAlert = useAlert();
+  const showAlertIcon = useAlertWithIcon()
   const [isTyping, setIsTyping] = useState(false);
   const [isCallAvailable, setIsCallAvailable] = useState(false)
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const scrollY = new Animated.Value(0);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [imageViewList, setImageViewList] = useState([])
+  const [imagePickerVisible, setImagePickerVisible] = useState(false)
+
+  const [sendingImage, setSendingImage] = useState(false)
 
   usePermissions(CALL_PERMISSIONS);
 
@@ -271,6 +286,98 @@ const MessageScreen = ({ navigation, route }) => {
       console.log({ error });
     }
   };
+
+  const uploadImages = async (imageUrls) => {
+    try {
+      setSendingImage(true)
+      const urls = []
+      for (let i = 0; i < imageUrls.length; i++) {
+        const imageUrl = imageUrls[i]
+        const imageImage = `avatar${dayjs().unix()}.png`
+
+        const reference = storage().ref(imageImage)
+        const uploadedFile = await reference.putFile(imageUrl);
+
+        const url = await storage().ref(imageImage).getDownloadURL()
+        urls.push(url)
+      }
+
+      firestore()
+        .collection("conversations")
+        .doc(conversation.conversation_id)
+        .collection("messages")
+        .add({
+          _id: `${dayjs().unix()}`,
+          text: urls,
+          createdAt: dayjs().toDate(),
+          user: {
+            _id: currentUser?.id,
+            name: currentUser?.full_name ?? "",
+          },
+          readBy: [currentUser.id],
+          type: 'image'
+        });
+
+      try {
+        apiClient
+          .post("matches/last-message", {
+            last_message: urls.length > 1 ? 'Send you images' : 'Send you an image',
+            conversation_id: conversation.conversation_id,
+          })
+          .then((res) => {
+            // console.log({ res: res.data })
+          })
+          .catch((error) => {
+            console.log({ error });
+          });
+
+        setSendingImage(false)
+      } catch (error) {
+        console.log({ error })
+        setSendingImage(false)
+      }
+    } catch (error) {
+      console.log({ error })
+
+      setSendingImage(false)
+    }
+  }
+
+  const sendAttachment = async () => {
+    if(sendingImage) return
+
+    const options = [
+      { text: 'Take new picture' },
+      { text: 'Select from photos' }
+    ]
+
+    await SheetManager.show('action-sheets', {
+      payload: {
+        actions: options,
+        onPress(index) {
+
+          if (index === 0) {
+            ImagePicker.openCamera({
+              cropping: true,
+            }).then(image => {
+              uploadImages([image.path])
+              console.log(image.path);
+            });
+          }
+          if (index === 1) {
+            ImagePicker.openPicker({
+              cropping: true,
+              multiple: true
+            }).then(images => {
+              const imageUrls = images.map(image => image.path)
+              uploadImages(imageUrls)
+              console.log(imageUrls);
+            });
+          }
+        },
+      },
+    });
+  }
 
   useEffect(() => {
     loadSubscriptionInfo();
@@ -368,7 +475,7 @@ const MessageScreen = ({ navigation, route }) => {
                 createdAt: firebaseData.createdAt.toDate(),
                 user: firebaseData.user?._id === 0 ? {
                   _id: 0,
-                  name: 'Kuky Bot',
+                  name: 'Kuky',
                   avatar: images.bot_avatar,
                 } : {
                   _id: firebaseData.user ? firebaseData.user?._id : 0,
@@ -529,10 +636,42 @@ const MessageScreen = ({ navigation, route }) => {
           </View>
         </View>
       )
+    } else if (currentMessage.type === 'image') {
+      contentView = (
+        <View style={{ gap: 1, alignItems: 'flex-end' }}>
+          <View style={{}}>
+            {
+              currentMessage.text.map((image, index) => {
+                const rotation = index === 0 ? '0deg' : ((index % 2 === 0) ? '8deg' : '-8deg')
+                // const translateY = index * -50;
+                return (<Animated.View key={index.toString()}
+                  style={[{ marginTop: index > 0 ? -60 : 0, marginBottom: currentMessage.text.length > 1 ? 20 : 0 }, {
+                    transform: [
+                      { rotate: rotation },
+                      // { translateY: translateY },
+                    ],
+                  },]}>
+                  <TouchableOpacity onPress={() => {
+                    setImageViewList(currentMessage.text.map((img) => ({ uri: img })))
+                  }}>
+                    <Image source={{ uri: image }} style={{ width: 150, height: 150, borderRadius: 10 }} />
+                  </TouchableOpacity>
+                </Animated.View>
+                )
+              })
+            }
+          </View>
+          <Text style={{ color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
+        </View >
+      )
     } else {
       contentView = (
         <View style={{ gap: 1, alignItems: 'flex-end' }}>
-          <Text selectable style={{ fontSize: 13, color: currentMessage?.user?._id !== currentUser?.id ? '#f0f0f0' : 'black', lineHeight: 20 }}>{currentMessage?.text}</Text>
+          <Hyperlink
+            onPress={(url) => Linking.openURL(url)}
+            linkStyle={{ color: "#2980b9" }}>
+            <Text selectable style={{ fontSize: 13, color: currentMessage?.user?._id !== currentUser?.id ? '#f0f0f0' : 'black', lineHeight: 20 }}>{currentMessage?.text}</Text>
+          </Hyperlink>
           <Text style={{ color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
         </View>
       )
@@ -559,7 +698,7 @@ const MessageScreen = ({ navigation, route }) => {
           </View>
           <View style={[currentMessage?.user?._id === currentUser?.id ? styles.rightMessageContainer : (currentMessage?.user?._id === 0 ? styles.botMessageContainer : styles.leftMessageContainer), {
             maxWidth: Dimensions.get('screen').width - 28 - (currentMessage?.user?._id !== currentUser?.id ? 45 : 0)
-          }]}>
+          }, currentMessage.type === 'image' ? { backgroundColor: 'transparent' } : {}]}>
             {contentView}
           </View>
 
@@ -582,16 +721,25 @@ const MessageScreen = ({ navigation, route }) => {
 
   const renderInputToolbar = (props) => {
     return (
-      <InputToolbar
-        {...props}
-        containerStyle={[
-          styles.toolbarContainer,
-          { marginBottom: insets.bottom, borderTopWidth: 2, borderTopColor: "black" },
-        ]}
-        primaryStyle={{ alignItems: "center" }}
-        wrapperStyle={{ borderWidth: 0 }}
-        accessoryStyle={{ borderWidth: 0 }}
-      />
+      <View style={{ paddingBottom: insets.bottom, paddingTop: 12, paddingHorizontal: 16, gap: 3, backgroundColor: '#E3E1ED' }}>
+        <View style={{
+          flexDirection: 'row', alignItems: 'center', gap: 3
+        }}>
+          <TouchableOpacity onPress={sendAttachment} style={{ padding: 8 }}>
+            <FontAwesome6 name='paperclip' size={20} color={imagePickerVisible ? colors.mainColor : '#333333'} />
+          </TouchableOpacity>
+          <InputToolbar
+            {...props}
+            containerStyle={[
+              styles.toolbarContainer,
+              { borderTopWidth: 2, borderTopColor: "black" },
+            ]}
+            primaryStyle={{ alignItems: "center" }}
+            wrapperStyle={{ borderWidth: 0 }}
+            accessoryStyle={{ borderWidth: 0 }}
+          />
+        </View>
+      </View>
     );
   };
 
@@ -724,25 +872,62 @@ const MessageScreen = ({ navigation, route }) => {
           console.log({ error });
         });
     } catch (error) { }
+
+    if (duration > 3) {
+      showAlertIcon(null, `How Was Your Conversation with ${conversation?.profile?.full_name}?`, 'Take a moment to leave a review to help improve connections for everyone.',
+        null,
+        [
+          {
+            text: "Leave a Review",
+            onPress: () => {
+              onReview()
+            },
+          },
+        ],
+        [
+          {
+            text: "Skip for now",
+            onPress: () => {
+            },
+          },
+        ],
+      )
+    }
   }
 
   const calling = async (isVideoCall) => {
-    if(isVideoCall) {
-      analytics().logEvent('video_call')
-    } else {
-      analytics().logEvent('voice_call')
-    }
-
-
-    try {
-      await authenticate();
-      const callProps = await SendbirdCalls.dial(
-        `${NODE_ENV}_${conversation.profile?.id}`,
-        isVideoCall,
+    Keyboard.dismiss()
+    if (messages.length < 3) {
+      showAlert(
+        "Unlock Calls by Chatting First",
+        "Exchange 3 messages to unlock video and audio calls. This helps us create genuine connections!",
+        [
+          {
+            text: "Send a Message",
+            onPress: () => {
+            },
+          },
+        ],
+        () => {
+        },
       );
-      onNavigate(callProps);
-    } catch (e) {
-      Alert.alert("Failed", e.message);
+    } else {
+      if (isVideoCall) {
+        analytics().logEvent('video_call')
+      } else {
+        analytics().logEvent('voice_call')
+      }
+
+      try {
+        await authenticate();
+        const callProps = await SendbirdCalls.dial(
+          `${NODE_ENV}_${conversation.profile?.id}`,
+          isVideoCall,
+        );
+        onNavigate(callProps);
+      } catch (e) {
+        Alert.alert("Failed", e.message);
+      }
     }
   };
 
@@ -1009,12 +1194,10 @@ const MessageScreen = ({ navigation, route }) => {
       <View
         style={{
           gap: 8,
-          height: 80 + insets.top,
-          borderBottomLeftRadius: 24,
-          borderBottomRightRadius: 24,
+          paddingTop: insets.top + 16,
+          paddingBottom: 16,
           backgroundColor: "#725ED4",
           paddingHorizontal: 16,
-          paddingTop: insets.top,
           width: "100%",
           alignItems: "center",
           justifyContent: "flex-start",
@@ -1037,11 +1220,11 @@ const MessageScreen = ({ navigation, route }) => {
             full_name={currentConversation?.profile?.full_name ?? ""}
             avatar={currentConversation?.profile?.avatar}
             style={{
-              width: 50,
-              height: 50,
+              width: 36,
+              height: 36,
               borderWidth: 2,
               borderColor: isRecentOnline ? '#47F644' : "white",
-              borderRadius: 25,
+              borderRadius: 18,
             }}
           />
           {isRecentOnline &&
@@ -1050,7 +1233,7 @@ const MessageScreen = ({ navigation, route }) => {
             </View>
           }
         </TouchableOpacity>
-        <Text onPress={openProfile} style={{ flex: 1, fontSize: 18, color: "white", fontWeight: "bold" }}>
+        <Text onPress={openProfile} style={{ flex: 1, fontSize: 14, color: "white", fontWeight: "bold" }}>
           {currentConversation?.profile?.full_name}
         </Text>
 
@@ -1063,7 +1246,7 @@ const MessageScreen = ({ navigation, route }) => {
             gap: 12,
           }}
         >
-          {messages.length > 3 && isCallAvailable &&
+          {isCallAvailable &&
             <>
               <TouchableOpacity
                 onPress={() => calling(false)}
@@ -1101,6 +1284,11 @@ const MessageScreen = ({ navigation, route }) => {
         renderSend={renderSend}
         renderAvatar={renderAvatar}
         renderMessage={renderMessage}
+        renderFooter={() => sendingImage ?
+          <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 8, width: '100%'}}>
+            <Progress.Bar indeterminate indeterminateAnimationDuration={3000} color="#725ED4" height={6} borderRadius={3} style={{flex: 1}} />
+            <Text style={{fontSize: 10, fontWeight: '500'}}>{'Uploading images'}</Text>
+          </View> : null}
         user={{
           _id: currentUser?.id,
           name: currentUser?.full_name ?? "",
@@ -1120,6 +1308,13 @@ const MessageScreen = ({ navigation, route }) => {
       {loading && (
         <LoadingView />
       )}
+
+      <ImageView
+        images={imageViewList}
+        imageIndex={0}
+        visible={imageViewList.length > 0}
+        onRequestClose={() => setImageViewList([])}
+      />
     </View>
   );
 };

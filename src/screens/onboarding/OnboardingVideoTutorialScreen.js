@@ -55,11 +55,12 @@ const OnboardingVideoTutorialScreen = ({ navigation, route }) => {
     }
 
     const onSkip = () => {
-        if (currentUser?.profile_tag) {
-            NavigationService.reset('Dashboard')
-        } else {
-            NavigationService.reset('OnboardingReviewProfileScreen')
-        }
+        NavigationService.reset('Dashboard')
+        // if (currentUser?.profile_tag) {
+        //     NavigationService.reset('Dashboard')
+        // } else {
+        //     NavigationService.reset('OnboardingReviewProfileScreen')
+        // }
     }
 
     const openWalkThrought = () => {

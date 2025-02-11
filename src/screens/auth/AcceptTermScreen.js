@@ -15,7 +15,7 @@ import { getAuthenScreen } from "@/utils/utils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import LoadingView from "@/components/LoadingView";
 import { authenticate, registerToken } from "../../utils/sendbird";
-import { FontAwesome5 } from "@expo/vector-icons";
+import { FontAwesome5, FontAwesome6 } from "@expo/vector-icons";
 import colors from "../../utils/colors";
 import analytics from '@react-native-firebase/analytics'
 import { getBuildNumber, getVersion } from "react-native-device-info";
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
   }
 });
 
-const SignUpScreen = ({ navigation }) => {
+const AcceptTermScreen = ({ navigation }) => {
   const deviceId = useAtomValue(deviceIdAtom);
   const setUser = useSetAtom(userAtom);
   const setToken = useSetAtom(tokenAtom);
@@ -193,11 +193,11 @@ const SignUpScreen = ({ navigation }) => {
   };
 
   const onSignUp = () => {
-    NavigationService.push("AcceptTermScreen");
+    NavigationService.push("SignUpEmailScreen");
   };
 
-  const onSignIn = () => {
-    NavigationService.reset("SignInScreen");
+  const onSkip = () => {
+    navigation.goBack()
   };
 
   const openTerm = () => {
@@ -223,17 +223,21 @@ const SignUpScreen = ({ navigation }) => {
         }}
       >
         <View style={{ flexDirection: 'row', width: '100%', justifyContent: 'flex-end' }}>
-          <TouchableOpacity onPress={onSignIn} style={{ height: 30, borderRadius: 15, backgroundColor: '#C9DACC', paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontSize: 13, fontWeight: "bold", color: '#333333' }}>
-              Sign in
-            </Text>
+          <TouchableOpacity onPress={onSkip} style={{ padding: 16, alignItems: 'center', justifyContent: 'center' }}>
+            <FontAwesome6 name='xmark' size={22} color='#333333' />
           </TouchableOpacity>
         </View>
-        <View style={{ flex: 1, paddingVertical: 16, alignItems: 'center', justifyContent: 'center', width: '100%', gap: 16 }}>
+        <View style={{ paddingVertical: 16, alignItems: 'center', justifyContent: 'center', width: '100%', gap: 16 }}>
           <Image source={images.logo_icon} style={{ width: 30, height: 30, tintColor: 'white' }} contentFit="contain" />
           <Image source={images.logo_text} style={{ width: 100, height: 30, tintColor: 'white' }} contentFit="contain" />
           <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#ffffff' }}>Better Together</Text>
 
+        </View>
+
+        <View style={{flex: 1}}>
+          <View style={{backgroundColor: '#F1F1F3', width: '100%', borderRadius: 20, paddingHorizontal: 28, paddingVertical: 40}}>
+            <Text style={{fontSize: 16, fontWeight: '600', color: 'black', lineHeight: 28}}>{`I acknowledge that Kuky is not a substitute for professional mental health services or advice. I understand that Kuky's content is for informational and supportive purposes only.`}</Text>
+          </View>
         </View>
 
         <TouchableOpacity
@@ -249,41 +253,7 @@ const SignUpScreen = ({ navigation }) => {
           }}
         >
           <Text style={{ fontSize: 18, fontWeight: "700", color: "white" }}>
-            Use my Email address
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={onApple}
-          style={{
-            width: Platform.isPad ? 600 : "100%",
-            alignSelf: "center",
-            height: 50,
-            borderRadius: 25,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "#333333",
-          }}
-        >
-          <Text style={{ fontSize: 18, fontWeight: "700", color: "white" }}>
-            Connect with Apple
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={onGoogle}
-          style={{
-            width: Platform.isPad ? 600 : "100%",
-            alignSelf: "center",
-            height: 50,
-            borderRadius: 25,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "#333333",
-          }}
-        >
-          <Text style={{ fontSize: 18, fontWeight: "700", color: "white" }}>
-            Connect with Google
+          I agree to these terms
           </Text>
         </TouchableOpacity>
 
@@ -326,4 +296,4 @@ const SignUpScreen = ({ navigation }) => {
   );
 };
 
-export default SignUpScreen;
+export default AcceptTermScreen;

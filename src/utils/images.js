@@ -93,6 +93,9 @@ const walkthrought2 = require("../assets/images/walkthrought2.png");
 const walkthrought3 = require("../assets/images/walkthrought3.png");
 
 const bot_avatar = require("../assets/images/bot_avatar.png");
+const progress_bg = require("../assets/images/progress_bg.png");
+const happy_cloud = require("../assets/images/happy_cloud.png");
+const cry_cloud = require("../assets/images/cry_cloud.png");
 
 const instagram_icon = require("../assets/images/social/instagram.png");
 const twitter_icon = require("../assets/images/social/twitter.png");
@@ -201,5 +204,8 @@ export default {
   selected_plan,
   unselect_plan,
   premium_list_icon,
-  bot_avatar
+  bot_avatar,
+  progress_bg,
+  happy_cloud,
+  cry_cloud,
 };

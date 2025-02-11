@@ -33,10 +33,9 @@ const LetDiscoverScreen = ({ navigation }) => {
     }
 
     const skipTour = () => {
-        // NavigationService.reset('SignUpScreen')
-
         analytics().logEvent('skip_tour_button')
-        NavigationService.reset('SampleExploreScreen')
+        NavigationService.reset('SignUpScreen')
+        // NavigationService.reset('SampleExploreScreen')
     }
 
     const onDiscover = () => {

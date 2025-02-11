@@ -14,7 +14,7 @@ import { notiCounterAtom } from '@/actions/global';
 import colors from '@/utils/colors';
 import analytics from '@react-native-firebase/analytics'
 
-const ITEM_WIDTH = Platform.isPad ? Dimensions.get('screen').width / 4 - 20 : Dimensions.get('screen').width / 2 - 24;
+const ITEM_WIDTH = Platform.isPad ? Dimensions.get('window').width / 4 - 20 : Dimensions.get('window').width / 2 - 24;
 const PAGE_SIZE = 8
 
 const ExploreScreen = ({ navigation }) => {
@@ -26,6 +26,12 @@ const ExploreScreen = ({ navigation }) => {
     const [page, setPage] = useState(1)
     const [loadingMore, setLoadingMore] = useState(false)
     const [canLoadMore, setCanLoadMore] = useState(true)
+
+    const [itemWidth, setItemWidth] = useState(ITEM_WIDTH)
+
+    Dimensions.addEventListener('change', ({ window: { width, height } }) => {
+        setItemWidth(Platform.isPad ? width / 4 - 20 : width / 2 - 24)
+    });
 
     useEffect(() => {
         analytics().logScreenView({
@@ -149,13 +155,13 @@ const ExploreScreen = ({ navigation }) => {
                     <SkeletonPlaceholder borderRadius={20} backgroundColor='white'>
                         <SkeletonPlaceholder.Item
                             alignItems="flex-end" justifyContent='space-between'
-                            width={ITEM_WIDTH} height={ITEM_WIDTH + 40}
+                            width={itemWidth} height={itemWidth + 40}
                             backgroundColor='blue'
                             style={{
                                 backgroundColor: 'blue', borderRadius: 20, paddingVertical: 16
                             }}>
-                            <SkeletonPlaceholder.Item right={8} width={ITEM_WIDTH / 2} height={20} borderRadius={10} />
-                            <SkeletonPlaceholder.Item right={20} width={ITEM_WIDTH - 40} height={20} borderRadius={10} />
+                            <SkeletonPlaceholder.Item right={8} width={itemWidth / 2} height={20} borderRadius={10} />
+                            <SkeletonPlaceholder.Item right={20} width={itemWidth - 40} height={20} borderRadius={10} />
                         </SkeletonPlaceholder.Item>
                     </SkeletonPlaceholder>
                 </View>
@@ -163,7 +169,7 @@ const ExploreScreen = ({ navigation }) => {
             )
         }
         return (
-            <DynamicLikeItem key={`profile-${item.id}`} onPress={() => openProfile(item)} item={item} itemWidth={ITEM_WIDTH} />
+            <DynamicLikeItem key={`profile-${item.id}`} onPress={() => openProfile(item)} item={item} itemWidth={itemWidth} />
         );
     };
 
@@ -194,7 +200,7 @@ const ExploreScreen = ({ navigation }) => {
                     <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
                         {notSuggestions.map((item) => {
                             return (
-                                <DynamicLikeItem key={`notsuggestion-${item.id}`} onPress={() => openProfile(item)} item={item} itemWidth={ITEM_WIDTH} />
+                                <DynamicLikeItem key={`notsuggestion-${item.id}`} onPress={() => openProfile(item)} item={item} itemWidth={itemWidth} />
                             )
                         })}
                     </View>

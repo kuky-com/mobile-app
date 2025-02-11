@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { NODE_ENV } from "../../utils/apiClient";
 import analytics from '@react-native-firebase/analytics'
+import { OneSignal } from "react-native-onesignal";
 
 const styles = StyleSheet.create({
   container: {
@@ -68,9 +69,15 @@ const SettingScreen = ({ navigation }) => {
 
   const onLogout = async () => {
     setLoading(true);
-    Purchases.logOut()
-      .then(() => { })
-      .catch(() => { });
+    try {
+      Purchases.logOut()
+        .then(() => { })
+        .catch(() => { });
+
+      OneSignal.logout()
+    } catch (error) {
+
+    }
 
     apiClient
       .get("auth/logout")

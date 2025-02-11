@@ -12,11 +12,16 @@ import axios from "axios";
 import { Image, ImageBackground } from "expo-image";
 import { useAtomValue } from "jotai";
 import React, { useEffect, useRef, useState } from "react";
-import { Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import analytics from '@react-native-firebase/analytics'
+import * as Location from 'expo-location';
+import { FontAwesome6 } from "@expo/vector-icons";
+import { Camera, CameraView } from "expo-camera";
+import { SheetManager } from "react-native-actions-sheet";
+import { DEFAULT_DISLIKES, DEFAULT_LIKES, DEFAULT_PURPOSES } from "../../utils/utils";
 
 const styles = StyleSheet.create({
   container: {
@@ -25,26 +30,86 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 16,
   },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  closeButton: {
+    marginTop: 50,
+    marginLeft: 20,
+    backgroundColor: '#ff0000',
+    padding: 10,
+    borderRadius: 5,
+  },
 });
 
 const OnboardingReviewProfileScreen = ({ navigation, route }) => {
   const userInfo = route.params;
   const insets = useSafeAreaInsets();
   const currentUser = useAtomValue(userAtom);
-  const [purposes, setPurposes] = useState(userInfo?.purposes ?? []);
-  const [likes, setLikes] = useState(userInfo?.likes ?? []);
-  const [dislikes, setDislikes] = useState(userInfo?.dislikes ?? []);
+  const [purposes, setPurposes] = useState([]);
+  const [likes, setLikes] = useState([]);
+  const [dislikes, setDislikes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fullName, setFullName] = useState(
     userInfo?.name ? userInfo?.name : (currentUser?.full_name ?? ""),
   );
   const [birthday, setBirthday] = useState(currentUser?.birthday ?? "");
   const [location, setLocation] = useState(currentUser?.location ?? "");
+
+  const [allPurposes, setAllPurposes] = useState(DEFAULT_PURPOSES);
+  const [allLikes, setAllLikes] = useState(DEFAULT_LIKES);
+  const [allDislikes, setAllDislikes] = useState(DEFAULT_DISLIKES);
+  // const [referral, setReferral] = useState("");
   const showAlert = useAlert();
+
+  const [openQrScanner, setopenQrScanner] = useState(false);
 
   const nameInputRef = useRef(null);
   const birthdayInputRef = useRef(null);
   const locationInputRef = useRef(null);
+
+  const [currentCoords, setCurrentCoords] = useState(null);
+  const [loadingLocation, setLoadingLocation] = useState(false);
+
+  const getCurrentCity = async () => {
+    try {
+      setLoadingLocation(true)
+      // Request permissions
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Toast.show({ text1: 'Location permission is required to get your city.', type: 'error' });
+        setLoadingLocation(false)
+        return;
+      }
+
+      // Get current location
+      const currentLocation = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+      setCurrentCoords(currentLocation.coords)
+
+      // Reverse geocode to get address
+      const [address] = await Location.reverseGeocodeAsync({
+        latitude: currentLocation.coords.latitude,
+        longitude: currentLocation.coords.longitude,
+      });
+
+      setLoadingLocation(false)
+      if (address && address.city) {
+        setLocation(address.city + (address.country ? ', ' + address.country : ''));
+      } else {
+        Toast.show({ text1: 'Unable to retrieve city from your location.', type: 'error' });
+      }
+    } catch (error) {
+      console.error('Error fetching location or city:', error);
+      setLoadingLocation(false)
+      Toast.show({ text1: 'Something went wrong while fetching location.', type: 'error' });
+    }
+  };
 
   useEffect(() => {
     analytics().logScreenView({
@@ -55,10 +120,46 @@ const OnboardingReviewProfileScreen = ({ navigation, route }) => {
 
   useEffect(() => {
     apiClient
+      .get("interests/all-likes")
+      .then((res) => {
+        if (res && res.data && res.data.success) {
+          setAllLikes(res.data.data)
+        }
+      })
+      .catch((error) => {
+        console.log({ error });
+      });
+
+    apiClient
+      .get("interests/all-dislikes")
+      .then((res) => {
+        if (res && res.data && res.data.success) {
+          setAllDislikes(res.data.data)
+        }
+      })
+      .catch((error) => {
+        console.log({ error });
+      });
+
+    apiClient
+      .get("interests/all-purposes")
+      .then((res) => {
+        if (res && res.data && res.data.success) {
+          setAllPurposes(res.data.data)
+        }
+      })
+      .catch((error) => {
+        console.log({ error });
+      });
+  }, []);
+
+  useEffect(() => {
+    apiClient
       .get("interests/likes")
       .then((res) => {
         if (res && res.data && res.data.success) {
-          setLikes(res.data.data);
+          const options = res.data.data.map((item) => item.name)
+          setLikes(options);
         }
       })
       .catch((error) => {
@@ -69,34 +170,26 @@ const OnboardingReviewProfileScreen = ({ navigation, route }) => {
       .get("interests/dislikes")
       .then((res) => {
         if (res && res.data && res.data.success) {
-          setDislikes(res.data.data);
+          const options = res.data.data.map((item) => item.name)
+          setDislikes(options);
+        }
+      })
+      .catch((error) => {
+        console.log({ error });
+      });
+
+    apiClient
+      .get("interests/purposes")
+      .then((res) => {
+        if (res && res.data && res.data.success) {
+          const options = res.data.data.map((item) => item.name)
+          setPurposes(options);
         }
       })
       .catch((error) => {
         console.log({ error });
       });
   }, []);
-
-  const onAddDislikes = () => {
-    navigation.push("DislikeSelectScreen", {
-      dislikes: dislikes,
-      onUpdated: (newList) => setDislikes(newList),
-    });
-  };
-
-  const onAddLikes = () => {
-    navigation.push("InterestSelectScreen", {
-      likes: likes,
-      onUpdated: (newList) => setLikes(newList),
-    });
-  };
-
-  const onAddPurpose = () => {
-    navigation.push("PurposeUpdateScreen", {
-      purposes: purposes,
-      onUpdated: (newList) => setPurposes(newList),
-    });
-  };
 
   const onContinue = async () => {
     if (fullName.length === 0) {
@@ -148,83 +241,44 @@ const OnboardingReviewProfileScreen = ({ navigation, route }) => {
 
   const continueProfile = async () => {
     try {
-      setLoading(true);
+      setLoading(true)
+      const updatePurposeRequest = await apiClient.post('interests/update-purposes', { purposes: purposes })
+      const updateLikesRequest = await apiClient.post('interests/update-likes', { likes: likes })
+      const updateDislikesRequest = await apiClient.post('interests/update-dislikes', { dislikes: dislikes })
 
-      let videoUrl = null;
-      if (userInfo && userInfo.videoIntro && userInfo.videoIntro.https) {
-        videoUrl = userInfo.videoIntro.https;
+      setLoading(false)
+      if (updatePurposeRequest && updatePurposeRequest.data && updatePurposeRequest.data.success &&
+        updateLikesRequest && updateLikesRequest.data && updateLikesRequest.data.success &&
+        updateDislikesRequest && updateDislikesRequest.data && updateDislikesRequest.data.success
+      ) {
+        setLoading(true);
+
+        let videoUrl = null;
+        if (userInfo && userInfo.videoIntro && userInfo.videoIntro.https) {
+          videoUrl = userInfo.videoIntro.https;
+        }
+
+        apiClient
+          .post("users/update", { birthday, location, full_name: fullName, video_intro: videoUrl })
+          .then(async (res) => {
+            setLoading(false);
+            if (res && res.data && res.data.success) {
+              NavigationService.reset("AIMatchingScreen");
+            } else {
+              Toast.show({ text1: res.data.message, type: "error" });
+            }
+          })
+          .catch((error) => {
+            setLoading(false);
+            console.log({ error });
+            Toast.show({ text1: error, type: "error" });
+          });
+      } else {
+        Toast.show({ text1: 'Your request failed. Please try again!', type: 'error' })
       }
-
-      apiClient
-        .post("users/update", { birthday, location, full_name: fullName, video_intro: videoUrl })
-        .then((res) => {
-          setLoading(false);
-          if (res && res.data && res.data.success) {
-            NavigationService.reset("ProfileTagScreen");
-          } else {
-            Toast.show({ text1: res.data.message, type: "error" });
-          }
-        })
-        .catch((error) => {
-          setLoading(false);
-          console.log({ error });
-          Toast.show({ text1: error, type: "error" });
-        });
-
-      // const likeNames = likes.map((item) => item.name)
-      // const dislikeNames = dislikes.map((item) => item.name)
-
-      // const updateLikesRequest = await apiClient.post('interests/update-likes', { likes: likeNames })
-      // const updateDislikesRequest = await apiClient.post('interests/update-dislikes', { dislikes: dislikeNames })
-
-      // setLoading(false)
-      // if (updateLikesRequest && updateLikesRequest.data && updateLikesRequest.data.success &&
-      //     updateDislikesRequest && updateDislikesRequest.data && updateDislikesRequest.data.success
-      // ) {
-      //     // Toast.show({text1: 'Your interest information has been updated!', type: 'success'})
-      //     let someWordIncorrect = false
-
-      //     if (updateLikesRequest.data.data && updateLikesRequest.data.data.length < likes.length) {
-      //         const newLikes = updateLikesRequest.data.data.map((item) => ({ name: item.interest.name }))
-      //         setLikes(newLikes)
-      //         someWordIncorrect = true
-      //     }
-      //     if (updateDislikesRequest.data.data && updateDislikesRequest.data.data.length < dislikeNames.length) {
-      //         const newDislikes = updateDislikesRequest.data.data.map((item) => ({ name: item.interest.name }))
-      //         setDislikes(newDislikes)
-      //         someWordIncorrect = true
-      //     }
-
-      //     if (someWordIncorrect) {
-      //         // Toast.show({text1: `Oops! That doesn't look like an English word. Please try again.`, text1NumberOfLines: 0, type: 'error'})
-      //         showAlert('', `Oops! That doesn't look like an English word. Please try again.`, [{ text: 'Ok' }])
-      //     } else {
-      //         NavigationService.reset('ProfileTagScreen')
-      //     }
-      // } else {
-      //     Toast.show({ text1: 'Your request failed. Please try again!', type: 'error' })
-      // }
     } catch (error) {
       setLoading(false);
     }
-  };
-
-  const removePurpose = (index) => {
-    const newPurposes = [...purposes];
-    newPurposes.splice(index, 1);
-    setPurposes(newPurposes);
-  };
-
-  const removeLike = (index) => {
-    const newLikes = [...likes];
-    newLikes.splice(index, 1);
-    setLikes(newLikes);
-  };
-
-  const removeDislike = (index) => {
-    const newDislikes = [...dislikes];
-    newDislikes.splice(index, 1);
-    setDislikes(newDislikes);
   };
 
   const updateAvatar = () => {
@@ -251,6 +305,75 @@ const OnboardingReviewProfileScreen = ({ navigation, route }) => {
       }
     }
   };
+
+  const onSelectPurpose = async () => {
+    const options = allPurposes.map((item) => {
+      return {
+        id: item,
+        text: item,
+      };
+    });
+
+    purposes.forEach(purpose => {
+      if(!allPurposes.includes(purpose)) {
+        options.unshift({ id: purpose, text: purpose });
+      }
+    });
+
+    await SheetManager.show('selection-sheets', {
+      payload: {
+        actions: options,
+        selectedList: purposes ?? [],
+        onSelected: (list) => setPurposes(list),
+      },
+    });
+  }
+
+  const onSelectLike = async () => {
+    const options = allLikes.map((item) => {
+      return {
+        id: item,
+        text: item,
+      };
+    });
+
+    likes.forEach(like => {
+      if(!allLikes.includes(like)) {
+        options.unshift({ id: like, text: like });
+      }
+    });
+
+    await SheetManager.show('selection-sheets', {
+      payload: {
+        actions: options,
+        selectedList: likes ?? [],
+        onSelected: (list) => setLikes(list),
+      },
+    });
+  }
+
+  const onSelectDislike = async () => {
+    const options = allDislikes.map((item) => {
+      return {
+        id: item,
+        text: item,
+      };
+    });
+
+    dislikes.forEach(dislike => {
+      if(!allDislikes.includes(dislike)) {
+        options.unshift({ id: dislike, text: dislike });
+      }
+    });
+
+    await SheetManager.show('selection-sheets', {
+      payload: {
+        actions: options,
+        selectedList: dislikes ?? [],
+        onSelected: (list) => setDislikes(list),
+      },
+    });
+  }
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
@@ -343,7 +466,7 @@ const OnboardingReviewProfileScreen = ({ navigation, route }) => {
               paddingHorizontal: 16,
             }}
           >
-            <Text style={{ width: 110, fontSize: 14, color: "black" }}>Name</Text>
+            <Text style={{ width: 100, fontSize: 14, color: "black" }}>Name</Text>
             <TextInput
               style={{
                 flex: 1,
@@ -374,7 +497,7 @@ const OnboardingReviewProfileScreen = ({ navigation, route }) => {
               paddingHorizontal: 16,
             }}
           >
-            <Text style={{ width: 110, fontSize: 14, color: "black" }}>Date of Birth</Text>
+            <Text style={{ width: 100, fontSize: 14, color: "black" }}>Date of Birth</Text>
             <TextInput
               style={{
                 flex: 1,
@@ -404,7 +527,7 @@ const OnboardingReviewProfileScreen = ({ navigation, route }) => {
               paddingHorizontal: 16,
             }}
           >
-            <Text style={{ width: 110, fontSize: 14, color: "black" }}>Location</Text>
+            <Text style={{ width: 100, fontSize: 14, color: "black" }}>Location</Text>
             <TextInput
               style={{
                 flex: 1,
@@ -422,242 +545,85 @@ const OnboardingReviewProfileScreen = ({ navigation, route }) => {
               placeholderTextColor="#777777"
               ref={locationInputRef}
             />
+
+            <TouchableOpacity style={{ height: 30, width: 30, alignItems: 'center', justifyContent: 'center' }} onPress={getCurrentCity}>
+              {loadingLocation ? <ActivityIndicator size='small' color='black' /> : <FontAwesome6 name='location-arrow' size={20} color='black' />}
+            </TouchableOpacity>
           </View>
-          <View
+          {/* <View
             style={{
-              backgroundColor: "#725ED4",
               width: "100%",
-              borderRadius: 10,
+              height: 53,
+              borderRadius: 20,
+              backgroundColor: "white",
+              alignItems: "center",
+              flexDirection: "row",
               paddingHorizontal: 16,
             }}
           >
-            <View
-              style={{ flexDirection: "row", gap: 8, paddingVertical: 12, alignItems: "center" }}
-            >
-              <Image
-                source={images.interest_icon}
-                style={{ width: 18, height: 18, tintColor: "white" }}
-                contentFit="contain"
-              />
-              <Text style={{ color: "white", fontSize: 16, fontWeight: "600" }}>
-                Your Journey/Purpose
-              </Text>
-            </View>
-            <View style={{ width: "100%", backgroundColor: "#9889E1", height: 1 }} />
-            <View
+            <Text style={{ width: 100, fontSize: 14, color: "black" }}>Rererral code</Text>
+            <TextInput
               style={{
-                paddingVertical: 16,
-                flexWrap: "wrap",
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 10,
-                paddingBottom: 16,
+                flex: 1,
+                fontFamily: "Comfortaa-Bold",
+                fontSize: 14,
+                color: "black",
+                fontWeight: "bold",
+                paddingVertical: 5,
+                paddingHorizontal: 8,
               }}
-            >
-              {purposes.map((item, index) => {
-                return (
-                  <TouchableOpacity
-                    key={`purpose-${item.name}-${index}`}
-                    style={{
-                      flexDirection: "row",
-                      gap: 5,
-                      paddingLeft: 8,
-                      paddingRight: 16,
-                      height: 32,
-                      borderRadius: 16,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      backgroundColor: "#F2F0FF",
-                    }}
-                  >
-                    <Image
-                      style={{ width: 18, height: 18 }}
-                      contentFit="contain"
-                      source={images.seen_icon}
-                    />
-                    <Text style={{ fontSize: 14, color: "black", fontWeight: "700" }}>
-                      {item.name}
-                    </Text>
-                    {/* <TouchableOpacity onPress={() => removePurpose(index)} style={{ position: 'absolute', top: 0, right: 0, backgroundColor: '#E8FF58', borderWidth: 1, borderColor: '#333333', width: 16, height: 16, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
-                                                <Image source={images.close_icon} style={{ width: 10, height: 10, tintColor: '#333333' }} contentFit='contain' />
-                                            </TouchableOpacity> */}
-                  </TouchableOpacity>
-                );
-              })}
-              <TouchableOpacity
-                onPress={onAddPurpose}
-                style={{
-                  width: 68,
-                  height: 32,
-                  borderRadius: 16,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "#E8FF58",
+              underlineColorAndroid={"#00000000"}
+              value={referral}
+              onChangeText={setReferral}
+              placeholder="Rererral code"
+              placeholderTextColor="#777777"
+            />
+
+            <TouchableOpacity style={{ height: 30, width: 30, alignItems: 'center', justifyContent: 'center' }} onPress={() => setopenQrScanner(true)}>
+              <FontAwesome6 name='qrcode' size={20} color='black' />
+            </TouchableOpacity>
+          </View> */}
+          <View style={{ flex: 1, width: '100%', paddingVertical: 16, gap: 32, alignItems: 'flex-start', justifyContent: 'flex-start' }}>
+            <View style={{ gap: 8, width: "100%" }}>
+              <Text style={{ fontSize: 13, fontWeight: 'bold', color: 'black' }}>{'What’s your goal here?'}<Text style={{ color: 'red' }}>{' *'}</Text></Text>
+              <TouchableOpacity onPress={onSelectPurpose} style={{
+                borderRadius: 15, paddingVertical: 15, paddingHorizontal: 16, alignItems: 'center',
+                flexDirection: 'row', borderWidth: 1, borderColor: '#726E70', gap: 5
+              }}>
+                <Text style={{
+                  flex: 1, lineHeight: 18, fontSize: 13, color: purposes.length > 0 ? '#000000' : '#aaaaaa',
+                  fontWeight: purposes.length > 0 ? 'bold' : '400'
                 }}
-              >
-                <Image
-                  style={{ width: 20, height: 20 }}
-                  source={images.edit_icon}
-                  contentFit="contain"
-                />
+                >{purposes.length > 0 ? purposes.join(', ') : 'Find support for anxiety'}</Text>
+                <FontAwesome6 name='chevron-down' size={16} color='#333333' />
               </TouchableOpacity>
             </View>
-          </View>
-          <View
-            style={{
-              backgroundColor: "#725ED4",
-              width: "100%",
-              borderRadius: 10,
-              paddingHorizontal: 16,
-            }}
-          >
-            <View
-              style={{ flexDirection: "row", gap: 8, paddingVertical: 12, alignItems: "center" }}
-            >
-              <Image
-                source={images.interest_icon}
-                style={{ width: 18, height: 18, tintColor: "white" }}
-                contentFit="contain"
-              />
-              <Text style={{ color: "white", fontSize: 16, fontWeight: "600" }}>
-                Interests and hobbies
-              </Text>
-            </View>
-            <View style={{ width: "100%", backgroundColor: "#9889E1", height: 1 }} />
-            <View
-              style={{
-                paddingVertical: 16,
-                flexWrap: "wrap",
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 10,
-                paddingBottom: 16,
-              }}
-            >
-              {likes.map((item, index) => {
-                return (
-                  <TouchableOpacity
-                    key={`like-${item.name}-${index}`}
-                    style={{
-                      flexDirection: "row",
-                      gap: 5,
-                      paddingLeft: 8,
-                      paddingRight: 16,
-                      height: 32,
-                      borderRadius: 16,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      backgroundColor: "#F2F0FF",
-                    }}
-                  >
-                    <Image
-                      style={{ width: 18, height: 18 }}
-                      contentFit="contain"
-                      source={images.seen_icon}
-                    />
-                    <Text style={{ fontSize: 14, color: "black", fontWeight: "700" }}>
-                      {item.name}
-                    </Text>
-                    {/* <TouchableOpacity onPress={() => removeLike(index)} style={{ position: 'absolute', top: 0, right: 0, backgroundColor: '#E8FF58', borderWidth: 1, borderColor: '#333333', width: 16, height: 16, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
-                                                <Image source={images.close_icon} style={{ width: 10, height: 10, tintColor: '#333333' }} contentFit='contain' />
-                                            </TouchableOpacity> */}
-                  </TouchableOpacity>
-                );
-              })}
-              <TouchableOpacity
-                onPress={onAddLikes}
-                style={{
-                  width: 68,
-                  height: 32,
-                  borderRadius: 16,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "#E8FF58",
+            <View style={{ gap: 8, width: "100%" }}>
+              <Text style={{ fontSize: 13, fontWeight: 'bold', color: 'black' }}>{'What are your hobbies and interests?'}<Text style={{ color: 'red' }}>{' *'}</Text></Text>
+              <TouchableOpacity onPress={onSelectLike} style={{
+                borderRadius: 15, paddingVertical: 15, paddingHorizontal: 16, alignItems: 'center',
+                flexDirection: 'row', borderWidth: 1, borderColor: '#726E70', gap: 5
+              }}>
+                <Text style={{
+                  flex: 1, lineHeight: 18, fontSize: 13, color: likes.length > 0 ? '#000000' : '#aaaaaa',
+                  likes: purposes.length > 0 ? 'bold' : '400'
                 }}
-              >
-                <Image
-                  style={{ width: 20, height: 20 }}
-                  source={images.edit_icon}
-                  contentFit="contain"
-                />
+                >{likes.length > 0 ? likes.join(', ') : 'Reading, hiking, painting'}</Text>
+                <FontAwesome6 name='chevron-down' size={16} color='#333333' />
               </TouchableOpacity>
             </View>
-          </View>
-          <View
-            style={{
-              backgroundColor: "#725ED4",
-              width: "100%",
-              borderRadius: 10,
-              paddingHorizontal: 16,
-            }}
-          >
-            <View
-              style={{ flexDirection: "row", gap: 8, paddingVertical: 12, alignItems: "center" }}
-            >
-              <Image
-                source={images.dislike_icon}
-                style={{ width: 18, height: 18, tintColor: "white" }}
-                contentFit="contain"
-              />
-              <Text style={{ color: "white", fontSize: 16, fontWeight: "600" }}>Dislike</Text>
-            </View>
-            <View style={{ width: "100%", backgroundColor: "#9889E1", height: 1 }} />
-            <View
-              style={{
-                paddingVertical: 16,
-                flexWrap: "wrap",
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 10,
-                paddingBottom: 16,
-              }}
-            >
-              {dislikes.map((item, index) => {
-                return (
-                  <TouchableOpacity
-                    key={`dislike-${item.name}-${index}`}
-                    style={{
-                      flexDirection: "row",
-                      gap: 5,
-                      paddingLeft: 8,
-                      paddingRight: 16,
-                      height: 32,
-                      borderRadius: 16,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      backgroundColor: "#FF8B8B",
-                    }}
-                  >
-                    <Image
-                      style={{ width: 18, height: 18 }}
-                      contentFit="contain"
-                      source={images.seen_icon}
-                    />
-                    <Text style={{ fontSize: 14, color: "black", fontWeight: "700" }}>
-                      {item.name}
-                    </Text>
-                    {/* <TouchableOpacity onPress={() => removeDislike(index)} style={{ position: 'absolute', top: 0, right: 0, backgroundColor: '#E8FF58', borderWidth: 1, borderColor: '#333333', width: 16, height: 16, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
-                                                <Image source={images.close_icon} style={{ width: 10, height: 10, tintColor: '#333333' }} contentFit='contain' />
-                                            </TouchableOpacity> */}
-                  </TouchableOpacity>
-                );
-              })}
-              <TouchableOpacity
-                onPress={onAddDislikes}
-                style={{
-                  width: 68,
-                  height: 32,
-                  borderRadius: 16,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "#E8FF58",
+            <View style={{ gap: 8, width: "100%" }}>
+              <Text style={{ fontSize: 13, fontWeight: 'bold', color: 'black' }}>{'What don’t you like?'}</Text>
+              <TouchableOpacity onPress={onSelectDislike} style={{
+                borderRadius: 15, paddingVertical: 15, paddingHorizontal: 16, alignItems: 'center',
+                flexDirection: 'row', borderWidth: 1, borderColor: '#726E70', gap: 5
+              }}>
+                <Text style={{
+                  flex: 1, lineHeight: 18, fontSize: 13, color: dislikes.length > 0 ? '#000000' : '#aaaaaa',
+                  dislikes: purposes.length > 0 ? 'bold' : '400'
                 }}
-              >
-                <Image
-                  style={{ width: 20, height: 20 }}
-                  source={images.edit_icon}
-                  contentFit="contain"
-                />
+                >{dislikes.length > 0 ? dislikes.join(', ') : 'Crowded places, loud noises'}</Text>
+                <FontAwesome6 name='chevron-down' size={16} color='#333333' />
               </TouchableOpacity>
             </View>
           </View>
@@ -665,6 +631,30 @@ const OnboardingReviewProfileScreen = ({ navigation, route }) => {
           <ButtonWithLoading text="Confirm & Continue" onPress={onContinue} loading={loading} />
         </View>
       </KeyboardAwareScrollView>
+
+      {/* {
+        openQrScanner && (
+          <CameraView
+            style={StyleSheet.absoluteFill}
+            onBarcodeScanned={(data) => {
+              setopenQrScanner(false)
+              setReferral(data)
+            }}
+            barcodeScannerSettings={{
+              barcodeTypes: ['qr']
+            }}
+          >
+            <View style={styles.overlay}>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setopenQrScanner(false)}
+              >
+                <FontAwesome6 name='xmark' size={20} color='white' />
+              </TouchableOpacity>
+            </View>
+          </CameraView>
+        )
+      } */}
     </View>
   );
 };
