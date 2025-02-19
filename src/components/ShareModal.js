@@ -7,6 +7,7 @@ import images from '../utils/images'
 import * as Clipboard from 'expo-clipboard';
 import Toast from 'react-native-toast-message'
 import Share from 'react-native-share'
+import colors from '../utils/colors'
 
 const ShareModal = ({ visible = false, onClose, full_name = '', shareLink = '' }) => {
     const [copied, setCopied] = useState(false)
@@ -47,8 +48,14 @@ const ShareModal = ({ visible = false, onClose, full_name = '', shareLink = '' }
         }
     }
 
+    const onCloseModal = () => {
+        setCopied(false)
+        setSuccess(false)
+        if(onClose) onClose()
+    }
+
     return (
-        <Modal transparent visible={visible} animationType="fade" onRequestClose={() => onClose && onClose()}>
+        <Modal transparent visible={visible} animationType="fade" onRequestClose={onCloseModal}>
             <View style={styles.overlay}>
                 {!success &&
                     <View style={styles.alertContainer}>
@@ -82,17 +89,17 @@ const ShareModal = ({ visible = false, onClose, full_name = '', shareLink = '' }
                         </View>
 
                         <TouchableOpacity onPress={onCopy} style={{ paddingHorizontal: 16, width: '100%', maxWidth: 300, borderRadius: 10, backgroundColor: '#B5ABE2', height: 54, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                            <Text style={{ color: '#333333', fontSize: 16, fontWeight: 'bold', flex: 1 }}>{copied ? 'Link copied' : 'Copy link'}</Text>
-                            <Image source={images.link_icon} style={{ width: 22, height: 22 }} contentFit='contain' />
+                            <Text style={{ color: copied ? colors.mainColor : '#333333', fontSize: 16, fontWeight: 'bold', flex: 1 }}>{copied ? 'Link copied' : 'Copy link'}</Text>
+                            <Image source={images.link_icon} style={{ width: 22, height: 22, tintColor: copied ? colors.mainColor : '#333333' }} contentFit='contain' />
                         </TouchableOpacity>
 
                         <TouchableOpacity onPress={() => onShare()} style={styles.button}>
                             <Text style={styles.buttonText}>{'Share Profile'}</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => onClose && onClose()} style={styles.cancelButton}>
+                        <TouchableOpacity onPress={onCloseModal} style={styles.cancelButton}>
                             <Text style={styles.cancelText}>{'Cancel'}</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                        <TouchableOpacity onPress={onCloseModal} style={styles.closeButton}>
                             <Image source={images.close_icon} style={styles.closeIcon} contentFit='contain' />
                         </TouchableOpacity>
                     </View>
@@ -106,10 +113,10 @@ const ShareModal = ({ visible = false, onClose, full_name = '', shareLink = '' }
                         <TouchableOpacity onPress={() => setSuccess(false)} style={styles.button}>
                             <Text style={styles.buttonText}>{'Share with More Friends'}</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => onClose && onClose()} style={styles.cancelButton}>
+                        <TouchableOpacity onPress={onCloseModal} style={styles.cancelButton}>
                             <Text style={styles.cancelText}>{'Cancel'}</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                        <TouchableOpacity onPress={onCloseModal} style={styles.closeButton}>
                             <Image source={images.close_icon} style={styles.closeIcon} contentFit='contain' />
                         </TouchableOpacity>
                     </View>

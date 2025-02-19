@@ -5,8 +5,9 @@ import colors from "@/utils/colors";
 import images from "@/utils/images";
 import dayjs from "dayjs";
 import { Image } from "expo-image";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
+  AppState,
   DeviceEventEmitter,
   Dimensions,
   FlatList,
@@ -23,6 +24,9 @@ import constants from "@/utils/constants";
 import { useAtomValue, useSetAtom } from "jotai";
 import { totalMessageCounterAtom, totalMessageUnreadAtom, userAtom } from "@/actions/global";
 import analytics from '@react-native-firebase/analytics'
+import Purchases from "react-native-purchases";
+import TextInput from "../../components/TextInput";
+import { FontAwesome6 } from "@expo/vector-icons";
 
 const styles = StyleSheet.create({
   container: {
@@ -39,6 +43,11 @@ const MatchesScreen = ({ navigation }) => {
   const unreadMessage = useAtomValue(totalMessageCounterAtom);
   const setUnreadCounter = useSetAtom(totalMessageUnreadAtom);
   const [viewMode, setViewMode] = useState("received");
+  const [isPremium, setIsPremium] = useState(true);
+  const [freeTotal, setFreeTotal] = useState(0);
+  const [freeCount, setFreeCount] = useState(0);
+  const appState = useRef(AppState.currentState);
+  const [keyword, setKeyword] = useState('');
 
   useEffect(() => {
     analytics().logScreenView({
@@ -49,6 +58,24 @@ const MatchesScreen = ({ navigation }) => {
 
   useEffect(() => {
     onRefresh();
+  }, []);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (
+        appState.current &&
+        appState.current.match(/inactive|background/) &&
+        nextAppState === "active"
+      ) {
+        loadSubscriptionInfo();
+      }
+
+      appState.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
   useEffect(() => {
@@ -77,16 +104,42 @@ const MatchesScreen = ({ navigation }) => {
     }
   }, [matches, unreadMessage]);
 
+  const loadSubscriptionInfo = async () => {
+    try {
+      if (currentUser?.is_premium_user) {
+        return;
+      }
+
+      const customerInfo = await Purchases.getCustomerInfo();
+
+      if (
+        !(
+          customerInfo &&
+          customerInfo.entitlements &&
+          customerInfo.entitlements.active &&
+          customerInfo.entitlements.active["pro"]
+        )
+      ) {
+        setIsPremium(false)
+      }
+    } catch (error) {
+      console.log({ error });
+    }
+  };
+
   const onRefresh = () => {
     setFetching(true);
+    loadSubscriptionInfo()
     apiClient
-      .get("matches/matches")
+      .get("matches/matches-with-preminum")
       .then((res) => {
         setFetching(false);
         console.log({ matches: res.data });
         if (res && res.data && res.data.success) {
 
-          setMatches(res.data.data);
+          setMatches(res.data.data.matches ?? []);
+          setFreeTotal(res.data.data.freeTotal ?? 0);
+          setFreeCount(res.data.data.freeCount ?? 0);
         } else {
           setMatches([]);
         }
@@ -186,36 +239,42 @@ const MatchesScreen = ({ navigation }) => {
         conversation={item}
         marginBottom={index === matches.length - 1 ? insets.bottom + 70 : 0}
         onDisconnect={() => onDisconnect(item)}
+        isPremium={isPremium}
       />
     );
   };
 
-  const receivedMatches = matches.filter((match) => match.receiver_id === currentUser.id)
-  const sentMatches = matches.filter((match) => match.sender_id === currentUser.id)
+  const filterMatches = matches.filter(match => {
+    if (keyword.length > 0) {
+      return match.profile.full_name.toLowerCase().includes(keyword.toLowerCase())
+    }
+    return true;
+  }
+  )
 
   return (
     <View style={styles.container}>
       <Header showLogo />
-      <View style={{ paddingVertical: 16, gap: 8 }}>
-        <Text style={{ marginHorizontal: 16, fontSize: 24, fontWeight: "700", color: "black" }}>Connections</Text>
-        <View style={{ flexDirection: 'row', backgroundColor: 'white', paddingVertical: 4, paddingHorizontal: 8 }}>
-          <TouchableOpacity onPress={() => setViewMode('received')} style={{
-            flex: 1, paddingVertical: 8, alignItems: 'center', justifyContent: 'center',
-            borderBottomWidth: viewMode === 'received' ? 3 : 0, borderBottomColor: colors.mainColor
-          }}>
-            <Text style={{ color: viewMode === 'received' ? colors.mainColor : '#79797A', fontSize: 16, fontWeight: 'bold' }}>{`Received (${receivedMatches.length})`}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setViewMode('sent')} style={{
-            flex: 1, paddingVertical: 8, alignItems: 'center', justifyContent: 'center',
-            borderBottomWidth: viewMode === 'sent' ? 3 : 0, borderBottomColor: colors.mainColor
-          }}>
-            <Text style={{ color: viewMode === 'sent' ? colors.mainColor : '#79797A', fontSize: 16, fontWeight: 'bold' }}>{`Sent (${sentMatches.length})`}</Text>
-          </TouchableOpacity>
+      <View style={{ paddingTop: 16, paddingBottom: 8, gap: 8, paddingHorizontal: 16, backgounrcColor: 'transparent' }}>
+        <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 10, borderRadius: 5, paddingVertical: 5, alignItems: 'center', backgroundColor: '#E1E1E1' }}>
+          <FontAwesome6 name='magnifying-glass' size={16} color='#8C8C8C' />
+          <TextInput
+            value={keyword}
+            onChangeText={text => setKeyword(text)}
+            style={{ flex: 1, fontSize: 15, lineHeight: 20, color: '#333333', paddingVertical: 5 }}
+            underlineColorAndroid="#00000000"
+            placeholder="Search for keyword"
+            placeholderTextColor="#8C8C8C"
+            clearButtonMode="always"
+          />
         </View>
+        <Text style={{ fontSize: 20, fontWeight: "700", color: "black" }}>{`Connections `}
+          {!isPremium && <Text style={{ fontSize: 13, color: '#333333' }}>{`(${freeCount}/${freeTotal})`}</Text>}
+        </Text>
       </View>
       <View style={{ paddingHorizontal: 16, flex: 1, alignItems: 'center' }}>
         <FlatList
-          data={viewMode === 'received' ? receivedMatches : sentMatches}
+          data={filterMatches}
           renderItem={renderItem}
           style={{ width: Platform.isPad ? 600 : '100%', flex: 1 }}
           ListEmptyComponent={renderEmpty}

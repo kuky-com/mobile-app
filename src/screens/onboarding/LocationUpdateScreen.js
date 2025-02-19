@@ -20,7 +20,7 @@ import TextInput from '@/components/TextInput'
 import analytics from '@react-native-firebase/analytics'
 import { FontAwesome6 } from '@expo/vector-icons'
 import * as Location from 'expo-location';
-import { useSetAtom } from 'jotai'
+import { useAtomValue, useSetAtom } from 'jotai'
 import { userAtom } from '../../actions/global'
 
 const styles = StyleSheet.create({
@@ -61,9 +61,10 @@ const styles = StyleSheet.create({
 })
 
 const LocationUpdateScreen = ({ navigation, route }) => {
-    // const { onboarding } = route.params
+    const { isUpdate } = route && route.params ? route.params : {}
     const insets = useSafeAreaInsets()
-    const [location, setLocation] = useState('');
+    const currentUser = useAtomValue(userAtom)
+    const [location, setLocation] = useState(currentUser?.location || '');
     const [loading, setLoading] = useState(false)
     const [loadingLocation, setLoadingLocation] = useState(false);
     const [currentCoords, setCurrentCoords] = useState(null);
@@ -125,7 +126,11 @@ const LocationUpdateScreen = ({ navigation, route }) => {
                             setUser(res.data.data)
                             // NavigationService.reset('AskUpdateInfoScreen', { fromView: 'gender' })
                             // NavigationService.reset('MatchingInfoUpdateScreen')
-                            NavigationService.reset('AvatarUpdateScreen')
+                            if (isUpdate) {
+                                navigation.goBack()
+                            } else {
+                                NavigationService.reset('AvatarUpdateScreen')
+                            }
                         } else {
                             Toast.show({ text1: res.data.message, type: 'error' })
                         }
@@ -190,7 +195,13 @@ const LocationUpdateScreen = ({ navigation, route }) => {
                 position: 'absolute', top: insets.top + 5, right: 16,
                 width: 25, height: 25, alignItems: 'center', justifyContent: 'center'
             }}
-                onPress={() => NavigationService.push('SkipOnboardingScreen')}>
+                onPress={() => {
+                    if (isUpdate) {
+                        navigation.goBack()
+                    } else {
+                        NavigationService.push('SkipOnboardingScreen')
+                    }
+                }}>
                 <FontAwesome6 name='xmark' size={20} color='#333333' />
             </TouchableOpacity>
             <ButtonWithLoading
@@ -198,12 +209,14 @@ const LocationUpdateScreen = ({ navigation, route }) => {
                 text='Continue'
                 loading={loading}
             />
-            <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
-                <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 8 }}
-                    onPress={() => NavigationService.reset('OnboardingVideoTutorialScreen')}>
-                    <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#333333' }}>Record a video instead</Text>
-                </TouchableOpacity>
-            </View>
+            {!isUpdate &&
+                <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                    <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 8 }}
+                        onPress={() => NavigationService.reset('OnboardingVideoTutorialScreen')}>
+                        <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#333333' }}>Record a video instead</Text>
+                    </TouchableOpacity>
+                </View>
+            }
         </View>
     )
 }

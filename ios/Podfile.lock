@@ -1257,9 +1257,9 @@ PODS:
     - FBSDKCoreKit (= 17.4.0)
   - FBSDKShareKit (17.4.0):
     - FBSDKCoreKit (= 17.4.0)
-  - ffmpeg-kit-ios-video (6.0)
-  - ffmpeg-kit-react-native/video (6.0.2):
-    - ffmpeg-kit-ios-video (= 6.0)
+  - ffmpeg-kit-ios-min-gpl (6.0)
+  - ffmpeg-kit-react-native/min-gpl (6.0.2):
+    - ffmpeg-kit-ios-min-gpl (= 6.0)
     - React-Core
   - Firebase/Analytics (11.5.0):
     - Firebase/Core
@@ -3422,7 +3422,7 @@ DEPENDENCIES:
   - ExpoTrackingTransparency (from `../node_modules/expo-tracking-transparency/ios`)
   - FBAudienceNetwork (~> 6.15.0)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
-  - ffmpeg-kit-react-native/video (from `../node_modules/ffmpeg-kit-react-native/ffmpeg-kit-react-native.podspec`)
+  - ffmpeg-kit-react-native/min-gpl (from `../node_modules/ffmpeg-kit-react-native/ffmpeg-kit-react-native.podspec`)
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
@@ -3531,7 +3531,7 @@ SPEC REPOS:
     - FBSDKGamingServicesKit
     - FBSDKLoginKit
     - FBSDKShareKit
-    - ffmpeg-kit-ios-video
+    - ffmpeg-kit-ios-min-gpl
     - Firebase
     - FirebaseAnalytics
     - FirebaseAppCheckInterop
@@ -3856,7 +3856,7 @@ SPEC CHECKSUMS:
   FBSDKGamingServicesKit: 55a13febe0cd117bf5f8f61f315d75aab9b7876e
   FBSDKLoginKit: 5c1cd53c91a2282b3a4fe6e6d3dcf2b8b0d33d55
   FBSDKShareKit: 00546a02dce72f37a4209cd68aaf5fb749185c3b
-  ffmpeg-kit-ios-video: d3a8a535570063b717f88da68f9089e213aa21ba
+  ffmpeg-kit-ios-min-gpl: 5b5c007503509e3e4c0ab68852468ccd3c768230
   ffmpeg-kit-react-native: 3cea88c9c5cfad62e1465279ea7d800dfbba3b00
   Firebase: 7a56fe4f56b5ab81b86a6822f5b8f909ae6fc7e2
   FirebaseAnalytics: 2f4a11eeb7a0e9c6fcf642d4e6aaca7fa4d38c28
@@ -3993,6 +3993,6 @@ SPEC CHECKSUMS:
   Yoga: d2b3aca40280e37f5eac5e3b02ddedffb8db7471
   ZXingObjC: 8898711ab495761b2dbbdec76d90164a6d7e14c5
 
-PODFILE CHECKSUM: 09b7d21aef3b478eb0dec8aa1762ca40ce6a63b1
+PODFILE CHECKSUM: 1e03a4f90fd7abd4a2bbeb343178ed62b09deab8
 
 COCOAPODS: 1.15.2

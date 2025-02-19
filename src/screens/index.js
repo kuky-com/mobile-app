@@ -100,6 +100,7 @@ import ReferralUpdateScreen from "./onboarding/ReferralUpdateScreen";
 import MatchingInfoUpdateScreen from "./onboarding/MatchingInfoUpdateScreen";
 import AIMatchingScreen from "./profile/AIMatchingScreen";
 import AcceptTermScreen from "./auth/AcceptTermScreen";
+import UserNoteScreen from "./onboarding/UserNoteScreen";
 
 SendbirdCalls.setListener({
   onRinging: async (callProps) => {
@@ -605,6 +606,7 @@ const AppStack = ({ navgation }) => {
       <Stack.Screen name="MatchingInfoUpdateScreen" component={MatchingInfoUpdateScreen} />
       <Stack.Screen name="AIMatchingScreen" component={AIMatchingScreen} />
       <Stack.Screen name="AcceptTermScreen" component={AcceptTermScreen} options={{ ...TransitionPresets.ModalSlideFromBottomIOS }} />
+      <Stack.Screen name="UserNoteScreen" component={UserNoteScreen} />
     </Stack.Navigator>
   );
 };

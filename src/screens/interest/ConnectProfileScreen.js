@@ -445,6 +445,31 @@ const ConnectProfileScreen = ({ navigation, route }) => {
             paddingBottom: insets.bottom + 16,
           }}
         >
+          <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', gap: 5, width: '100%', flex: 1, alignItems: 'center' }}>
+              <Text style={{ fontSize: 24, color: "black", fontWeight: "bold" }}>
+                {currentProfile?.full_name}
+              </Text>
+              {isRecentOnline &&
+                <View style={styles.onlineStatusBg}>
+                  <OnlineStatus isRecentOnline={isRecentOnline} status={currentProfile?.online_status} radius={12} />
+                </View>
+              }
+            </View>
+
+            <View style={styles.tagContainer}>
+              <Text
+                style={[
+                  styles.tagText,
+                  {
+                    fontSize: (currentProfile?.tag?.name ?? "").length > 20 ? 13 : 15,
+                  },
+                ]}
+              >
+                {currentProfile?.tag?.name}
+              </Text>
+            </View>
+          </View>
           {
             commonPurposes && commonPurposes.message &&
             <View style={{ gap: 12, flexDirection: 'row', alignItems: 'center', width: '100%', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10, backgroundColor: '#E9E5FF' }}>
@@ -459,7 +484,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
               width: "100%",
               height: Math.min(
                 700,
-                Dimensions.get("screen").height - insets.top - insets.bottom - 80 - (commonPurposes && commonPurposes.message ? 60 : 0),
+                Dimensions.get("screen").height - insets.top - insets.bottom - 150 - (commonPurposes && commonPurposes.message ? 60 : 0),
               ),
               borderWidth: 8,
               borderColor: "white",
@@ -477,7 +502,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                   bottom: 0,
                   borderRadius: 10,
                 }}
-                posterSource={{uri: currentProfile?.avatar}}
+                posterSource={{ uri: currentProfile?.avatar }}
                 ref={videoRef}
                 source={{ uri: currentProfile?.video_intro }}
                 resizeMode={ResizeMode.COVER}
@@ -530,7 +555,19 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                     <FontAwesome6 name={isMute ? 'volume-xmark' : 'volume-high'} size={20} color='white' />
                   </TouchableOpacity>
                 }
-                {!(playing || pendingVideo) && <View style={styles.tagContainer}>
+                {!(playing || pendingVideo) && currentProfile?.user_note &&
+                  <View style={{position: 'absolute', top: 5, left: 5, right: 10, }}>
+                    <View style={{width: 18, height: 18, borderRadius: 9, backgroundColor: '#7B65E8ee'}} />
+                    <View style={{marginLeft: 12, width: 9, height: 9, borderRadius: 4.5, backgroundColor: '#7B65E8ee'}} />
+                    <View style={{
+                      backgroundColor: '#7B65E8ee', marginLeft: 10, marginTop: 2,
+                      paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10,
+                    }}>
+                      <Text style={{ color: '#E8FF58', width: '100%', textAlign: 'center', fontSize: 13, fontWeight: '600' }}>{currentProfile?.user_note}</Text>
+                    </View>
+                  </View>
+                }
+                {/* {!(playing || pendingVideo) && <View style={styles.tagContainer}>
                   <Text
                     style={[
                       styles.tagText,
@@ -542,7 +579,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                     {currentProfile?.tag?.name}
                   </Text>
                 </View>
-                }
+                } */}
               </View>
 
 
@@ -556,7 +593,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                   gap: 16,
                 }}
               >
-                {!playing && (
+                {/* {!playing && (
                   <View style={{flexDirection: 'row', gap: 5, width: '100%'}}>
                     <Text style={{ fontSize: 32, color: "white", fontWeight: "bold", maxWidth: Dimensions.get('screen').width - 86 }}>
                       {currentProfile?.full_name}
@@ -567,7 +604,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                       </View>
                     }
                   </View>
-                )}
+                )} */}
                 {/* <View style={{ width: '100%', flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                                     {
                                         currentProfile?.interests.map((interest) => (

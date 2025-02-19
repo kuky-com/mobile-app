@@ -443,14 +443,14 @@
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/OneSignalXCFramework/OneSignalUser/OneSignalUser.framework/OneSignalUser",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/SendBirdCalls/SendBirdCalls.framework/SendBirdCalls",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/SendBirdWebRTC/WebRTC.framework/WebRTC",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ffmpeg-kit-ios-video/ffmpegkit.framework/ffmpegkit",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ffmpeg-kit-ios-video/libavcodec.framework/libavcodec",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ffmpeg-kit-ios-video/libavdevice.framework/libavdevice",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ffmpeg-kit-ios-video/libavfilter.framework/libavfilter",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ffmpeg-kit-ios-video/libavformat.framework/libavformat",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ffmpeg-kit-ios-video/libavutil.framework/libavutil",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ffmpeg-kit-ios-video/libswresample.framework/libswresample",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ffmpeg-kit-ios-video/libswscale.framework/libswscale",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ffmpeg-kit-ios-min-gpl/ffmpegkit.framework/ffmpegkit",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ffmpeg-kit-ios-min-gpl/libavcodec.framework/libavcodec",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ffmpeg-kit-ios-min-gpl/libavdevice.framework/libavdevice",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ffmpeg-kit-ios-min-gpl/libavfilter.framework/libavfilter",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ffmpeg-kit-ios-min-gpl/libavformat.framework/libavformat",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ffmpeg-kit-ios-min-gpl/libavutil.framework/libavutil",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ffmpeg-kit-ios-min-gpl/libswresample.framework/libswresample",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ffmpeg-kit-ios-min-gpl/libswscale.framework/libswscale",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
 			);
 			name = "[CP] Embed Pods Frameworks";
@@ -809,7 +809,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5.1;
+				MARKETING_VERSION = 1.6.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -983,7 +983,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5.1;
+				MARKETING_VERSION = 1.6.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",

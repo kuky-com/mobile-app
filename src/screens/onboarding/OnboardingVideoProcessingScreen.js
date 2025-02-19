@@ -98,7 +98,7 @@ const OnboardingVideoProcessingScreen = ({ navigation, route }) => {
             const { width, height } = await getVideoResizeDimensions(videoUrl.uri)
 
             const outputVideoUri = `${FileSystem.documentDirectory}video_trimmed.mp4`
-            const commandVideo = `-y -i ${videoUrl.uri} -ss ${startPosition} -to ${endPosition} -vf ${width > height ? `scale=${height}:${width}` : `scale=${width}:${height}`} -crf 26 -preset veryfast -f mp4 ${outputVideoUri}`;
+            const commandVideo = `-y -i ${videoUrl.uri} -ss ${startPosition} -to ${endPosition} -vf scale=-2:720 -pix_fmt yuv420p -c:v libx264 -preset veryfast -crf 26 -b:v 500k -maxrate 550k -bufsize 1100k -c:a aac -b:a 128k -ac 2 -movflags +faststart -f mp4 ${outputVideoUri}`;
 
             await FFmpegKit.executeAsync(commandVideo, async (session) => {
                 const returnCode = await session.getReturnCode();

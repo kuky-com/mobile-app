@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
     },
 })
 
-const ConversationListItem = ({ onPress, conversation, marginBottom, onDisconnect }) => {
+const ConversationListItem = ({ onPress, isPremium, conversation, marginBottom, onDisconnect }) => {
     const openRowRef = useRef(null);
     const currentUser = useAtomValue(userAtom)
 
@@ -46,13 +46,13 @@ const ConversationListItem = ({ onPress, conversation, marginBottom, onDisconnec
                     setTotalUnread((prev) => ({ ...(prev ?? {}), [conversation.conversation_id]: counter }))
 
                     let lastMessage = null
-                    if(messagesFirestore.type === 'missed_video_call') {
+                    if (messagesFirestore.type === 'missed_video_call') {
                         lastMessage = 'Missed video call'
-                    } else if(messagesFirestore.type === 'missed_voice_call') {
+                    } else if (messagesFirestore.type === 'missed_voice_call') {
                         lastMessage = 'Missed voice call'
-                    } else if(messagesFirestore.type === 'video_call') {
+                    } else if (messagesFirestore.type === 'video_call') {
                         lastMessage = `Video call\n${messagesFirestore.text}`
-                    } else if(messagesFirestore.type === 'voice_call') {
+                    } else if (messagesFirestore.type === 'voice_call') {
                         lastMessage = `Voice call\n${messagesFirestore.text}`
                     } else {
                         lastMessage = messagesFirestore ? messagesFirestore.text : null
@@ -68,15 +68,17 @@ const ConversationListItem = ({ onPress, conversation, marginBottom, onDisconnec
     const openDetail = () => {
         if (openRowRef.current) {
             openRowRef.current.closeRow()
-            onPress && onPress()
         }
+
+        onPress && onPress()
     }
 
     const onRemove = () => {
         if (openRowRef.current) {
             openRowRef.current.closeRow()
-            onDisconnect && onDisconnect()
         }
+
+        onDisconnect && onDisconnect()
     }
 
     let lastMessage = lastMessageCloud
@@ -104,6 +106,35 @@ const ConversationListItem = ({ onPress, conversation, marginBottom, onDisconnec
         lastDate = dayjs(lastDate).fromNow()
     }
 
+    if (!isPremium && !conversation.is_free) {
+        return (
+            <Pressable onPress={openDetail} style={{ backgroundColor: '#F1F1F3', marginBottom: marginBottom, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: '#78787977', paddingVertical: 16 }}>
+                <View style={{ width: 70, height: 70, borderRadius: 35, backgroundColor: colors.mainColor, alignItems: 'center', justifyContent: 'center' }}>
+                    <Image
+                        style={{ width: 40, height: 40 }}
+                        source={images.happy_cloud}
+                        contentFit='contain'
+                    />
+                </View>
+                <View style={{ flex: 1, gap: 8, marginHorizontal: 12 }}>
+                    <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>{'Kuky'}</Text>
+                    <Text numberOfLines={2} style={{ fontSize: 12, lineHeight: 18, color: colors.mainColor, fontWeight: 'bold' }}>{'Unlock to see the message'}</Text>
+                </View>
+                <View style={{ alignItems: 'flex-end', gap: 5 }}>
+                    <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                        <View style={{ opacity: unreadCount > 0 ? 1 : 0, backgroundColor: colors.mainColor, paddingHorizontal: 12, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' }}>
+                            <Text style={{ fontSize: 10, color: 'white', fontWeight: '700', fontStyle: 'italic' }}>{`${unreadCount} unread`}</Text>
+                        </View>
+                        {
+                            !lastMessageCloud && <View style={{ backgroundColor: '#FF8B8B', height: 10, width: 10, borderRadius: 5, alignItems: 'center', justifyContent: 'center' }} />
+                        }
+                    </View>
+                    <Text style={{ fontSize: 10, color: '#726E70' }}>{lastDate}</Text>
+                </View>
+            </Pressable>
+        )
+    }
+
     return (
         <SwipeRow rightOpenValue={-75} ref={openRowRef}>
             <View style={styles.standaloneRowBack}>
@@ -120,17 +151,16 @@ const ConversationListItem = ({ onPress, conversation, marginBottom, onDisconnec
                     <Text numberOfLines={2} style={{ fontSize: 12, lineHeight: 18, color: !lastMessageCloud ? colors.mainColor : '#6C6C6C', fontWeight: unreadCount > 0 || !lastMessageCloud ? 'bold' : '300' }}>{lastMessage}</Text>
                 </View>
                 <View style={{ alignItems: 'flex-end', gap: 5 }}>
-                    <Text style={{ fontSize: 10, color: '#726E70' }}>{lastDate}</Text>
                     <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-                        {unreadCount > 0 &&
-                            <View style={{ backgroundColor: colors.mainColor, paddingHorizontal: 12, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' }}>
-                                <Text style={{ fontSize: 10, color: 'white', fontWeight: '700', fontStyle: 'italic' }}>{`${unreadCount} unread`}</Text>
-                            </View>
-                        }
+                        <View style={{ opacity: unreadCount > 0 ? 1 : 0, backgroundColor: colors.mainColor, paddingHorizontal: 12, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' }}>
+                            <Text style={{ fontSize: 10, color: 'white', fontWeight: '700', fontStyle: 'italic' }}>{`${unreadCount} unread`}</Text>
+                        </View>
                         {
                             !lastMessageCloud && <View style={{ backgroundColor: '#FF8B8B', height: 10, width: 10, borderRadius: 5, alignItems: 'center', justifyContent: 'center' }} />
                         }
                     </View>
+                    <Text style={{ fontSize: 10, color: '#726E70' }}>{lastDate}</Text>
+
                 </View>
             </Pressable>
         </SwipeRow>

@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
 })
 
 const BirthdayUpdateScreen = ({ navigation, route }) => {
-    // const { onboarding } = route.params
+    const { isUpdate } = route && route.params ? route.params : {}
     const insets = useSafeAreaInsets()
     const [month, setMonth] = useState('');
     const [day, setDay] = useState('');
@@ -128,7 +128,12 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
                         setLoading(false)
                         if (res && res.data && res.data.success) {
                             setUser(res.data.data)
-                            NavigationService.reset('AskUpdateInfoScreen', { fromView: 'birthday' })
+
+                            if (isUpdate) {
+                                navigation.goBack()
+                            } else {
+                                NavigationService.reset('AskUpdateInfoScreen', { fromView: 'birthday' })
+                            }
                         } else {
                             Toast.show({ text1: res.data.message, type: 'error' })
                         }
@@ -200,7 +205,13 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
                 position: 'absolute', top: insets.top + 5, right: 16,
                 width: 25, height: 25, alignItems: 'center', justifyContent: 'center'
             }}
-                onPress={() => NavigationService.push('SkipOnboardingScreen')}>
+                onPress={() => {
+                    if(isUpdate) {
+                        navigation.goBack()
+                    } else {
+                        NavigationService.push('SkipOnboardingScreen')
+                    }
+                }}>
                 <FontAwesome6 name='xmark' size={20} color='#333333' />
             </TouchableOpacity>
             <ButtonWithLoading
@@ -209,12 +220,15 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
                 onPress={onContinue}
                 loading={loading}
             />
-            <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
-                <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 8 }}
-                    onPress={() => NavigationService.reset('OnboardingVideoTutorialScreen')}>
-                    <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#333333' }}>Record a video instead</Text>
-                </TouchableOpacity>
-            </View>
+            {
+                !isUpdate &&
+                <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                    <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 8 }}
+                        onPress={() => NavigationService.reset('OnboardingVideoTutorialScreen')}>
+                        <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#333333' }}>Record a video instead</Text>
+                    </TouchableOpacity>
+                </View>
+            }
         </View>
     )
 }

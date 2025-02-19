@@ -3,7 +3,7 @@ import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import React, { useEffect, useState } from 'react'
-import { Dimensions, Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { Dimensions, Keyboard, Platform, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ImagePicker from 'react-native-image-crop-picker'
@@ -17,6 +17,9 @@ import ButtonWithLoading from '@/components/ButtonWithLoading'
 import { getAuthenScreen } from '@/utils/utils'
 import TextInput from '@/components/TextInput'
 import analytics from '@react-native-firebase/analytics'
+import { useAtom, useAtomValue } from 'jotai'
+import { userAtom } from '../../actions/global'
+import { FontAwesome6 } from '@expo/vector-icons'
 
 const styles = StyleSheet.create({
     container: {
@@ -56,8 +59,10 @@ const styles = StyleSheet.create({
 })
 
 const NameUpdateScreen = ({ navigation, route }) => {
+    const { isUpdate } = route && route.params ? route.params : {}
     const insets = useSafeAreaInsets()
-    const [name, setName] = useState('');
+    const [currentUser, setUser] = useAtom(userAtom)
+    const [name, setName] = useState(currentUser?.full_name || '');
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -77,8 +82,12 @@ const NameUpdateScreen = ({ navigation, route }) => {
                         setLoading(false)
                         console.log({ res })
                         if (res && res.data && res.data.success) {
-                            // NavigationService.reset('BirthdayUpdateScreen')
-                            NavigationService.reset(getAuthenScreen(res.data.data))
+                            setUser(res.data.data)
+                            if (isUpdate) {
+                                navigation.goBack()
+                            } else {
+                                NavigationService.reset('ReferralUpdateScreen')
+                            }
                         } else {
                             Toast.show({ text1: res.data.message, type: 'error' })
                         }
@@ -98,9 +107,10 @@ const NameUpdateScreen = ({ navigation, route }) => {
         <View style={[styles.container, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 16 }]}>
             <StatusBar translucent style='dark' />
             <KeyboardAwareScrollView style={{ flex: 1, width: '100%' }}>
-                <View style={{ flex: 1, gap: 16, width: '100%' }}>
-                    <Image source={images.logo_with_text} style={{ width: 120, height: 40, marginBottom: 32 }} contentFit='contain' />
-                    <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'black' }}>{`What is your name?`}</Text>
+                <View style={{ flex: 1, gap: 16, width: Platform.isPad ? 600 : '100%', alignSelf: 'center' }}>
+                    <Image source={images.logo_icon} style={{ width: 40, height: 40, marginBottom: 8 }} contentFit='contain' />
+                    <Text style={{ fontSize: 24, lineHeight: 40, maxWidth: '80%', fontWeight: 'bold', color: 'black' }}>{`Let’s complete your profile!`}</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: 'black' }}>{`What is your name?`}</Text>
                     <View style={{ flex: 1, paddingVertical: 16, gap: 10, width: '100%', alignItems: 'center', justifyContent: 'flex-start' }}>
                         <View style={styles.itemContainer}>
                             <TextInput
@@ -110,12 +120,26 @@ const NameUpdateScreen = ({ navigation, route }) => {
                                 onChangeText={setName}
                                 placeholder='Enter your full name'
                                 autoFocus
-                                onEndEditing={onContinue}
                             />
                         </View>
                     </View>
                 </View>
             </KeyboardAwareScrollView>
+
+
+            <TouchableOpacity style={{
+                position: 'absolute', top: insets.top + 5, right: 16,
+                width: 25, height: 25, alignItems: 'center', justifyContent: 'center'
+            }}
+                onPress={() => {
+                    if (isUpdate) {
+                        navigation.goBack()
+                    } else {
+                        NavigationService.push('SkipOnboardingScreen')
+                    }
+                }}>
+                <FontAwesome6 name='xmark' size={20} color='#333333' />
+            </TouchableOpacity>
 
             <ButtonWithLoading
                 text='Continue'

@@ -11,6 +11,7 @@ import {
   Dimensions,
   Keyboard,
   Linking,
+  Pressable,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -228,6 +229,8 @@ const MessageScreen = ({ navigation, route }) => {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [imageViewList, setImageViewList] = useState([])
   const [imagePickerVisible, setImagePickerVisible] = useState(false)
+  const [isPremium, setIsPremium] = useState(true)
+  const [messageUnlockState, setMessageUnlockState] = useState('welcome') //welcome, more, later
 
   const [sendingImage, setSendingImage] = useState(false)
 
@@ -263,6 +266,7 @@ const MessageScreen = ({ navigation, route }) => {
 
   const loadSubscriptionInfo = async () => {
     try {
+      console.log({ currentConversation })
       if (currentUser?.is_premium_user) {
         return;
       }
@@ -278,9 +282,7 @@ const MessageScreen = ({ navigation, route }) => {
           customerInfo.entitlements.active["pro"]
         )
       ) {
-        setTimeout(() => {
-          NavigationService.replace("PremiumRequestScreen", { conversation });
-        }, 500);
+        setIsPremium(false)
       }
     } catch (error) {
       console.log({ error });
@@ -344,7 +346,7 @@ const MessageScreen = ({ navigation, route }) => {
   }
 
   const sendAttachment = async () => {
-    if(sendingImage) return
+    if (sendingImage) return
 
     const options = [
       { text: 'Take new picture' },
@@ -663,6 +665,17 @@ const MessageScreen = ({ navigation, route }) => {
           </View>
           <Text style={{ color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
         </View >
+      )
+    } else if (currentMessage.type === 'option') {
+      contentView = (
+        <Pressable onPress={() => currentMessage.onSelected && currentMessage.onSelected()} style={{ gap: 1, alignItems: 'flex-end', paddingVertical: 5, paddingHorizontal: 8 }}>
+          <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+          <Text style={{ fontSize: 16, fontWeight: 'bold', color: currentMessage?.user?._id !== currentUser?.id ? '#333333' : '#333333', lineHeight: 20 }}>{currentMessage.text}</Text>
+            <View style={{width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: '#7B65E8', alignItems: 'center', justifyContent: 'center'}}>
+              {currentMessage.selected && <View style={{width: 16, height: 16, borderRadius: 8, backgroundColor: '#7B65E8'}} />}
+            </View>
+          </View>
+        </Pressable >
       )
     } else {
       contentView = (
@@ -1186,7 +1199,209 @@ const MessageScreen = ({ navigation, route }) => {
     });
   };
 
+  let unlockMessages = [
+    {
+      text: `Hey ${currentUser?.full_name} 🤩,\nYou’ve reached your 3-connection limit for the free plan. \n\nBut don’t worry, you can unlock more connections and grow your community!`,
+      user: {
+        _id: 0,
+        name: 'Kuky',
+        avatar: images.bot_avatar,
+      },
+      showUserAvatar: true,
+      createdAt: dayjs(),
+      _id: 1,
+    },
+    {
+      text: 'Unlock More Connections',
+      type: 'option',
+      onSelected: () => navigation.navigate('PremiumRequestScreen'),
+      user: {
+        _id: currentUser?.id,
+        name: currentUser?.full_name ?? "",
+      },
+      createdAt: dayjs().add(1, 'second'),
+      _id: 2,
+    },
+    {
+      text: 'Tell me more',
+      type: 'option',
+      user: {
+        _id: currentUser?.id,
+        name: currentUser?.full_name ?? "",
+      },
+      createdAt: dayjs().add(12, 'second'),
+      _id: 3,
+      onSelected: () => setMessageUnlockState('more')
+    },
+    {
+      text: 'Maybe later',
+      type: 'option',
+      user: {
+        _id: currentUser?.id,
+        name: currentUser?.full_name ?? "",
+      },
+      createdAt: dayjs().add(14, 'second'),
+      _id: 4,
+      onSelected: () => setMessageUnlockState('later')
+    }
+  ]
+
+  if(messageUnlockState === 'later') {
+    unlockMessages = [
+      {
+        text: 'Yes, show me the plans',
+        type: 'option',
+        onSelected: () => navigation.navigate('PremiumRequestScreen'),
+        user: {
+          _id: currentUser?.id,
+          name: currentUser?.full_name ?? "",
+        },
+        createdAt: dayjs().add(12, 'second'),
+        _id: 3,
+      },
+      {
+        text: 'Not now',
+        selected: true,
+        type: 'option',
+        user: {
+          _id: currentUser?.id,
+          name: currentUser?.full_name ?? "",
+        },
+        createdAt: dayjs().add(14, 'second'),
+        _id: 4,
+        onSelected: () => setMessageUnlockState('later')
+      },
+      {
+        text: `No worries! You can always upgrade anytime from your profile. `,
+        user: {
+          _id: 0,
+          name: 'Kuky',
+          avatar: images.bot_avatar,
+        },
+        showUserAvatar: true,
+        createdAt: dayjs(),
+        _id: 1,
+      },
+    ]
+  } else if(messageUnlockState === 'more') {
+    unlockMessages = [
+      {
+        text: `Glad you asked! 🚀 Upgrading unlocks more connections, allowing you to build a bigger, more meaningful network. `,
+        user: {
+          _id: 0,
+          name: 'Kuky',
+          avatar: images.bot_avatar,
+        },
+        showUserAvatar: true,
+        createdAt: dayjs(),
+        _id: 1,
+      },
+      {
+        text: `Plus, you get priority matching, exclusive support groups, and extra personalization features. ✨`,
+        user: {
+          _id: 0,
+          name: 'Kuky',
+          avatar: images.bot_avatar,
+        },
+        showUserAvatar: true,
+        createdAt: dayjs(),
+        _id: 2,
+      },
+      {
+        text: ` Would you like to see the plans?`,
+        user: {
+          _id: 0,
+          name: 'Kuky',
+          avatar: images.bot_avatar,
+        },
+        showUserAvatar: true,
+        createdAt: dayjs(),
+        _id: 3,
+      },
+      {
+        text: 'Yes, show me the plans',
+        type: 'option',
+        onSelected: () => navigation.navigate('PremiumRequestScreen'),
+        user: {
+          _id: currentUser?.id,
+          name: currentUser?.full_name ?? "",
+        },
+        createdAt: dayjs().add(12, 'second'),
+        _id: 4,
+      },
+      {
+        text: 'Not now',
+        type: 'option',
+        user: {
+          _id: currentUser?.id,
+          name: currentUser?.full_name ?? "",
+        },
+        createdAt: dayjs().add(14, 'second'),
+        _id: 5,
+        onSelected: () => setMessageUnlockState('later')
+      },
+    ]
+  }
+
   const isRecentOnline = currentConversation?.profile && currentConversation?.profile.last_active_time ? dayjs().diff(dayjs(currentConversation?.profile.last_active_time), 'minute') < 60 : false
+
+  if (!isPremium && !currentConversation?.is_free) {
+    return (
+      <View style={styles.container}>
+        <StatusBar translucent style="dark" />
+        <View
+          style={{
+            gap: 8,
+            paddingTop: insets.top + 16,
+            paddingBottom: 16,
+            backgroundColor: "#725ED4",
+            paddingHorizontal: 16,
+            width: "100%",
+            alignItems: "center",
+            justifyContent: "flex-start",
+            flexDirection: "row",
+          }}
+        >
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={{ width: 35, height: 35, alignItems: "center", justifyContent: "center" }}
+          >
+            <Image
+              source={images.back_icon_no_border}
+              style={{ width: 20, height: 20 }}
+              contentFit="contain"
+            />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate("BotProfileScreen")}>
+            <Image source={images.bot_avatar} style={{
+              width: 36,
+              height: 36,
+              borderWidth: 2,
+              borderColor: isRecentOnline ? '#47F644' : "white",
+              borderRadius: 18,
+            }} />
+            <View style={styles.onlineStatusBg}>
+              <OnlineStatus isRecentOnline={true} status={'online'} radius={12} />
+            </View>
+          </TouchableOpacity>
+          <Text onPress={() => navigation.navigate("BotProfileScreen")} style={{ flex: 1, fontSize: 14, color: "white", fontWeight: "bold" }}>Kuky</Text>
+        </View>
+
+        <GiftedChat
+          messages={unlockMessages.reverse()}
+          onSend={(messages) => onSend(messages)}
+          renderInputToolbar={() => <View />}
+          renderMessage={renderMessage}
+          user={{
+            _id: currentUser?.id,
+            name: currentUser?.full_name ?? "",
+          }}
+          listViewProps={{ contentContainerStyle: { flexGrow: 1, justifyContent: "flex-end" } }}
+          forceGetKeyboardDismissed={() => false}
+        />
+      </View>
+    )
+  }
 
   return (
     <View style={styles.container}>
@@ -1285,9 +1500,9 @@ const MessageScreen = ({ navigation, route }) => {
         renderAvatar={renderAvatar}
         renderMessage={renderMessage}
         renderFooter={() => sendingImage ?
-          <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 8, width: '100%'}}>
-            <Progress.Bar indeterminate indeterminateAnimationDuration={3000} color="#725ED4" height={6} borderRadius={3} style={{flex: 1}} />
-            <Text style={{fontSize: 10, fontWeight: '500'}}>{'Uploading images'}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 8, width: '100%' }}>
+            <Progress.Bar indeterminate indeterminateAnimationDuration={3000} color="#725ED4" height={6} borderRadius={3} style={{ flex: 1 }} />
+            <Text style={{ fontSize: 10, fontWeight: '500' }}>{'Uploading images'}</Text>
           </View> : null}
         user={{
           _id: currentUser?.id,

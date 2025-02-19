@@ -23,6 +23,8 @@ import { FontAwesome6 } from '@expo/vector-icons'
 import ShareModal from '../../components/ShareModal'
 import analytics from '@react-native-firebase/analytics'
 import { capitalize, getStatusColor } from '../../utils/utils'
+import { head } from 'axios'
+import OnlineStatus from '../../components/OnlineStatus'
 
 const styles = StyleSheet.create({
     container: {
@@ -137,17 +139,17 @@ const ProfileScreen = ({ navigation }) => {
 
     const onAddDislikes = () => {
         // navigation.push('DislikeUpdateScreen', { dislikes: dislikes, onUpdated: (newList) => setDislikes(newList) })
-        navigation.push('MatchingInfoUpdateScreen', {canClose: true})
+        navigation.push('MatchingInfoUpdateScreen', { canClose: true })
     }
 
     const onAddLikes = () => {
         // navigation.push('InterestUpdateScreen', { likes: likes, onUpdated: (newList) => setLikes(newList) })
-        navigation.push('MatchingInfoUpdateScreen', {canClose: true})
+        navigation.push('MatchingInfoUpdateScreen', { canClose: true })
     }
 
     const onEditPurposes = () => {
         // navigation.push('PurposeProfileScreen', { purposes: purposes, onUpdated: (newList) => setPurposes(newList) })
-        navigation.push('MatchingInfoUpdateScreen', {canClose: true})
+        navigation.push('MatchingInfoUpdateScreen', { canClose: true })
     }
 
     const openNameEdit = () => {
@@ -245,33 +247,62 @@ const ProfileScreen = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <StatusBar translucent style='dark' />
-            <View style={{ gap: 3, borderBottomLeftRadius: 10, borderBottomRightRadius: 10, backgroundColor: '#725ED4', paddingHorizontal: 16, paddingBottom: 12, paddingTop: insets.top, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ borderBottomWidth: 0.5, borderBottomColor: 'white', backgroundColor: '#725ED4', paddingHorizontal: 16, paddingBottom: 8, paddingTop: insets.top, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
                 {/* <View style={{ width: '100%', height: 30, alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
                     <TouchableOpacity onPress={openSetting} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
                         <Image source={images.setting_icon} style={{ width: 22, height: 22 }} contentFit='contain' />
                     </TouchableOpacity>
                 </View> */}
-                <View style={{ gap: 8, paddingTop: 16, paddingBottom: 8, width: '100%', alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
+                <View style={{ gap: 8, paddingBottom: 3, width: '100%', alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
                     <TouchableOpacity onPress={onShareProfile} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
                         <FontAwesome6 name='share-from-square' color='white' size={22} />
                     </TouchableOpacity>
-                    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 0 }}>
-                        <Text style={{ flex: 1, textAlign: 'center', fontSize: 16, color: 'white', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text>
-                        <Text style={{ fontSize: 12, fontWeight: 'bold', color: 'white' }}>{capitalize(currentUser?.online_status)}</Text>
-                    </View>
+
                     <TouchableOpacity onPress={openSetting} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
                         <Image source={images.setting_icon} style={{ width: 22, height: 22 }} contentFit='contain' />
                     </TouchableOpacity>
                 </View>
-                <View style={{ height: 30, alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
+                <View style={{ flexDirection: 'row', gap: 16, paddingBottom: 16 }}>
+                    <View>
+                        <AvatarImage
+                            avatar={currentUser?.avatar}
+                            style={{ width: 80, height: 80, borderRadius: 40 }}
+                            full_name={currentUser?.full_name}
+                        />
+                        <TouchableOpacity onPress={openEditAvatar}
+                            style={{ position: 'absolute', bottom: 0, right: 0, width: 30, height: 30, alignItems: 'center', justifyContent: 'center', borderRadius: 15, backgroundColor: colors.mainColor, borderWidth: 1, borderColor: 'white' }}>
+                            <Image source={images.edit_icon} style={{ width: 15, height: 15, tintColor: '#E8FF58' }} />
+                        </TouchableOpacity>
+                    </View>
+                    <View style={{ flex: 1, gap: 5, justifyContent: 'center' }}>
+                        <Text style={{ fontSize: 16, color: 'white', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text>
+                        <TouchableOpacity onPress={onSetStatus} style={{ flexDirection: 'row', gap: 3, alignItems: 'center' }}>
+                            <Text style={{ fontSize: 12, fontWeight: 'bold', color: 'white' }}>{capitalize(currentUser?.online_status)}</Text>
+                            <FontAwesome6 name='chevron-down' size={12} color='white' />
+                        </TouchableOpacity>
+                    </View>
+                    <View style={{ position: "absolute", gap: 1, left: 60, top: -35, flexDirection: 'column-reverse' }}>
+                        <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: '#E8FF58' }} />
+                        <View style={{ marginLeft: 3, width: 10, height: 10, borderRadius: 5, backgroundColor: '#E8FF58' }} />
+                        <TouchableOpacity
+                            onPress={() => navigation.navigate('UserNoteScreen')}
+                            style={{
+                                marginLeft: 6, paddingHorizontal: 16, height: 26, borderRadius: 13, alignItems: 'center',
+                                justifyContent: 'center', backgroundColor: '#E8FF58'
+                            }}>
+                            <Text style={{ fontSize: 12, fontWeight: 'bold', color: 'black' }}>Share a note</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                <View style={{ height: 25, alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
                     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                        <TouchableOpacity onPress={() => setMode('edit')} style={{ borderBottomWidth: 1, borderBottomColor: mode === 'edit' ? '#E8FF58' : 'transparent', height: 30, alignItems: 'center', width: 50, justifyContent: 'center' }}>
-                            <Text style={{ fontSize: 16, color: mode === 'edit' ? '#E8FF58' : 'rgba(232, 255, 88, 0.5)' }}>Edit</Text>
+                        <TouchableOpacity onPress={() => setMode('view')} style={{ borderBottomWidth: 1, borderBottomColor: mode === 'view' ? '#E8FF58' : 'transparent', height: 25, alignItems: 'center', width: 50, justifyContent: 'center' }}>
+                            <Text style={{ fontSize: 14, color: mode === 'view' ? '#E8FF58' : 'rgba(232, 255, 88, 0.5)' }}>View</Text>
                         </TouchableOpacity>
                     </View>
                     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                        <TouchableOpacity onPress={() => setMode('view')} style={{ borderBottomWidth: 1, borderBottomColor: mode === 'view' ? '#E8FF58' : 'transparent', height: 30, alignItems: 'center', width: 50, justifyContent: 'center' }}>
-                            <Text style={{ fontSize: 16, color: mode === 'view' ? '#E8FF58' : 'rgba(232, 255, 88, 0.5)' }}>View</Text>
+                        <TouchableOpacity onPress={() => setMode('edit')} style={{ borderBottomWidth: 1, borderBottomColor: mode === 'edit' ? '#E8FF58' : 'transparent', height: 25, alignItems: 'center', width: 50, justifyContent: 'center' }}>
+                            <Text style={{ fontSize: 14, color: mode === 'edit' ? '#E8FF58' : 'rgba(232, 255, 88, 0.5)' }}>Edit</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -285,7 +316,7 @@ const ProfileScreen = ({ navigation }) => {
                             onRefresh={onRefresh} />}
                         showsVerticalScrollIndicator={false} style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 16, paddingTop: 24 }}>
                         <View style={{ flex: 1, width: Platform.isPad ? 600 : '100%', alignSelf: 'center', gap: 16, marginBottom: insets.bottom + 120 }}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                            {/* <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1 }}>
                                     <TouchableOpacity onPress={openNameEdit} style={{ width: 26, height: 26, alignItems: 'center', justifyContent: 'center', borderRadius: 15, backgroundColor: colors.mainColor }}>
                                         <Image source={images.edit_icon} style={{ width: 12, height: 12, tintColor: '#E8FF58' }} />
@@ -295,14 +326,16 @@ const ProfileScreen = ({ navigation }) => {
                                 <View style={{ maxWidth: '50%', backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
                                     <Text style={{ color: '#E8FF58', textAlign: 'center', fontSize: (currentUser?.tag?.name ?? '').length > 20 ? 12 : 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>
                                 </View>
-                            </View>
-                            <View style={{ backgroundColor: '#725ED4', paddingHorizontal: 24, paddingVertical: 8, justifyContent: 'space-between', width: Math.min(Dimensions.get('screen').width - 32, 600), height: Math.min(Dimensions.get('screen').width + 60, 750), borderRadius: 20, overflow: 'hidden' }}>
+                            </View> */}
+                            <View>
                                 <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12, alignItems: 'center' }}>
-                                    <Image source={images.update_video} style={{ width: 18, height: 18, tintColor: 'white' }} contentFit='contain' />
-                                    <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>Update my video</Text>
+                                    <Image source={images.update_video} style={{ width: 18, height: 18, tintColor: 'black' }} contentFit='contain' />
+                                    <Text style={{ color: 'black', fontSize: 16, fontWeight: '600' }}>Update my video</Text>
                                 </View>
-                                <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} />
-                                <View style={{ flex: 1, marginTop: 16, marginBottom: 8, alignItems: 'center', justifyContent: 'center' }}>
+                                <View style={{
+                                    width: Math.min(Dimensions.get('screen').width - 32, 600), height: Math.min(Dimensions.get('screen').width + 60, 750),
+                                    backgroundColor: colors.mainColor, borderRadius: 20, marginBottom: 8, alignItems: 'center', justifyContent: 'center'
+                                }}>
                                     {
                                         currentUser?.video_intro &&
                                         <CustomVideo
@@ -336,7 +369,7 @@ const ProfileScreen = ({ navigation }) => {
                                     }
                                 </View>
                             </View>
-                            <View style={{ backgroundColor: '#725ED4', paddingHorizontal: 24, paddingVertical: 8, justifyContent: 'space-between', width: Math.min(Dimensions.get('screen').width - 32, 600), height: Math.min(Dimensions.get('screen').width + 60, 750), borderRadius: 20, overflow: 'hidden' }}>
+                            {/* <View style={{ backgroundColor: '#725ED4', paddingHorizontal: 24, paddingVertical: 8, justifyContent: 'space-between', width: Math.min(Dimensions.get('screen').width - 32, 600), height: Math.min(Dimensions.get('screen').width + 60, 750), borderRadius: 20, overflow: 'hidden' }}>
                                 <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12, alignItems: 'center' }}>
                                     <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>Profile picture</Text>
                                 </View>
@@ -347,8 +380,8 @@ const ProfileScreen = ({ navigation }) => {
                                         <Image source={images.edit_icon} style={{ width: 15, height: 15, tintColor: '#E8FF58' }} />
                                     </TouchableOpacity>
                                 </View>
-                            </View>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
+                            </View> */}
+                            {/* <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
                                 <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'flex-start' }}>
                                     <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
                                         <Image source={images.birthday_icon} style={{ width: 18, height: 18 }} contentFit='contain' />
@@ -370,82 +403,130 @@ const ProfileScreen = ({ navigation }) => {
                                     </View>
                                     <Text style={{ fontSize: 14, color: 'black' }}>{`${currentUser?.location ?? ''}`}</Text>
                                 </View>
+                            </View> */}
+
+                            <View>
+                                <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12, alignItems: 'center' }}>
+                                    <Text style={{ color: 'black', fontSize: 16, fontWeight: 'bold' }}>My profile tag</Text>
+                                </View>
+                                <View style={{
+                                    gap: 8, borderRadius: 15, height: 53, paddingHorizontal: 16, backgroundColor: '#E9E5FF',
+                                    alignItems: 'center', justifyContent: 'center', flexDirection: 'row', shadowColor: '#000000',
+                                    shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.25, elevation: 1
+                                }}>
+                                    <View style={{ flex: 1, gap: 5 }}>
+                                        <Text style={{ fontSize: 11, color: '#333333aa' }}>My profile tag</Text>
+                                        <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'black' }}>{currentUser?.tag?.name}</Text>
+                                    </View>
+                                    {/* <FontAwesome6 name='chevron-right' size={20} color='#725ED4' /> */}
+                                </View>
                             </View>
 
-                            <View style={{ backgroundColor: '#725ED4', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
+                            <View >
                                 <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12, alignItems: 'center' }}>
-                                    <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>Your purposes</Text>
+                                    <Text style={{ color: 'black', fontSize: 16, fontWeight: 'bold' }}>Your purposes</Text>
+
+                                    <TouchableOpacity onPress={onEditPurposes} style={{ width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: '#725ED4' }}>
+                                        <Image style={{ width: 10, height: 10, tintColor: '#CDB8E2' }} source={images.edit_icon} contentFit='contain' />
+                                    </TouchableOpacity>
                                 </View>
-                                <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} />
-                                <View style={{ paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16 }}>
+                                <View style={{ paddingHorizontal: 16, paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16, backgroundColor: '#E9E5FF', borderRadius: 10 }}>
                                     {
                                         purposes.map((item) => {
                                             return (
-                                                <TouchableOpacity key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F2F0FF' }}>
-                                                    <Text style={{ fontSize: 14, color: 'black', fontWeight: '700' }}>{item.name}</Text>
+                                                <TouchableOpacity key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#725ED4' }}>
+                                                    <Text style={{ fontSize: 14, color: 'white', fontWeight: '700' }}>{item.name}</Text>
                                                 </TouchableOpacity>
                                             )
                                         })
                                     }
-                                    <TouchableOpacity onPress={onEditPurposes} style={{ width: 68, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E8FF58' }}>
-                                        <Image style={{ width: 20, height: 20 }} source={images.edit_icon} contentFit='contain' />
-                                    </TouchableOpacity>
                                 </View>
                             </View>
-                            <View style={{ backgroundColor: '#725ED4', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
+                            <View>
                                 <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12, alignItems: 'center' }}>
-                                    <Image source={images.interest_icon} style={{ width: 18, height: 18, tintColor: 'white' }} contentFit='contain' />
-                                    <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>Interests and hobbies</Text>
+                                    <Image source={images.interest_icon} style={{ width: 18, height: 18, tintColor: '#000000' }} contentFit='contain' />
+                                    <Text style={{ color: '#000000', fontSize: 16, fontWeight: '600' }}>Interests and hobbies</Text>
+
+                                    <TouchableOpacity onPress={onAddLikes} style={{ width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: '#725ED4' }}>
+                                        <Image style={{ width: 10, height: 10, tintColor: '#CDB8E2' }} source={images.edit_icon} contentFit='contain' />
+                                    </TouchableOpacity>
                                 </View>
-                                <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} />
-                                <View style={{ paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16 }}>
+                                <View style={{ paddingVertical: 16, paddingHorizontal: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 10, paddingBottom: 16, backgroundColor: '#E9E5FF' }}>
                                     {
                                         likes.map((item) => {
                                             return (
-                                                <TouchableOpacity key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F2F0FF' }}>
-                                                    <Image style={{ width: 22, height: 22 }} contentFit='contain' source={images.seen_icon} />
-                                                    <Text style={{ fontSize: 14, color: 'black', fontWeight: '700' }}>{item.name}</Text>
-                                                    {/* <TouchableOpacity style={{ backgroundColor: '#E8FF58', borderWidth: 1, borderColor: '#333333', width: 16, height: 16, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
-                                                    <Image source={images.close_icon} style={{ width: 10, height: 10, tintColor: '#333333' }} contentFit='contain' />
-                                                </TouchableOpacity> */}
+                                                <TouchableOpacity key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#725ED4' }}>
+                                                    <Text style={{ fontSize: 14, color: 'white', fontWeight: '700' }}>{item.name}</Text>
                                                 </TouchableOpacity>
                                             )
                                         })
                                     }
-                                    <TouchableOpacity onPress={onAddLikes} style={{ width: 68, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E8FF58' }}>
-                                        <Image style={{ width: 20, height: 20 }} source={images.edit_icon} contentFit='contain' />
-                                    </TouchableOpacity>
                                 </View>
                             </View>
-                            <View style={{ backgroundColor: '#725ED4', width: '100%', borderRadius: 10, paddingHorizontal: 16 }}>
+                            <View >
                                 <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12, alignItems: 'center' }}>
-                                    <Image source={images.dislike_icon} style={{ width: 18, height: 18, tintColor: 'white' }} contentFit='contain' />
-                                    <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>Dislike</Text>
+                                    <Image source={images.dislike_icon} style={{ width: 18, height: 18, tintColor: 'black' }} contentFit='contain' />
+                                    <Text style={{ color: 'black', fontSize: 16, fontWeight: '600' }}>Dislike</Text>
+
+                                    <TouchableOpacity onPress={onAddDislikes} style={{ width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: '#725ED4' }}>
+                                        <Image style={{ width: 10, height: 10, tintColor: '#CDB8E2' }} source={images.edit_icon} contentFit='contain' />
+                                    </TouchableOpacity>
                                 </View>
-                                <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} />
-                                <View style={{ paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16 }}>
+                                <View style={{ paddingHorizontal: 16, borderRadius: 10, backgroundColor: '#E9E5FF', paddingVertical: 16, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 16 }}>
                                     {
                                         dislikes.map((item) => {
                                             return (
                                                 <TouchableOpacity key={item.name} style={{ flexDirection: 'row', gap: 5, paddingHorizontal: 16, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FF8B8B' }}>
-                                                    <Image style={{ width: 22, height: 22 }} contentFit='contain' source={images.seen_icon} />
                                                     <Text style={{ fontSize: 14, color: 'black', fontWeight: '700' }}>{item.name}</Text>
-                                                    {/* <TouchableOpacity style={{ backgroundColor: '#E8FF58', borderWidth: 1, borderColor: '#333333', width: 16, height: 16, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
-                                                    <Image source={images.close_icon} style={{ width: 10, height: 10, tintColor: '#333333' }} contentFit='contain' />
-                                                </TouchableOpacity> */}
                                                 </TouchableOpacity>
                                             )
                                         })
                                     }
-                                    <TouchableOpacity onPress={onAddDislikes} style={{ width: 68, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E8FF58' }}>
-                                        <Image style={{ width: 20, height: 20 }} source={images.edit_icon} contentFit='contain' />
-                                    </TouchableOpacity>
                                 </View>
                             </View>
 
-                            {/* <TouchableOpacity onPress={onSave} disabled={(newLikes !== likes || newDislikes !== dislikes) && newLikes.length + newDislikes.length === 0} style={{ width: '100%', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: ((newLikes !== likes || newDislikes !== dislikes) && newLikes.length + newDislikes.length === 0) ? '#9A9A9A' : '#333333', }}>
-                            <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>Save</Text>
-                        </TouchableOpacity> */}
+                            <TouchableOpacity
+                                onPress={() => navigation.navigate('NameUpdateScreen', { isUpdate: true })}
+                                style={{
+                                    gap: 8, borderRadius: 15, height: 55, paddingHorizontal: 16, backgroundColor: 'white',
+                                    alignItems: 'center', justifyContent: 'center', flexDirection: 'row', shadowColor: '#000000',
+                                    shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.25, elevation: 1
+                                }}>
+                                <View style={{ flex: 1, gap: 5 }}>
+                                    <Text style={{ fontSize: 11, color: '#333333aa' }}>Name</Text>
+                                    <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'black' }}>{currentUser?.full_name}</Text>
+                                </View>
+                                <FontAwesome6 name='chevron-right' size={20} color='#725ED4' />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                onPress={() => navigation.navigate('BirthdayUpdateScreen', { isUpdate: true })}
+                                style={{
+                                    gap: 8, borderRadius: 15, height: 55, paddingHorizontal: 16, backgroundColor: 'white',
+                                    alignItems: 'center', justifyContent: 'center', flexDirection: 'row', shadowColor: '#000000',
+                                    shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.25, elevation: 1
+                                }}>
+                                <View style={{ flex: 1, gap: 5 }}>
+                                    <Text style={{ fontSize: 11, color: '#333333aa' }}>Age</Text>
+                                    {currentUser?.birthday && currentUser?.birthday.includes('/') && <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'black' }}>{`${dayjs().diff(dayjs(currentUser?.birthday, 'DD/MM/YYYY'), 'year')} yrs`}</Text>}
+                                    {currentUser?.birthday && currentUser?.birthday.includes('-') && <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'black' }}>{`${dayjs().diff(dayjs(currentUser?.birthday, 'MM-DD-YYYY'), 'year')} yrs`}</Text>}
+                                </View>
+                                <FontAwesome6 name='chevron-right' size={20} color='#725ED4' />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                onPress={() => navigation.navigate('LocationUpdateScreen', { isUpdate: true })}
+                                style={{
+                                    gap: 8, borderRadius: 15, height: 55, paddingHorizontal: 16, backgroundColor: 'white',
+                                    alignItems: 'center', justifyContent: 'center', flexDirection: 'row', shadowColor: '#000000',
+                                    shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.25, elevation: 1
+                                }}>
+                                <View style={{ flex: 1, gap: 5 }}>
+                                    <Text style={{ fontSize: 11, color: '#333333aa' }}>City you live</Text>
+                                    <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'black' }}>{currentUser?.location ?? ''}</Text>
+                                </View>
+                                <FontAwesome6 name='chevron-right' size={20} color='#725ED4' />
+                            </TouchableOpacity>
                         </View>
                     </ScrollView>
                 </View>
@@ -496,13 +577,13 @@ const ProfileScreen = ({ navigation }) => {
                                 }
                             </View>
 
-                            <TouchableOpacity onPress={onSetStatus} style={[{ flexDirection: 'row', paddingHorizontal: 16, justifyContent: 'center', height: 40, gap: 8, alignItems: 'center', borderRadius: 20, backgroundColor: '#F5F5F5' }, styles.shadow]}>
+                            {/* <TouchableOpacity onPress={onSetStatus} style={[{ flexDirection: 'row', paddingHorizontal: 16, justifyContent: 'center', height: 40, gap: 8, alignItems: 'center', borderRadius: 20, backgroundColor: '#F5F5F5' }, styles.shadow]}>
                                 <Text style={{ flex: 1, fontSize: 16, color: '#333333', fontWeight: 'bold' }}>Set your status</Text>
                                 <View style={{ paddingHorizontal: 16, height: 20, borderRadius: 10, backgroundColor: '#333333', justifyContent: 'center', alignItems: 'center' }}>
                                     <Text style={{ fontSize: 13, fontWeight: 'bold', color: getStatusColor(currentUser?.online_status) }}>{capitalize(currentUser?.online_status)}</Text>
                                 </View>
                                 <FontAwesome6 name='chevron-right' color={colors.mainColor} size={16} />
-                            </TouchableOpacity>
+                            </TouchableOpacity> */}
 
                             <View style={{ borderWidth: 1, borderRadius: 10, borderColor: colors.mainColor, padding: 16, gap: 16 }}>
                                 <TouchableOpacity onPress={onShare} style={{ paddingHorizontal: 32, justifyContent: 'center', height: 40, alignItems: 'center', borderRadius: 20, backgroundColor: colors.mainColor }}>
@@ -513,6 +594,7 @@ const ProfileScreen = ({ navigation }) => {
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1 }}>
                                     <Text style={{ fontSize: 24, color: 'black', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text>
+                                    <OnlineStatus radius={20} status={currentUser?.online_status} isRecentOnline={true} />
                                 </View>
                                 <View style={{ maxWidth: '50%', backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
                                     <Text style={{ color: '#E8FF58', textAlign: 'center', fontSize: (currentUser?.tag?.name ?? '').length > 20 ? 12 : 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>
@@ -546,6 +628,14 @@ const ProfileScreen = ({ navigation }) => {
                                             </TouchableOpacity>
                                         }
                                         <Text style={{ color: '#949494', fontSize: 10, fontWeight: 'bold' }}>Watch video</Text>
+                                    </View>
+                                }
+
+                                {
+                                    currentUser?.user_note &&
+                                    <View style={{ position: 'absolute', top: 10, left: 16, right: 16, backgroundColor: '#7B65E8ee', 
+                                        paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10,  }}>
+                                        <Text style={{ color: '#E8FF58', width: '100%', textAlign: 'center', fontSize: 13, fontWeight: '600' }}>{currentUser?.user_note}</Text>
                                     </View>
                                 }
                             </View>
