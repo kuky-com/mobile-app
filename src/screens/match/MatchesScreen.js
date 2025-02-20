@@ -268,9 +268,17 @@ const MatchesScreen = ({ navigation }) => {
             clearButtonMode="always"
           />
         </View>
-        <Text style={{ fontSize: 20, fontWeight: "700", color: "black" }}>{`Connections `}
-          {!isPremium && <Text style={{ fontSize: 13, color: '#333333' }}>{`(${freeCount}/${freeTotal})`}</Text>}
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', }}>
+          <Text style={{ fontSize: 20, fontWeight: "700", color: "black", flex: 1 }}>{`Connections `}
+            {!isPremium && <Text style={{ fontSize: 13, color: '#333333' }}>{`(${freeCount}/${freeTotal})`}</Text>}
+          </Text>
+          {!isPremium &&
+            <TouchableOpacity onPress={() => navigation.navigate('PremiumRequestScreen')} style={{ alignItems: 'center', justifyContent: 'center', height: 24, borderRadius: 12, paddingHorizontal: 8, backgroundColor: colors.mainColor }}>
+              <Text style={{ fontSize: 12, fontWeight: 'bold', color: 'white' }}>Manage Connections</Text>
+            </TouchableOpacity>
+          }
+        </View>
+
       </View>
       <View style={{ paddingHorizontal: 16, flex: 1, alignItems: 'center' }}>
         <FlatList

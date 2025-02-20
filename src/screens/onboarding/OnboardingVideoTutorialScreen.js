@@ -114,7 +114,7 @@ const OnboardingVideoTutorialScreen = ({ navigation, route }) => {
 
 
                     <View style={{}}>
-                        <Video
+                        <CustomVideo
                             ref={videoRef}
                             source={require('../../assets/videos/tutorial_video.mov')}
                             style={{ width: 150, height: 280, borderRadius: 5 }}
