@@ -23,7 +23,7 @@ export const getUnit = (unit) => {
     return Platform.isPad ? (unit * 1.2) : unit
 }
 
-export const getAuthenScreen = (currentUser, skipVideo = false) => {
+export const getAuthenScreen = (currentUser, fromRecording = false) => {
     // if (!currentUser?.full_name) {
     //     return 'NameUpdateScreen'
     // } else if (!currentUser?.video_intro && !skipVideo) {
@@ -44,8 +44,14 @@ export const getAuthenScreen = (currentUser, skipVideo = false) => {
         return 'AIMatchingScreen'
     } else if (!currentUser?.avatar) {
         return 'AskUpdateInfoScreen'
-    } else if (!currentUser?.video_intro) {
-        return 'OnboardingVideoTutorialScreen'
+    } else if (!currentUser?.video_intro || !currentUser?.video_why || !currentUser?.video_challenge
+        || !currentUser?.video_purpose || !currentUser?.video_interests
+    ) {
+        if (fromRecording) {
+            return 'VideoIntroductionScreen'
+        } else {
+            return 'OnboardingVideoTutorialScreen'
+        }
     }
 
     return 'Dashboard'

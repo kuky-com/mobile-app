@@ -44,6 +44,7 @@ const styles = StyleSheet.create({
 })
 
 const OnboardingVideoTutorialScreen = ({ navigation, route }) => {
+    const { fromOnboarding } = route && route.params ? route.params : {}
     const insets = useSafeAreaInsets()
     const currentUser = useAtomValue(userAtom)
     const [isMute, setIsMute] = useState(true)
@@ -58,16 +59,27 @@ const OnboardingVideoTutorialScreen = ({ navigation, route }) => {
     }, [])
 
     const onContinue = () => {
-        NavigationService.reset('OnboardingVideoScreen')
+        // NavigationService.reset('OnboardingVideoScreen')
+        NavigationService.reset('VideoIntroductionScreen')
     }
 
     const onSkip = () => {
-        NavigationService.reset('Dashboard')
+        if(fromOnboarding) {
+            NavigationService.reset('AIMatchingScreen')
+        } else {
+            NavigationService.reset('Dashboard')
+        }
+        
+
         // if (currentUser?.profile_tag) {
         //     NavigationService.reset('Dashboard')
         // } else {
         //     NavigationService.reset('OnboardingReviewProfileScreen')
         // }
+    }
+
+    const onForm = () => {
+        NavigationService.reset('OnboardingReviewProfileScreen')
     }
 
     const openWalkThrought = () => {
@@ -102,18 +114,19 @@ const OnboardingVideoTutorialScreen = ({ navigation, route }) => {
                 </TouchableOpacity>
             } */}
             <View style={{ flex: 1, gap: 24, width: Platform.isPad ? 600 : '100%', alignSelf: 'center' }}>
+                <View style={{ width: '100%', alignItems: 'flex-end' }}>
+                    <Text onPress={openWalkThrought} style={{ fontSize: 13, color: '#725ED4', textAlign: 'left', lineHeight: 18, fontWeight: '500' }}>Why We Ask for Your Video?</Text>
+                </View>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%', gap: 8 }}>
                     <View style={{ alignItems: 'flex-start', justifyContent: 'flex-start', gap: 16, flex: 1 }}>
                         <Image source={images.logo_icon} style={{ width: 40, height: 40 }} contentFit='contain' />
 
-                        <Text onPress={openWalkThrought} style={{ fontSize: 13, color: '#725ED4', textAlign: 'left', lineHeight: 18, fontWeight: '500' }}>Why We Ask for Your Video?</Text>
+                        <Text style={{ fontSize: 14, fontWeight: '600', color: '#4C4C4C' }}>Video recording</Text>
 
-                        <Text style={{ fontSize: 26, lineHeight: 32, color: '#4C4C4C', fontWeight: '600' }}>{`Now,\nIt’s time to record your video!`}</Text>
+                        <Text style={{ fontSize: 26, lineHeight: 36, color: '#4C4C4C', fontWeight: '600' }}>{`It’s time to record your video!`}</Text>
 
                     </View>
-
-
-                    <View style={{}}>
+                    {/* <View style={{}}>
                         <CustomVideo
                             ref={videoRef}
                             source={require('../../assets/videos/tutorial_video.mov')}
@@ -149,34 +162,36 @@ const OnboardingVideoTutorialScreen = ({ navigation, route }) => {
                                 />
                             </TouchableOpacity>
                         </View>
-                    </View>
+                    </View> */}
                 </View>
+                <Text style={{ fontSize: 16, fontWeight: '500', color: 'black' }}>How it works</Text>
                 <ScrollView style={{ flex: 1 }}>
                     <View style={{ flex: 1, gap: 32, width: '100%' }}>
                         {/* <Text style={{ fontSize: 32, fontWeight: '600', color: '#4C4C4C' }}>{`Now It’s time to record your video!`}</Text> */}
 
                         <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start', width: '100%' }}>
                             <View style={{ marginTop: 4, width: 10, height: 10, borderRadius: 5, backgroundColor: colors.mainColor }} />
-                            <Text style={{ flex: 1, lineHeight: 22, fontSize: 16, fontWeight: '500', color: 'black' }}>{`Remember to be yourself and have fun!`}</Text>
+                            <Text style={{ flex: 1, lineHeight: 22, fontSize: 16, fontWeight: '500', color: 'black' }}>{`We’ll ask you simple questions, one at a time!`}</Text>
                         </View>
                         <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start', width: '100%' }}>
                             <View style={{ marginTop: 4, width: 10, height: 10, borderRadius: 5, backgroundColor: colors.mainColor }} />
-                            <Text style={{ flex: 1, lineHeight: 22, fontSize: 16, fontWeight: '500', color: 'black' }}>{`Tell us your purpose & who you’d like to connect with`}</Text>
+                            <Text style={{ flex: 1, lineHeight: 22, fontSize: 16, fontWeight: '500', color: 'black' }}>{`Each answer is a short 10-15 second video.`}</Text>
                         </View>
                         <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start', width: '100%' }}>
                             <View style={{ marginTop: 4, width: 10, height: 10, borderRadius: 5, backgroundColor: colors.mainColor }} />
-                            <Text style={{ flex: 1, lineHeight: 22, fontSize: 16, fontWeight: '500', color: 'black' }}>{`Our AI will take care of the rest`}</Text>
+                            <Text style={{ flex: 1, lineHeight: 22, fontSize: 16, fontWeight: '500', color: 'black' }}>{`You can re-record any video before submitting!`}</Text>
                         </View>
                     </View>
                 </ScrollView>
             </View>
             <Text style={{ fontSize: 13, color: '#4C4C4C', width: '100%', textAlign: 'center' }}>We’ll guide you through the process</Text>
             <TouchableOpacity onPress={onContinue} style={{ width: Platform.isPad ? 600 : '100%', alignSelf: 'center', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333', }}>
-                <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>{'Continue'}</Text>
+                <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>{'Let’s do it'}</Text>
             </TouchableOpacity>
             <View style={{ width: '100%', alignItems: 'center' }}>
                 <Text style={{ padding: 8, fontSize: 14, fontWeight: 'bold' }} onPress={onSkip}>Skip for now</Text>
             </View>
+
         </View>
     )
 }

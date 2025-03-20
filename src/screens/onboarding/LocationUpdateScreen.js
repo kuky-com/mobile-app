@@ -191,7 +191,7 @@ const LocationUpdateScreen = ({ navigation, route }) => {
                 </View>
             </KeyboardAwareScrollView>
 
-            <TouchableOpacity style={{
+            {/* <TouchableOpacity style={{
                 position: 'absolute', top: insets.top + 5, right: 16,
                 width: 25, height: 25, alignItems: 'center', justifyContent: 'center'
             }}
@@ -203,20 +203,20 @@ const LocationUpdateScreen = ({ navigation, route }) => {
                     }
                 }}>
                 <FontAwesome6 name='xmark' size={20} color='#333333' />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
             <ButtonWithLoading
                 onPress={onContinue} disabled={(location.length === 0)}
                 text='Continue'
                 loading={loading}
             />
-            {!isUpdate &&
+            {/* {!isUpdate &&
                 <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
                     <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 8 }}
                         onPress={() => NavigationService.reset('OnboardingVideoTutorialScreen')}>
                         <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#333333' }}>Record a video instead</Text>
                     </TouchableOpacity>
                 </View>
-            }
+            } */}
         </View>
     )
 }

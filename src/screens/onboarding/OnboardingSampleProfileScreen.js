@@ -283,12 +283,25 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                                     bottom: 0,
                                     borderRadius: 10,
                                 }}
+                                profile={currentProfile?.id}
                                 posterSource={{ uri: currentProfile?.avatar }}
                                 ref={videoRef}
                                 resizeMode={ResizeMode.COVER}
-                                source={{ uri: currentProfile?.video_intro }}
+                                sources={[
+                                    currentProfile?.video_intro,
+                                    currentProfile?.video_why,
+                                    currentProfile?.video_challenge,
+                                    currentProfile?.video_purpose,
+                                    currentProfile?.video_interests
+                                  ]}
+                                  subtitles={[
+                                    currentProfile?.subtitle_intro,
+                                    currentProfile?.subtitle_why,
+                                    currentProfile?.subtitle_challenge,
+                                    currentProfile?.subtitle_purpose,
+                                    currentProfile?.subtitle_interests
+                                  ]}
                                 onPlaybackStatusUpdate={(status) => {
-                                    console.log({ status });
                                     setPlaying(status.isPlaying || status.isBuffering || status.shouldPlay);
                                     if (status.didJustFinish || status.isPlaying) {
                                         setPendingVideo(false)
@@ -316,10 +329,12 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                                 }}
                             />
                         )}
-                        <LinearGradient
-                            colors={["transparent", "rgba(0,0,0,0.79)"]}
-                            style={styles.nameBackground}
-                        />
+                        {!(playing || pendingVideo) &&
+                            <LinearGradient
+                                colors={["transparent", "rgba(0,0,0,0.79)"]}
+                                style={styles.nameBackground}
+                            />
+                        }
                         <View
                             style={{
                                 flex: 1,
@@ -329,15 +344,34 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                             }}
                         >
 
-                            <View style={{ width: "100%", flexDirection: 'row', alignItems: 'center', justifyContent: "space-between", padding: 16 }}>
-                                <View>
-                                    {
-                                        (playing || pendingVideo) &&
-                                        <TouchableOpacity onPress={onChangeMuteOption} style={{ width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.mainColor, borderWidth: 1, borderColor: "black" }}>
-                                            <FontAwesome6 name={isMute ? 'volume-xmark' : 'volume-high'} size={15} color='white' />
-                                        </TouchableOpacity>
-                                    }
-                                </View>
+                            {(playing || pendingVideo) && <View style={{ width: "100%", flexDirection: 'row', alignItems: 'center', justifyContent: "space-between", padding: 16 }}>
+
+                                <TouchableOpacity
+                                    onPress={pauseVideo}
+                                    style={{
+                                        width: 50,
+                                        height: 50,
+                                        borderRadius: 25,
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                    }}
+                                >
+                                    <Image
+                                        source={images.pause_icon}
+                                        style={{
+                                            width: 50,
+                                            height: 50,
+                                            borderRadius: 25,
+                                        }}
+                                        contentFit="contain"
+                                    />
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={onChangeMuteOption} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.mainColor }}>
+                                    <FontAwesome6 name={isMute ? 'volume-xmark' : 'volume-high'} size={15} color='white' />
+                                </TouchableOpacity>
+                            </View>
+                            }
+                            {!(playing || pendingVideo) && <View style={{ padding: 16, width: '100%', alignItems: 'space-between' }}>
                                 <View style={styles.tagContainer}>
                                     <Text
                                         style={[
@@ -351,6 +385,7 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                                     </Text>
                                 </View>
                             </View>
+                            }
 
                             <View
                                 style={{
@@ -380,7 +415,7 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                                     }}
                                 >
                                     {
-                                        currentProfile &&
+                                        currentProfile && !(playing || pendingVideo) &&
                                         <View style={{ alignItems: "center", gap: 15, width: 45 }}>
                                             {
                                                 currentProfileIndex > 0 &&
@@ -415,7 +450,7 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                                             }
                                         </View>
                                     }
-                                    {currentProfile?.video_intro && (
+                                    {currentProfile?.video_intro && !playing && !pendingVideo && (
                                         <View style={{ alignItems: "center", gap: 10 }}>
                                             {!playing && !pendingVideo && (
                                                 <TouchableOpacity
@@ -432,28 +467,6 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                                                     />
                                                 </TouchableOpacity>
                                             )}
-                                            {(playing || pendingVideo) && (
-                                                <TouchableOpacity
-                                                    onPress={pauseVideo}
-                                                    style={{
-                                                        width: 80,
-                                                        height: 80,
-                                                        borderRadius: 40,
-                                                        alignItems: "center",
-                                                        justifyContent: "center",
-                                                    }}
-                                                >
-                                                    <Image
-                                                        source={images.pause_icon}
-                                                        style={{
-                                                            width: 80,
-                                                            height: 80,
-                                                            borderRadius: 40,
-                                                        }}
-                                                        contentFit="contain"
-                                                    />
-                                                </TouchableOpacity>
-                                            )}
                                             <Text
                                                 style={{
                                                     color: "#949494",
@@ -466,8 +479,8 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                                         </View>
                                     )}
                                     {
-                                        currentProfile &&
-                                        <View style={{ alignItems: "center", gap: 15 }}>
+                                        currentProfile && !(playing || pendingVideo) &&
+                                        <View style={{ alignItems: "center", gap: 15, }}>
                                             <TouchableOpacity
                                                 disabled={loading}
                                                 onPress={likeAction}

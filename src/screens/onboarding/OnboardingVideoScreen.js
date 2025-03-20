@@ -19,7 +19,7 @@ import dayjs from "dayjs";
 import Toast from "react-native-toast-message";
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from "expo-camera";
 import LottieView from "lottie-react-native";
-import { ResizeMode, Video } from "expo-av";
+import { Audio, ResizeMode, Video } from "expo-av";
 import RangeSlider from "@/components/RangeSlider";
 import * as FileSystem from "expo-file-system";
 import { FFmpegKit } from "ffmpeg-kit-react-native";
@@ -30,6 +30,16 @@ import { useAlertWithIcon } from "../../components/AlertIconProvider";
 import * as ImagePicker from 'expo-image-picker'
 import { useAlert } from "../../components/AlertProvider";
 import analytics from '@react-native-firebase/analytics'
+import axios from "axios";
+import { useAtom, useAtomValue } from "jotai";
+import { userAtom } from "../../actions/global";
+import colors from "../../utils/colors";
+import SubtitleDisplay from "../../components/SubtitleDisplay";
+import { set } from "date-fns";
+import apiClient, { NODE_ENV } from "../../utils/apiClient";
+import { uploadData, getUrl, } from 'aws-amplify/storage'
+import { getAuthenScreen, getVideoResizeDimensions } from "../../utils/utils";
+import Voice from '@react-native-voice/voice'
 
 const styles = StyleSheet.create({
   container: {
@@ -64,10 +74,12 @@ const styles = StyleSheet.create({
   },
 });
 
-const MAX_DURATION = 60;
+const MAX_DURATION = 15
 
 const OnboardingVideoScreen = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
+  const { recording_type } = route && route.params ? route.params : { recording_type: 'intro' }
+  const [currentUser, setUser] = useAtom(userAtom)
   const [videoUrl, setVideoUrl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [permission, requestPermission] = useCameraPermissions();
@@ -87,12 +99,144 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
 
   const [processing, setProcessing] = useState(false);
 
+  const [transcription, setTranscription] = useState("");
+  const [displayedBlock, setDisplayedBlock] = useState('');
+  const [highlightWords, setHighlightWords] = useState([]);
+
+  let latestRequest = null;
+
+
+  let step = 1
+  let title = ''
+  let message = ''
+
+  if (recording_type === 'intro') {
+    step = 1
+    title = 'Tell us a little about yourself'
+    message = `What’s your name?\nWhat you do?\nWhere you're from?`
+  } else if (recording_type === 'why') {
+    step = 2
+    title = 'Why Kuky?'
+    message = `What brought you here? What made you want to join Kuky? \nOr mention what you're looking for in a community.`
+  } else if (recording_type === 'challenge') {
+    step = 3
+    title = 'Your Personal Challenge'
+    message = `What’s a personal challenge you’ve been facing? It can be personal growth, mental well-being, or anything you'd like to share. ❤️`
+  } else if (recording_type === 'purpose') {
+    step = 4
+    title = 'Goals & Aspirations'
+    message = `What are your personal goals? What are you hoping to achieve? It can be personal growth, mental wellness, or something exciting you're working toward! 🚀`
+  } else if (recording_type === 'interests') {
+    step = 5
+    title = 'Your Likes & Dislikes!'
+    message = 'Tell us something you really like! (A favorite food, hobby, or activity)'
+  }
+
+  const setupTranscript = async () => {
+
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: true,
+      playsInSilentModeIOS: true,
+    })
+  }
+
+  const startTranscript = async () => {
+    try {
+      Voice.onSpeechPartialResults = (e) => {
+        console.log({ e })
+        processTranscript(e.value[0])
+      }
+      
+      await Voice.start('en-US')
+    } catch (error) {
+      console.log({ error })
+    }
+  }
+
+  const stopTranscript = async () => {
+    try {
+      await Voice.stop()
+
+      Voice.destroy().then(Voice.removeAllListeners)
+    }
+    catch (error) {
+      console.log({ error })
+    }
+  }
+
+  useEffect(() => {
+    setupTranscript()
+  }, [])
+
   useEffect(() => {
     analytics().logScreenView({
       screen_name: 'OnboardingVideoScreen',
       screen_class: 'OnboardingVideoScreen'
     })
   }, [])
+
+  const processTranscript = async (text) => {
+    setTranscription((prev) => (prev + ' ' + text).trim());
+    setDisplayedBlock(text);
+  }
+
+  useEffect(() => {
+    if (transcription && transcription.length > 0)
+      updateSubtitles(transcription)
+  }, [transcription])
+
+  const updateSubtitles = async (spokenText) => {
+
+    const words = await analyzeText(spokenText);
+    if (words && words.length > 0) {
+      setHighlightWords(words)
+    }
+  };
+
+
+  const analyzeText = async (text) => {
+    if (latestRequest) {
+      latestRequest.abort();
+    }
+
+    const controller = new AbortController();
+    latestRequest = controller;
+
+    try {
+      const response = await axios.post("https://api.openai.com/v1/chat/completions", {
+        model: "gpt-4o",
+        messages: [{
+          role: "system", content: `Extract the following profiling information from the text: likes/interests, dislikes, currrent life journey and the purpose of the connection they are making.
+Be concise, preferably one word for each like/dislike/journey/purpose, but do not simplify to an extreme level.
+Some example of purposes could be: "grief processing", "traveling", "mutual support", so more words are allowed if needed.
+
+Response should be array of all purpose, like, dislike. For example [ 'purpose 1', 'purpose 2', 'like1', 'like2', 'dislike1', 'dislike2'].
+
+#Required:
+- The words in response array must be in the input text
+- Return valid json array of string format with no json text or json\`\`\`
+- Do not return empty string as an object inside arrray`
+        },
+        {
+          role: "user", content: text
+        }
+        ],
+        max_tokens: 50
+      }, {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        signal: controller.signal
+      });
+
+      console.log({ respones: response.data.choices[0].message.content.trim() })
+      return JSON.parse(response.data.choices[0].message.content.trim());
+    } catch (error) {
+      console.log({ error });
+      return [];
+    }
+  };
 
   const onLoad = (data) => {
     setStartPosition(0);
@@ -101,7 +245,6 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
   };
 
   const startRecording = async () => {
-
     analytics().logEvent('video_recording_button')
 
     if (cameraRef.current) {
@@ -111,6 +254,14 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
         setTimeout(() => {
           setTimer(1);
         }, 1000);
+
+        try {
+          startTranscript()
+        } catch (error) {
+          console.log({ error });
+        }
+
+        setTranscription('')
 
         const videoData = await cameraRef.current.recordAsync({ maxDuration: MAX_DURATION });
         console.log({ videoData });
@@ -129,7 +280,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
       mediaTypes: ['videos'],
       allowsEditing: true,
       quality: 1,
-      duration: 60000
+      duration: 15000
     })
 
     console.log(result);
@@ -165,10 +316,15 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
   const stopRecording = async () => {
     try {
       if (cameraRef.current && recording) {
+        stopTranscript()
+        setTranscription('')
+
         await cameraRef.current.stopRecording();
         setRecording(false);
       }
-    } catch (error) { }
+    } catch (error) {
+      console.log({ error })
+    }
   };
 
   const onPlay = () => {
@@ -199,11 +355,14 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
   }, []);
 
   const clearVideo = () => {
+    setDisplayedBlock('')
+    setTranscription('')
     setVideoUrl(null);
     setPlaying(false);
     setTimer(0);
     setRecording(false);
     setProcessing(false);
+    setHighlightWords([])
   };
 
   const handleTrim = async () => {
@@ -213,8 +372,8 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
       ])
       return
     }
-    if ((endPosition - startPosition) > 60) {
-      showAlert(images.video_error, 'Too Long', 'Your video duration is too long.', 'Please record video with maximum 60 seconds', [
+    if ((endPosition - startPosition) > MAX_DURATION) {
+      showAlert(images.video_error, 'Too Long', 'Your video duration is too long.', `Please record video with maximum ${MAX_DURATION} seconds`, [
         { text: "Record again", onPress: () => clearVideo() }
       ])
       return
@@ -222,20 +381,140 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
 
     setProcessing(true);
     try {
-      setProcessing(false);
-      NavigationService.reset("OnboardingVideoProcessingScreen", {
-        videoUrl: videoUrl,
-        startPosition,
-        endPosition,
-      });
-      setTimeout(() => {
-        clearVideo();
-      }, 1000);
+      uploadFileToAws()
+      // setProcessing(false);
+      // NavigationService.reset("OnboardingVideoProcessingScreen", {
+      //   videoUrl: videoUrl,
+      //   startPosition,
+      //   endPosition,
+      // });
+      // setTimeout(() => {
+      //   clearVideo();
+      // }, 1000);
     } catch (error) {
       Toast.show({ text1: "Cannot process your video. Please try to retake!", type: "error" });
       setProcessing(false);
     }
   };
+
+  const showError = () => {
+    showAlert(images.video_error, 'Oops!', 'Something went wrong while processing your video.', 'Please try again recording your video', [
+      {
+        text: 'Record Again', onPress: () => {
+          clearVideo()
+        }
+      }
+    ], [
+      {
+        text: 'Skip Video Uploading', onPress: () => {
+          NavigationService.reset('Dashboard')
+        }
+      }
+    ])
+  }
+
+  const updateProfile = (video, audio) => {
+    apiClient.post('users/update', { [`video_${recording_type}`]: video, [`audio_${recording_type}`]: audio })
+      .then((res) => {
+        setProcessing(false)
+        if (res && res.data && res.data.success) {
+          setUser(res.data.data)
+          console.log({ user: res.data.data })
+
+          if (res.data.data.video_intro && res.data.data.video_why && res.data.data.video_challenge && res.data.data.video_purpose && res.data.data.video_interests) {
+            NavigationService.reset('OnboardingVideoResultScreen')
+          } else {
+            NavigationService.reset(getAuthenScreen(res.data.data, true))
+          }
+
+        } else {
+          Toast.show({ text1: res.data.message, type: 'error' })
+        }
+      })
+      .catch((error) => {
+        console.log({ error })
+        setProcessing(false)
+        Toast.show({ text1: error, type: 'error' })
+      })
+  }
+
+
+  const uploadFileToAws = async () => {
+    try {
+      const outputAudioUri = `${FileSystem.documentDirectory}audio.m4a`
+      const commandAudio = `-y -i ${videoUrl.uri} -ss ${startPosition} -to ${endPosition} -vn -acodec aac ${outputAudioUri}`;
+
+      await FFmpegKit.execute(commandAudio)
+
+      const responseAudio = await fetch(outputAudioUri);
+
+      const blobAudio = await responseAudio.blob();
+      const audioFileName = `audio-${NODE_ENV}-${currentUser?.id}-${dayjs().unix()}.m4a`
+
+      await uploadData({
+        path: `public/${audioFileName}`,
+        data: blobAudio,
+        options: {
+          contentType: 'audio/m4a',
+          accessLevel: 'public'
+        }
+      }).result
+
+      const outputVideoUri = `${FileSystem.documentDirectory}video_trimmed.mp4`
+      const commandVideo = `-y -i ${videoUrl.uri} -ss ${startPosition} -to ${endPosition} -vf scale=-2:720 -pix_fmt yuv420p -c:v libx264 -preset veryfast -crf 26 -b:v 500k -maxrate 550k -bufsize 1100k -c:a aac -b:a 128k -ac 2 -movflags +faststart -f mp4 ${outputVideoUri}`;
+
+      await FFmpegKit.executeAsync(commandVideo, async (session) => {
+        const returnCode = await session.getReturnCode();
+        if (returnCode.isValueSuccess()) {
+          console.log('Conversion successful');
+
+          const responseVideo = await fetch(outputVideoUri);
+
+          const blobVideo = await responseVideo.blob();
+          const videoFileName = `video-${NODE_ENV}-${currentUser?.id}-${dayjs().unix()}.mp4`
+
+          await uploadData({
+            path: `public/${videoFileName}`,
+            data: blobVideo,
+            options: {
+              contentType: 'video/mp4',
+              accessLevel: 'public'
+            }
+          }).result
+
+          // setVideoIntro({
+          //   https: `https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${videoFileName}`,
+          //   audio: `https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${audioFileName}`
+          // })
+
+          updateProfile(`https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${videoFileName}`,
+            `https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${audioFileName}`)
+
+
+        } else {
+          console.log('Conversion failed', returnCode);
+          setProcessing(false);
+        }
+      },
+        (log) => {
+          const regex = /time=(\d{2}:\d{2}:\d{2}.\d{2})/;
+          const match = log.getMessage().match(regex);
+
+          if (match) {
+            const currentTime = match[1];
+            // calculateProgress(currentTime);
+          }
+        }, (statistics) => {
+
+        })
+
+
+    } catch (error) {
+      console.log({ error })
+      setProcessing(false);
+      showError()
+    }
+  }
 
   const retryPermission = async () => {
     try {
@@ -265,6 +544,11 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
     }
   };
 
+
+  const onSkip = () => {
+    NavigationService.reset('Dashboard')
+  }
+
   return (
     <View style={{ flex: 1, width: "100%" }}>
       {!videoUrl &&
@@ -284,35 +568,29 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
       <View style={{ flex: 1, width: "100%", alignItems: "center", justifyContent: "center" }}>
         <View
           style={{
-            flex: 1,
-            gap: 16,
+            paddingTop: insets.top + 8, paddingBottom: 16,
+            gap: 8,
             alignItems: "center",
             justifyContent: "center",
             width: "100%",
             backgroundColor: "#e5e5e5",
-            paddingTop: insets.top + 8,
-            paddingBottom: 8,
           }}
         >
-          <View style={{ width: "100%", alignItems: "flex-end" }}>
-            <Image
-              source={images.logo_with_text}
-              style={{ width: 120, height: 40, marginBottom: 2 }}
-              contentFit="contain"
-            />
-          </View>
-          {/* <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'black' }}>{`Video 1`}</Text> */}
+          <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'black' }}>{`${step} / 5`}</Text>
           <Text
-            style={{ fontSize: 24, fontWeight: "bold", color: "black" }}
-          >{`Tell us about yourself !`}</Text>
+            style={{ fontSize: 20, fontWeight: "bold", color: "black" }}
+          >{title}</Text>
           <Text
             style={{ fontSize: 14, fontWeight: "500", color: "black" }}
           >{`You have ${MAX_DURATION} seconds`}</Text>
+          <View style={{ position: 'absolute', top: 0, left: 0, width: "100%", alignItems: "flex-end", paddingHorizontal: 32, paddingTop: insets.top }}>
+            <Text style={{ fontSize: 13, color: '#725ED4', fontWeight: 'bold' }} onPress={onSkip}>Skip</Text>
+          </View>
         </View>
         <View
           style={{
             width: "100%",
-            height: Dimensions.get("screen").height - 470,
+            height: Dimensions.get("screen").height - insets.bottom - insets.top - 330,
             alignItems: "center",
             justifyContent: "center",
             flexDirection: "row",
@@ -322,7 +600,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
           <View
             style={{
               width: Dimensions.get("screen").width - 64,
-              height: Dimensions.get("screen").height - 470,
+              height: Dimensions.get("screen").height - insets.bottom - insets.top - 330,
             }}
           >
             <View
@@ -366,7 +644,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
                 style={{
                   position: "absolute",
                   top: 8,
-                  right: 8,
+                  left: 8,
                   width: 80,
                   height: 24,
                   justifyContent: "center",
@@ -497,6 +775,16 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
               </View>
             )}
 
+            {recording && displayedBlock.length > 0 && (
+              <View style={{ position: "absolute", left: 16, right: 16, bottom: 65, borderRadius: 5 }}>
+                <SubtitleDisplay
+                  subtitles={displayedBlock}
+                  highlightWords={highlightWords}
+                />
+              </View>
+            )
+            }
+
             {recording && (
               <View style={{ position: "absolute", left: 16, right: 16, bottom: 16 }}>
                 <Slider
@@ -509,7 +797,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
                   minimumTrackTintColor="#333333"
                   value={timer}
                 />
-                <View
+                {/* <View
                   style={{
                     flexDirection: "row",
                     width: "100%",
@@ -545,7 +833,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
                       style={{ fontSize: 11, color: "black", fontWeight: "600" }}
                     >{`00:${MAX_DURATION}`}</Text>
                   </View>
-                </View>
+                </View> */}
               </View>
             )}
             {/* <LottieView 
@@ -569,9 +857,25 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
             gap: 16,
           }}
         >
-          <Text style={{ fontSize: 14, fontWeight: "500", color: "black", lineHeight: 18, textAlign: 'center' }}>
-            Share your purpose, likes, and dislikes with us - it only takes a moment and will help us connect you with the right people.
-          </Text>
+          <View style={{ width: '100%', alignItems: 'flex-start', justifyContent: 'flex-start', height: 100, }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, }}>
+              <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#333333', alignItems: 'center', justifyContent: 'center' }}>
+                <Image source={images.happy_cloud} style={{ width: 20, height: 20 }} contentFit="contain" />
+              </View>
+              <View style={{
+                backgroundColor: "#333333",
+                borderBottomLeftRadius: 2.5,
+                borderBottomRightRadius: 10,
+                borderTopRightRadius: 10,
+                borderTopLeftRadius: 10,
+                paddingHorizontal: 10,
+                paddingVertical: 6,
+                flex: 1
+              }}>
+                <Text style={{ fontSize: 13, color: 'white', lineHeight: 20 }}>{message}</Text>
+              </View>
+            </View>
+          </View>
           {!recording && !loading && !videoUrl && (
             <TouchableOpacity
               onPress={startRecording}
@@ -603,7 +907,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
               }}
             >
               <Text style={{ fontSize: 16, fontWeight: "700", color: "#333333" }}>
-                {"Upload your video"}
+                {"Upload video"}
               </Text>
             </TouchableOpacity>
           )}
@@ -640,7 +944,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
               }}
             >
               <Text style={{ fontSize: 18, fontWeight: "700", color: "white" }}>
-                {"Confirm & Continue"}
+                {"Continue"}
               </Text>
               {processing && <ActivityIndicator color="white" />}
             </TouchableOpacity>

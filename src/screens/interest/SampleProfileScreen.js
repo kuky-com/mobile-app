@@ -236,8 +236,21 @@ const SampleProfileScreen = ({ navigation, route }) => {
                   borderRadius: 10,
                 }}
                 ref={videoRef}
-                posterSource={{uri: currentProfile?.avatar}}
-                source={{ uri: currentProfile?.video_intro }}
+                posterSource={{ uri: currentProfile?.avatar }}
+                sources={[
+                  currentProfile?.video_intro,
+                  currentProfile?.video_why,
+                  currentProfile?.video_challenge,
+                  currentProfile?.video_purpose,
+                  currentProfile?.video_interests
+                ]}
+                subtitles={[
+                  currentProfile?.subtitle_intro,
+                  currentProfile?.subtitle_why,
+                  currentProfile?.subtitle_challenge,
+                  currentProfile?.subtitle_purpose,
+                  currentProfile?.subtitle_interests
+                ]}
                 resizeMode={ResizeMode.COVER}
                 onPlaybackStatusUpdate={(status) => {
                   // console.log({ status });
@@ -268,10 +281,11 @@ const SampleProfileScreen = ({ navigation, route }) => {
               />
             )}
 
-            <LinearGradient
+            {!(playing || pendingVideo) && <LinearGradient
               colors={["transparent", "rgba(0,0,0,0.79)"]}
               style={styles.nameBackground}
             />
+            }
 
             <View
               style={{
@@ -281,13 +295,34 @@ const SampleProfileScreen = ({ navigation, route }) => {
                 justifyContent: "space-between",
               }}
             >
-              <View style={{ width: "100%", alignItems: "space-between", padding: 16 }}>
-                {
-                  (playing || pendingVideo) &&
-                  <TouchableOpacity onPress={onChangeMuteOption} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.mainColor }}>
-                    <FontAwesome6 name={isMute ? 'volume-xmark' : 'volume-high'} size={20} color='white' />
-                  </TouchableOpacity>
-                }
+              {(playing || pendingVideo) && <View style={{ flexDirection: 'row', width: "100%", alignItems: 'center', justifyContent: "space-between", padding: 16 }}>
+
+                <TouchableOpacity
+                  onPress={pauseVideo}
+                  style={{
+                    width: 50,
+                    height: 50,
+                    borderRadius: 25,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Image
+                    source={images.pause_icon}
+                    style={{
+                      width: 50,
+                      height: 50,
+                      borderRadius: 25,
+                    }}
+                    contentFit="contain"
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={onChangeMuteOption} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.mainColor }}>
+                  <FontAwesome6 name={isMute ? 'volume-xmark' : 'volume-high'} size={20} color='white' />
+                </TouchableOpacity>
+              </View>
+              }
+              <View style={{ width: '100%', alignItems: 'space-between', padding: 16 }}>
                 {!(playing || pendingVideo) && <View style={styles.tagContainer}>
                   <Text
                     style={[
@@ -365,7 +400,7 @@ const SampleProfileScreen = ({ navigation, route }) => {
                       </Text>
                     </View>
                   )}
-                  {currentProfile?.video_intro && (
+                  {currentProfile?.video_intro && !(playing || pendingVideo) && (
                     <View style={{ alignItems: "center", gap: 13 }}>
                       {!playing && !pendingVideo && (
                         <TouchableOpacity
@@ -378,28 +413,6 @@ const SampleProfileScreen = ({ navigation, route }) => {
                           <Image
                             source={images.play_icon}
                             style={{ width: 80, height: 80 }}
-                            contentFit="contain"
-                          />
-                        </TouchableOpacity>
-                      )}
-                      {(playing || pendingVideo) && (
-                        <TouchableOpacity
-                          onPress={pauseVideo}
-                          style={{
-                            width: 80,
-                            height: 80,
-                            borderRadius: 40,
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <Image
-                            source={images.pause_icon}
-                            style={{
-                              width: 80,
-                              height: 80,
-                              borderRadius: 40,
-                            }}
                             contentFit="contain"
                           />
                         </TouchableOpacity>

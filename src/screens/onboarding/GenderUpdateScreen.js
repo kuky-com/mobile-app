@@ -135,25 +135,25 @@ const GenderUpdateScreen = ({ navigation, route }) => {
         </View>
       </View>
 
-      <TouchableOpacity style={{
+      {/* <TouchableOpacity style={{
                 position: 'absolute', top: insets.top + 5, right: 16,
                 width: 25, height: 25, alignItems: 'center', justifyContent: 'center'
             }}
                 onPress={() => NavigationService.push('SkipOnboardingScreen')}>
                 <FontAwesome6 name='xmark' size={20} color='#333333' />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
       <ButtonWithLoading
         text="Continue"
         onPress={onContinue}
         disabled={gender === null}
         loading={loading}
       />
-      <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+      {/* <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
         <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 8 }}
           onPress={() => NavigationService.reset('OnboardingVideoTutorialScreen')}>
           <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#333333' }}>Record a video instead</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
     </View>
   );
 };

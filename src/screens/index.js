@@ -101,6 +101,11 @@ import MatchingInfoUpdateScreen from "./onboarding/MatchingInfoUpdateScreen";
 import AIMatchingScreen from "./profile/AIMatchingScreen";
 import AcceptTermScreen from "./auth/AcceptTermScreen";
 import UserNoteScreen from "./onboarding/UserNoteScreen";
+import { Audio } from "expo-av";
+import UnverifiedMatchesScreen from "./match/UnverifiedMatchesScreen";
+import VideoIntroductionScreen from "./onboarding/VideoIntroductionScreen";
+import OnboardingVideoResultScreen from "./onboarding/OnboardingVideoResultScreen";
+import VideoListEditScreen from "./onboarding/VideoListEditScreen";
 
 SendbirdCalls.setListener({
   onRinging: async (callProps) => {
@@ -512,6 +517,11 @@ const AppStack = ({ navgation }) => {
         .catch(() => { });
     };
 
+    Audio.setAudioModeAsync({ 
+      playsInSilentModeIOS: true,
+      allowsRecordingIOS: true,
+     })
+
     getDeviceId();
   }, []);
 
@@ -607,6 +617,10 @@ const AppStack = ({ navgation }) => {
       <Stack.Screen name="AIMatchingScreen" component={AIMatchingScreen} />
       <Stack.Screen name="AcceptTermScreen" component={AcceptTermScreen} options={{ ...TransitionPresets.ModalSlideFromBottomIOS }} />
       <Stack.Screen name="UserNoteScreen" component={UserNoteScreen} />
+      <Stack.Screen name="UnverifiedMatchesScreen" component={UnverifiedMatchesScreen} />
+      <Stack.Screen name="VideoIntroductionScreen" component={VideoIntroductionScreen} />
+      <Stack.Screen name="OnboardingVideoResultScreen" component={OnboardingVideoResultScreen} />
+      <Stack.Screen name="VideoListEditScreen" component={VideoListEditScreen} />
     </Stack.Navigator>
   );
 };

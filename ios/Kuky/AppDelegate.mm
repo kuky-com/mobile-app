@@ -15,6 +15,7 @@
 #import <SendBirdCalls/SendBirdCalls-Swift.h>
 #import <RNCallKeep.h>
 #import "RNVoipPushNotificationManager.h"
+#import <AVFoundation/AVFoundation.h>
 
 @implementation AppDelegate
 
@@ -34,6 +35,11 @@
   [RNVoipPushNotificationManager voipRegistration];
   [[FBSDKApplicationDelegate sharedInstance] application:application
                          didFinishLaunchingWithOptions:launchOptions];
+  
+  [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker error:nil];
+  [[AVAudioSession sharedInstance] setMode:AVAudioSessionModeMeasurement error:nil];
+  [[AVAudioSession sharedInstance] setPreferredSampleRate:16000 error:nil];
+  [[AVAudioSession sharedInstance] setActive:YES withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
 
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.

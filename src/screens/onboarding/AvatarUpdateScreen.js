@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
 })
 
 const AvatarUpdateScreen = ({ navigation, route }) => {
-    // const { onboarding } = route.params
+    const { fromReview } = route && route.params ? route.params : {}
     const insets = useSafeAreaInsets()
     const [image, setImage] = useState(null)
     const reference = storage().ref(imageImage)
@@ -96,7 +96,14 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
                         setUser(res.data.data)
                         console.log({ user: res.data.data })
                         // NavigationService.reset('PurposeUpdateScreen', { onboarding: true })
-                        NavigationService.reset(getAuthenScreen(res.data.data))
+
+                        if(fromReview) {
+                            navigation.goBack()
+                        } else {
+                            // NavigationService.reset(getAuthenScreen(res.data.data))
+                            NavigationService.reset('MatchingInfoUpdateScreen')
+                        }
+                        
                         // Toast.show({ text1: res.data.message, type: 'success' })
 
                         // navigation.goBack()
@@ -185,19 +192,19 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
                 </View>
             </View>
 
-            <TouchableOpacity style={{
+            {/* <TouchableOpacity style={{
                 position: 'absolute', top: insets.top + 5, right: 16,
                 width: 25, height: 25, alignItems: 'center', justifyContent: 'center'
             }}
                 onPress={() => NavigationService.push('SkipOnboardingScreen')}>
                 <FontAwesome6 name='xmark' size={20} color='#333333' />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
             <TouchableOpacity onPress={imageUrl ? onContinue : onUpload} disabled={image === null} style={{ width: Platform.isPad ? 600 : '100%', alignSelf: 'center', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: image === null ? '#9A9A9A' : '#333333', }}>
                 <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>{imageUrl ? 'Continue' : 'Upload'}</Text>
             </TouchableOpacity>
-            <View style={{ width: '100%', alignItems: 'center' }}>
+            {/* <View style={{ width: '100%', alignItems: 'center' }}>
                 <Text style={{ padding: 8, fontSize: 14, fontWeight: 'bold' }} onPress={onSkip}>Skip for now</Text>
-            </View>
+            </View> */}
             {
                 loading && <LoadingView />
             }

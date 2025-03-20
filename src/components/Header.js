@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     left: 0,
     width: 70,
     height: 40,
-    alignItems: 'center', justifyContent: 'center',
+    alignItems: 'flex-start', justifyContent: 'center',
     zIndex: 5
   },
   rightButton: {
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     right: 0,
     width: 70,
     height: 40,
-    alignItems: 'center', justifyContent: 'center',
+    alignItems: 'flex-end', justifyContent: 'center',
     zIndex: 5
   },
   buttonIcon: {

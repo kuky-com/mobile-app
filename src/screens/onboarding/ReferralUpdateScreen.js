@@ -115,7 +115,7 @@ const ReferralUpdateScreen = ({ navigation, route }) => {
               underlineColorAndroid={"#00000000"}
               value={referral}
               onChangeText={setReferral}
-              placeholder="Rererral code"
+              placeholder="Referral code"
               placeholderTextColor="#777777"
             />
 

@@ -122,7 +122,8 @@ const OnboardingVideoProcessingScreen = ({ navigation, route }) => {
 
                     setVideoIntro({
                         https: `https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${videoFileName}`,
-                        s3: `s3://kuky-video/public/${videoFileName}`
+                        s3: `s3://kuky-video/public/${videoFileName}`,
+                        audio: `https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${audioFileName}`
                     })
                 } else {
                     console.log('Conversion failed', returnCode);

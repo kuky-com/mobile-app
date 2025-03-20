@@ -31,6 +31,12 @@ import { useAlertWithIcon } from "../../components/AlertIconProvider";
 import * as ImagePicker from 'expo-image-picker'
 import { useAlert } from "../../components/AlertProvider";
 import analytics from '@react-native-firebase/analytics'
+import { useAtomValue } from "jotai";
+import { userAtom } from "../../actions/global";
+import axios from "axios";
+import colors from "../../utils/colors";
+import SubtitleDisplay from "../../components/SubtitleDisplay";
+// import Vosk from 'react-native-vosk'
 
 const styles = StyleSheet.create({
   container: {
@@ -71,6 +77,7 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
   const [videoUrl, setVideoUrl] = useState(null);
   const [loading, setLoading] = useState(true);
+  const currentUser = useAtomValue(userAtom)
   const [permission, requestPermission] = useCameraPermissions();
   const [audioPermission, requestAudioPermission] = useMicrophonePermissions();
   const [recording, setRecording] = useState(false);
@@ -88,6 +95,126 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
 
   const [processing, setProcessing] = useState(false);
 
+  const [transcription, setTranscription] = useState("");
+  const [displayedBlock, setDisplayedBlock] = useState('');
+  const [highlightWords, setHighlightWords] = useState([]);
+
+  let latestRequest = null;
+
+  // const vosk = useRef(new Vosk()).current;
+
+  // const load = useCallback(() => {
+  //   vosk
+  //     .loadModel('vosk-model-small-en-us-0.15')
+  //     .then(() => {
+  //       console.log('model load success')
+  //     })
+  //     .catch((e) => console.log(e));
+  // }, [vosk]);
+
+  // const startTranscript = () => {
+  //   try {
+  //     vosk
+  //       .start()
+  //       .then(() => {
+  //         console.log('Starting recognition...');
+  //       })
+  //       .catch((e) => console.log(e));
+  //   } catch (error) {
+  //     console.log({ error });
+  //   }
+  // };
+
+  // const stopTranscript = () => {
+  //   vosk.stop();
+  //   console.log('Stoping recognition...');
+  // };
+
+  // const unload = useCallback(() => {
+  //   vosk.unload();
+  // }, [vosk]);
+
+  // useEffect(() => {
+  //   const resultEvent = vosk.onResult((res) => {
+  //     console.log('An onResult event has been caught: ' + res);
+
+  //     processTranscript(res)
+  //   });
+
+  //   const errorEvent = vosk.onError((e) => {
+  //     console.log({ errorEvent: e });
+  //   });
+
+  //   return () => {
+  //     resultEvent.remove();
+  //     errorEvent.remove();
+  //   };
+  // }, [vosk]);
+
+  const processTranscript = async (text) => {
+
+    setTranscription((prev) => (prev + ' ' + text).trim());
+    setDisplayedBlock(text);
+  }
+
+  useEffect(() => {
+    if (transcription && transcription.length > 0)
+      updateSubtitles(transcription)
+  }, [transcription])
+
+  const updateSubtitles = async (spokenText) => {
+
+    const words = await analyzeText(spokenText);
+    if (words && words.length > 0) {
+      setHighlightWords(words)
+    }
+  };
+
+
+  const analyzeText = async (text) => {
+    if (latestRequest) {
+      latestRequest.abort();
+    }
+
+    const controller = new AbortController();
+    latestRequest = controller;
+
+    try {
+      const response = await axios.post("https://api.openai.com/v1/chat/completions", {
+        model: "gpt-4o",
+        messages: [{
+          role: "system", content: `Extract the following profiling information from the text: likes/interests, dislikes, currrent life journey and the purpose of the connection they are making.
+    Be concise, preferably one word for each like/dislike/journey/purpose, but do not simplify to an extreme level.
+    Some example of purposes could be: "grief processing", "traveling", "mutual support", so more words are allowed if needed.
+    
+    Response should be array of all purpose, like, dislike. For example [ 'purpose 1', 'purpose 2', 'like1', 'like2', 'dislike1', 'dislike2'].
+    
+    #Required:
+    - The words in response array must be in the input text
+    - Return valid json array of string format with no json text or json\`\`\`
+    - Do not return empty string as an object inside arrray`
+        },
+        {
+          role: "user", content: text
+        }
+        ],
+        max_tokens: 50
+      }, {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        signal: controller.signal
+      });
+
+      console.log({ respones: response.data.choices[0].message.content.trim() })
+      return JSON.parse(response.data.choices[0].message.content.trim());
+    } catch (error) {
+      console.log({ error });
+      return [];
+    }
+  };
+
   useEffect(() => {
     analytics().logScreenView({
       screen_name: 'ProfileVideoUpdateScreen',
@@ -102,6 +229,7 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
   };
 
   const startRecording = async () => {
+
     analytics().logEvent('video_recording_button')
 
     if (cameraRef.current) {
@@ -111,6 +239,14 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
         setTimeout(() => {
           setTimer(1);
         }, 1000);
+
+        try {
+          // startTranscript()
+        } catch (error) {
+          console.log({ error });
+        }
+
+        setTranscription('')
 
         const videoData = await cameraRef.current.recordAsync({ maxDuration: MAX_DURATION });
         console.log({ videoData });
@@ -166,6 +302,9 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
   const stopRecording = async () => {
     try {
       if (cameraRef.current && recording) {
+        // stopTranscript()
+        setTranscription('')
+
         await cameraRef.current.stopRecording();
         setRecording(false);
       }
@@ -268,7 +407,6 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
 
   return (
     <View style={{ flex: 1, width: "100%" }}>
-      <StatusBar translucent style="dark" />
       {!videoUrl &&
         permission &&
         permission.granted &&
@@ -287,22 +425,17 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
         <View
           style={{
             flex: 1,
-            gap: 16,
+            gap: 8,
             alignItems: "center",
             justifyContent: "center",
             width: "100%",
             backgroundColor: "#e5e5e5",
-            paddingTop: insets.top + 8,
-            paddingBottom: 16,
           }}
         >
-          <View style={{ paddingHorizontal: 16, marginBottom: 32, width: "100%", flexDirection: 'row', alignItems: "center", justifyContent: 'space-between' }}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
-              <Image source={images.back_icon} style={{ width: 30, height: 30 }} contentFit="contain" />
-            </TouchableOpacity>
+          <View style={{ width: "100%", alignItems: "flex-end" }}>
             <Image
               source={images.logo_with_text}
-              style={{ width: 120, height: 40 }}
+              style={{ width: 120, height: 40, marginBottom: 2 }}
               contentFit="contain"
             />
           </View>
@@ -317,7 +450,7 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
         <View
           style={{
             width: "100%",
-            height: Dimensions.get("screen").height - 450,
+            height: Dimensions.get("screen").height - insets.bottom - insets.top - 350,
             alignItems: "center",
             justifyContent: "center",
             flexDirection: "row",
@@ -327,7 +460,7 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
           <View
             style={{
               width: Dimensions.get("screen").width - 64,
-              height: Dimensions.get("screen").height - 450,
+              height: Dimensions.get("screen").height - insets.bottom - insets.top - 350,
             }}
           >
             <View
@@ -403,7 +536,7 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
                   borderRadius: 20,
                 }}
                 ref={videoRef}
-                source={videoUrl}
+                sources={[videoUrl]}
                 resizeMode={ResizeMode.COVER}
                 onPlaybackStatusUpdate={handleChangePlaybackStatus}
                 onLoad={onLoad}
@@ -502,6 +635,16 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
               </View>
             )}
 
+            {recording && displayedBlock.length > 0 && (
+              <View style={{ position: "absolute", left: 16, right: 16, top: 35, borderRadius: 5, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: '#00000099' }}>
+                <SubtitleDisplay
+                  subtitles={displayedBlock}
+                  highlightWords={highlightWords}
+                />
+              </View>
+            )
+            }
+
             {recording && (
               <View style={{ position: "absolute", left: 16, right: 16, bottom: 16 }}>
                 <Slider
@@ -574,9 +717,18 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
             gap: 16,
           }}
         >
-          <Text style={{ fontSize: 14, fontWeight: "500", color: "black", lineHeight: 18, textAlign: 'center' }}>
-            Share your purpose, likes, and dislikes with us - it only takes a moment and will help us connect you with the right people.
-          </Text>
+          <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center', height: 70 }}>
+            {highlightWords.length === 0 &&
+              <Text style={{ fontSize: 14, fontWeight: "500", color: "black", lineHeight: 18, textAlign: 'center' }}>
+                Share your purpose, likes, and dislikes with us - it only takes a moment and will help us connect you with the right people.
+              </Text>
+            }
+            {highlightWords.length > 0 &&
+              <Text style={{ fontSize: 14, fontWeight: "500", color: "black", lineHeight: 18, textAlign: 'center' }}>
+                {`Here is what we found from your video: ${highlightWords.join(', ')}`}
+              </Text>
+            }
+          </View>
           {!recording && !loading && !videoUrl && (
             <TouchableOpacity
               onPress={startRecording}

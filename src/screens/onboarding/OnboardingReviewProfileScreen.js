@@ -259,7 +259,7 @@ const OnboardingReviewProfileScreen = ({ navigation, route }) => {
         }
 
         apiClient
-          .post("users/update", { birthday, location, full_name: fullName, video_intro: videoUrl })
+          .post("users/update", { birthday, location, full_name: fullName, video_intro: videoUrl, audio_intro: userInfo?.videoIntro?.audio ?? ''})
           .then(async (res) => {
             setLoading(false);
             if (res && res.data && res.data.success) {
@@ -282,7 +282,7 @@ const OnboardingReviewProfileScreen = ({ navigation, route }) => {
   };
 
   const updateAvatar = () => {
-    navigation.push("AvatarUpdateScreen");
+    navigation.push("AvatarUpdateScreen", {fromReview: true});
   };
 
   const handleBirthdayChange = (text) => {
@@ -561,7 +561,7 @@ const OnboardingReviewProfileScreen = ({ navigation, route }) => {
               paddingHorizontal: 16,
             }}
           >
-            <Text style={{ width: 100, fontSize: 14, color: "black" }}>Rererral code</Text>
+            <Text style={{ width: 100, fontSize: 14, color: "black" }}>Referral code</Text>
             <TextInput
               style={{
                 flex: 1,
@@ -575,7 +575,7 @@ const OnboardingReviewProfileScreen = ({ navigation, route }) => {
               underlineColorAndroid={"#00000000"}
               value={referral}
               onChangeText={setReferral}
-              placeholder="Rererral code"
+              placeholder="Referral code"
               placeholderTextColor="#777777"
             />
 

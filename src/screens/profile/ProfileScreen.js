@@ -184,35 +184,39 @@ const ProfileScreen = ({ navigation }) => {
     }
 
     const openEditVideo = async () => {
-        const options = [
-            { text: 'Update profile Video' },
-            { text: 'Remove profile video', color: '#FF8B8B' }
-        ]
+        navigation.push('VideoListEditScreen')
 
-        await SheetManager.show('cmd-action-sheets', {
-            payload: {
-                actions: options,
-                onPress(index) {
-                    console.log({ index })
-                    if (index === 0) {
-                        navigation.push('ProfileVideoUpdateScreen')
-                    } else {
-                        apiClient
-                            .post("users/update", { video_intro: null })
-                            .then((res) => {
-                                if (res && res.data && res.data.success) {
-                                    setCurrentUser(res.data.data)
-                                } else {
-                                    Toast.show({ text1: res.data.message, type: "error" });
-                                }
-                            })
-                            .catch((error) => {
-                                console.log({ error });
-                            });
-                    }
-                },
-            },
-        });
+        // const options = [
+        //     { text: 'Update profile Video' },
+        //     { text: 'Remove profile video', color: '#FF8B8B' }
+        // ]
+
+        // await SheetManager.show('cmd-action-sheets', {
+        //     payload: {
+        //         actions: options,
+        //         onPress(index) {
+        //             console.log({ index })
+        //             if (index === 0) {
+        //                 // navigation.push('ProfileVideoUpdateScreen')
+
+        //                 navigation.push('VideoListEditScreen')
+        //             } else {
+        //                 apiClient
+        //                     .post("users/update", { video_intro: null })
+        //                     .then((res) => {
+        //                         if (res && res.data && res.data.success) {
+        //                             setCurrentUser(res.data.data)
+        //                         } else {
+        //                             Toast.show({ text1: res.data.message, type: "error" });
+        //                         }
+        //                     })
+        //                     .catch((error) => {
+        //                         console.log({ error });
+        //                     });
+        //             }
+        //         },
+        //     },
+        // });
     }
 
     const onSetStatus = () => {
@@ -243,6 +247,8 @@ const ProfileScreen = ({ navigation }) => {
                 console.log({ error });
             });
     }
+
+    console.log({ uri: currentUser })
 
     return (
         <View style={styles.container}>
@@ -341,7 +347,20 @@ const ProfileScreen = ({ navigation }) => {
                                         <CustomVideo
                                             style={{ borderWidth: 2, borderColor: '#CDB8E2', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }}
                                             ref={videoRef}
-                                            source={{ uri: currentUser?.video_intro }}
+                                            sources={[
+                                                currentUser?.video_intro,
+                                                currentUser?.video_why,
+                                                currentUser?.video_challenge,
+                                                currentUser?.video_purpose,
+                                                currentUser?.video_interests
+                                            ]}
+                                            subtitles={[
+                                                currentUser?.subtitle_intro,
+                                                currentUser?.subtitle_why,
+                                                currentUser?.subtitle_challenge,
+                                                currentUser?.subtitle_purpose,
+                                                currentUser?.subtitle_interests
+                                            ]}
                                             resizeMode={ResizeMode.COVER}
                                             onPlaybackStatusUpdate={status => {
                                                 setPlaying(status.isPlaying || status.isBuffering || status.shouldPlay);
@@ -353,14 +372,14 @@ const ProfileScreen = ({ navigation }) => {
                                     </TouchableOpacity>
                                     {
                                         !playing && currentUser?.video_intro &&
-                                        <TouchableOpacity onPress={playVideo} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
-                                            <Image source={images.play_button} style={{ width: 40, height: 40 }} />
+                                        <TouchableOpacity onPress={playVideo} style={{ width: 50, height: 50, alignItems: 'center', justifyContent: 'center' }}>
+                                            <Image source={images.play_button} style={{ width: 50, height: 50 }} />
                                         </TouchableOpacity>
                                     }
                                     {
                                         playing && currentUser?.video_intro &&
-                                        <TouchableOpacity onPress={pauseVideo} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
-                                            <Image source={images.pause_icon} style={{ width: 40, height: 40 }} />
+                                        <TouchableOpacity onPress={pauseVideo} style={{ width: 50, height: 50, alignItems: 'center', justifyContent: 'center' }}>
+                                            <Image source={images.pause_icon} style={{ width: 50, height: 50 }} />
                                         </TouchableOpacity>
                                     }
                                     {
@@ -607,7 +626,20 @@ const ProfileScreen = ({ navigation }) => {
                                     <CustomVideo
                                         style={{ borderWidth: 2, borderColor: '#CDB8E2', display: playing ? 'flex' : 'none', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 10 }}
                                         ref={videoRef}
-                                        source={{ uri: currentUser?.video_intro }}
+                                        sources={[
+                                            currentUser?.video_intro,
+                                            currentUser?.video_why,
+                                            currentUser?.video_challenge,
+                                            currentUser?.video_purpose,
+                                            currentUser?.video_interests
+                                        ]}
+                                        subtitles={[
+                                            currentUser?.subtitle_intro,
+                                            currentUser?.subtitle_why,
+                                            currentUser?.subtitle_challenge,
+                                            currentUser?.subtitle_purpose,
+                                            currentUser?.subtitle_interests
+                                        ]}
                                         resizeMode={ResizeMode.COVER}
                                         onPlaybackStatusUpdate={status => {
                                             // console.log({ status, url: currentUser?.video_intro })
@@ -615,26 +647,28 @@ const ProfileScreen = ({ navigation }) => {
                                         }}
                                     />
                                 }
-                                {currentUser?.video_intro &&
+                                {!playing && currentUser?.video_intro &&
                                     <View style={{ alignItems: 'center', gap: 3, marginBottom: 16 }}>
                                         {!playing &&
                                             <TouchableOpacity onPress={playVideo} style={{ alignItems: 'center', justifyContent: 'center' }}>
                                                 <Image source={images.play_icon} style={{ width: 80, height: 80 }} contentFit='contain' />
                                             </TouchableOpacity>
                                         }
-                                        {playing &&
-                                            <TouchableOpacity onPress={pauseVideo} style={{ width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center' }}>
-                                                <Image source={images.pause_icon} style={{ width: 80, height: 80, borderRadius: 40, }} contentFit='contain' />
-                                            </TouchableOpacity>
-                                        }
+
                                         <Text style={{ color: '#949494', fontSize: 10, fontWeight: 'bold' }}>Watch video</Text>
                                     </View>
                                 }
-
+                                {playing &&
+                                    <TouchableOpacity onPress={pauseVideo} style={{ position: 'absolute', top: 16, left: 16, width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center' }}>
+                                        <Image source={images.pause_icon} style={{ width: 50, height: 50, borderRadius: 25, }} contentFit='contain' />
+                                    </TouchableOpacity>
+                                }
                                 {
-                                    currentUser?.user_note &&
-                                    <View style={{ position: 'absolute', top: 10, left: 16, right: 16, backgroundColor: '#7B65E8ee', 
-                                        paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10,  }}>
+                                    !playing && currentUser?.user_note &&
+                                    <View style={{
+                                        position: 'absolute', top: 10, left: 16, right: 16, backgroundColor: '#7B65E8ee',
+                                        paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10,
+                                    }}>
                                         <Text style={{ color: '#E8FF58', width: '100%', textAlign: 'center', fontSize: 13, fontWeight: '600' }}>{currentUser?.user_note}</Text>
                                     </View>
                                 }

@@ -180,8 +180,10 @@ const ProfileVideoReviewScreen = ({ navigation, route }) => {
           videoUrl = userInfo.videoIntro.https;
         }
 
+        console.log({info: userInfo?.videoIntro})
+
         apiClient
-          .post("users/update", { video_intro: videoUrl })
+          .post("users/update", { video_intro: videoUrl, audio_intro: userInfo?.videoIntro?.audio ?? '' })
           .then(async (res) => {
             setLoading(false);
             if (res && res.data && res.data.success) {
@@ -204,7 +206,7 @@ const ProfileVideoReviewScreen = ({ navigation, route }) => {
   };
 
   const updateAvatar = () => {
-    navigation.push("AvatarUpdateScreen");
+    navigation.push("AvatarUpdateScreen", {fromReview: true});
   };
 
   const onSelectPurpose = async () => {

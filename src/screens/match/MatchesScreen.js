@@ -27,6 +27,7 @@ import analytics from '@react-native-firebase/analytics'
 import Purchases from "react-native-purchases";
 import TextInput from "../../components/TextInput";
 import { FontAwesome6 } from "@expo/vector-icons";
+import AvatarImage from "../../components/AvatarImage";
 
 const styles = StyleSheet.create({
   container: {
@@ -48,6 +49,8 @@ const MatchesScreen = ({ navigation }) => {
   const [freeCount, setFreeCount] = useState(0);
   const appState = useRef(AppState.currentState);
   const [keyword, setKeyword] = useState('');
+
+  const [recentMatches, setRecentMatches] = useState([]);
 
   useEffect(() => {
     analytics().logScreenView({
@@ -148,6 +151,23 @@ const MatchesScreen = ({ navigation }) => {
         setFetching(false);
         console.log({ error });
         setMatches([]);
+      });
+
+    apiClient
+      .get("matches/recent-matches")
+      .then((res) => {
+        setFetching(false);
+        console.log({ matches: res.data });
+        if (res && res.data && res.data.success) {
+          setRecentMatches(res.data.data);
+        } else {
+          setRecentMatches([]);
+        }
+      })
+      .catch((error) => {
+        setFetching(false);
+        console.log({ error });
+        setRecentMatches([]);
       });
   };
 
@@ -252,9 +272,70 @@ const MatchesScreen = ({ navigation }) => {
   }
   )
 
+  const recentMatchesFilter = !isPremium ? recentMatches.filter(conversation => conversation.is_free) : recentMatches
+
+  const renderHeader = () => {
+    return (
+      <View style={{ paddingBottom: 8, gap: 8, backgounrcColor: 'transparent' }}>
+        {
+          recentMatchesFilter && recentMatchesFilter.length > 0 &&
+          <View style={{ paddingTop: 16, paddingBottom: 8, gap: 8, backgounrcColor: 'transparent' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', }}>
+              <Text style={{ fontSize: 20, fontWeight: "700", color: "black", flex: 1 }}>{`Recent Matches`}</Text>
+            </View>
+
+            <FlatList
+              horizontal
+              data={recentMatchesFilter}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={{ marginRight: 8 }}
+                  onPress={() => openChat(item)}>
+                  <AvatarImage avatar={item?.profile?.avatar} full_name={item?.profile?.full_name} style={{ width: 70, height: 70, borderRadius: 35, borderWidth: 1, borderColor: colors.mainColor }} />
+                </TouchableOpacity>
+              )}
+              keyExtractor={(item) => `recent-${item.id}`}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingVertical: 8 }}
+
+            />
+          </View>
+        }
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', }}>
+          <Text style={{ fontSize: 20, fontWeight: "700", color: "black", flex: 1 }}>{`Connections `}
+            {!isPremium && <Text style={{ fontSize: 13, color: '#333333' }}>{`(${freeCount}/${freeTotal})`}</Text>}
+          </Text>
+          {!isPremium &&
+            <TouchableOpacity onPress={() => navigation.navigate('PremiumRequestScreen')} style={{ alignItems: 'center', justifyContent: 'center', height: 24, borderRadius: 12, paddingHorizontal: 8, backgroundColor: colors.mainColor }}>
+              <Text style={{ fontSize: 12, fontWeight: 'bold', color: 'white' }}>Manage Connections</Text>
+            </TouchableOpacity>
+          }
+        </View>
+      </View>
+    )
+  }
+
+  const onMore = async () => {
+    const options = [
+      { text: 'Unverified Matches' }
+    ]
+
+    await SheetManager.show('action-sheets', {
+      payload: {
+        actions: options,
+        onPress(index) {
+
+          if (index === 0) {
+            navigation.navigate('UnverifiedMatchesScreen')
+          }
+        },
+      },
+    });
+  }
+
   return (
     <View style={styles.container}>
-      <Header showLogo />
+      <Header showLogo rightIcon={images.more_icon} rightIconColor='black' rightAction={onMore} />
       <View style={{ paddingTop: 16, paddingBottom: 8, gap: 8, paddingHorizontal: 16, backgounrcColor: 'transparent' }}>
         <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 10, borderRadius: 5, paddingVertical: 5, alignItems: 'center', backgroundColor: '#E1E1E1' }}>
           <FontAwesome6 name='magnifying-glass' size={16} color='#8C8C8C' />
@@ -268,17 +349,6 @@ const MatchesScreen = ({ navigation }) => {
             clearButtonMode="always"
           />
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', }}>
-          <Text style={{ fontSize: 20, fontWeight: "700", color: "black", flex: 1 }}>{`Connections `}
-            {!isPremium && <Text style={{ fontSize: 13, color: '#333333' }}>{`(${freeCount}/${freeTotal})`}</Text>}
-          </Text>
-          {!isPremium &&
-            <TouchableOpacity onPress={() => navigation.navigate('PremiumRequestScreen')} style={{ alignItems: 'center', justifyContent: 'center', height: 24, borderRadius: 12, paddingHorizontal: 8, backgroundColor: colors.mainColor }}>
-              <Text style={{ fontSize: 12, fontWeight: 'bold', color: 'white' }}>Manage Connections</Text>
-            </TouchableOpacity>
-          }
-        </View>
-
       </View>
       <View style={{ paddingHorizontal: 16, flex: 1, alignItems: 'center' }}>
         <FlatList
@@ -289,6 +359,7 @@ const MatchesScreen = ({ navigation }) => {
           onRefresh={onRefresh}
           refreshing={isFetching}
           showsVerticalScrollIndicator={false}
+          ListHeaderComponent={renderHeader}
         />
       </View>
     </View>

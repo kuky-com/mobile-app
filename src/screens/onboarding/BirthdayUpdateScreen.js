@@ -132,7 +132,8 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
                             if (isUpdate) {
                                 navigation.goBack()
                             } else {
-                                NavigationService.reset('AskUpdateInfoScreen', { fromView: 'birthday' })
+                                // NavigationService.reset('AskUpdateInfoScreen', { fromView: 'birthday' })
+                                NavigationService.reset('GenderUpdateScreen')
                             }
                         } else {
                             Toast.show({ text1: res.data.message, type: 'error' })
@@ -201,7 +202,7 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
                 </View>
             </KeyboardAwareScrollView>
 
-            <TouchableOpacity style={{
+            {/* <TouchableOpacity style={{
                 position: 'absolute', top: insets.top + 5, right: 16,
                 width: 25, height: 25, alignItems: 'center', justifyContent: 'center'
             }}
@@ -213,14 +214,14 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
                     }
                 }}>
                 <FontAwesome6 name='xmark' size={20} color='#333333' />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
             <ButtonWithLoading
                 text='Continue'
                 disabled={(month === '' || day === '' || year === '')}
                 onPress={onContinue}
                 loading={loading}
             />
-            {
+            {/* {
                 !isUpdate &&
                 <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
                     <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 8 }}
@@ -228,7 +229,7 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
                         <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#333333' }}>Record a video instead</Text>
                     </TouchableOpacity>
                 </View>
-            }
+            } */}
         </View>
     )
 }

@@ -177,7 +177,11 @@ const MatchingInfoUpdateScreen = ({ navigation, route }) => {
             updateLikesRequest && updateLikesRequest.data && updateLikesRequest.data.success &&
             updateDislikesRequest && updateDislikesRequest.data && updateDislikesRequest.data.success
         ) {
-            NavigationService.reset('AIMatchingScreen')
+            if(canClose) {
+                NavigationService.reset('AIMatchingScreen')
+            } else {
+                NavigationService.reset('OnboardingVideoTutorialScreen', {fromOnboarding: true})
+            }
         } else {
             Toast.show({ text1: 'Your request failed. Please try again!', type: 'error' })
         }
@@ -306,30 +310,29 @@ const MatchingInfoUpdateScreen = ({ navigation, route }) => {
                 </ScrollView>
             </View>
 
-            <TouchableOpacity style={{
-                position: 'absolute', top: insets.top + 5, right: 16,
-                width: 25, height: 25, alignItems: 'center', justifyContent: 'center'
-            }}
-                onPress={() => {
-                    if (canClose)
+            {canClose &&
+                <TouchableOpacity style={{
+                    position: 'absolute', top: insets.top + 5, right: 16,
+                    width: 25, height: 25, alignItems: 'center', justifyContent: 'center'
+                }}
+                    onPress={() => {
                         navigation.goBack()
-                    else
-                        NavigationService.push('SkipOnboardingScreen')
-                }}>
-                <FontAwesome6 name='xmark' size={20} color='#333333' />
-            </TouchableOpacity>
+                    }}>
+                    <FontAwesome6 name='xmark' size={20} color='#333333' />
+                </TouchableOpacity>
+            }
             <ButtonWithLoading
                 text={'Save & Continue'}
                 onPress={onContinue}
                 disabled={purposes.length === 0 || likes.length === 0}
                 loading={loading}
             />
-            <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+            {/* <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
                 <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 8 }}
                     onPress={() => NavigationService.reset('OnboardingVideoTutorialScreen')}>
                     <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#333333' }}>Record a video instead</Text>
                 </TouchableOpacity>
-            </View>
+            </View> */}
         </View>
     )
 }

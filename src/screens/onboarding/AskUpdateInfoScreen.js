@@ -78,9 +78,6 @@ const AskUpdateInfoScreen = ({ navigation, route }) => {
         if (currentUser?.birthday && (!currentUser?.gender || !currentUser?.pronouns)) {
             title = 'Make your profile even better!'
             subtitle = 'Adding your gender helps us create a more personalized and inclusive experience for you'
-        } else if(currentUser?.birthday && ((currentUser?.likeCount ?? 0) === 0 || (currentUser?.purposeCount ?? 0) === 0)) {
-            title = 'Make your profile even better!'
-            subtitle = 'Adding more details like your journey and interests will help us personalize your experience.'
         } else if (currentUser?.birthday && currentUser?.gender && currentUser?.pronouns && !currentUser?.location) {
             title = 'Make your profile even better!'
             subtitle = 'Adding your location helps us create a more personalized and inclusive experience for you'
@@ -110,13 +107,13 @@ const AskUpdateInfoScreen = ({ navigation, route }) => {
                 <Text style={{ fontSize: 14, lineHeight: 21, textAlign: 'center', fontWeight: '500', color: '#F1F1F3', width: '100%' }}>{subtitle}</Text>
             </View>
 
-            <TouchableOpacity style={{
+            {/* <TouchableOpacity style={{
                 position: 'absolute', top: insets.top + 5, right: 16,
                 width: 25, height: 25, alignItems: 'center', justifyContent: 'center'
             }}
                 onPress={onContinue}>
                 <FontAwesome6 name='xmark' size={20} color='#ffffff' />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
             {
                 !currentUser?.birthday &&
                 <ButtonWithLoading
@@ -125,14 +122,7 @@ const AskUpdateInfoScreen = ({ navigation, route }) => {
                 />
             }
             {
-                currentUser?.birthday && ((currentUser?.likeCount ?? 0) === 0 || (currentUser?.purposeCount ?? 0) === 0) &&
-                <ButtonWithLoading
-                    text={'Add My Interests'}
-                    onPress={openInterest}
-                />
-            }
-            {
-                currentUser?.birthday && ((currentUser?.likeCount ?? 0) > 0 && (currentUser?.purposeCount ?? 0) > 0) && 
+                currentUser?.birthday && 
                 (!currentUser?.gender || !currentUser?.pronouns) &&
                 <ButtonWithLoading
                     text={'Add My Gender'}
@@ -140,7 +130,7 @@ const AskUpdateInfoScreen = ({ navigation, route }) => {
                 />
             }
             {
-                currentUser?.birthday && ((currentUser?.likeCount ?? 0) > 0 && (currentUser?.purposeCount ?? 0) > 0) && 
+                currentUser?.birthday &&  
                 currentUser?.gender && !currentUser?.location &&
                 <ButtonWithLoading
                     text={'Add My Location'}
@@ -148,19 +138,28 @@ const AskUpdateInfoScreen = ({ navigation, route }) => {
                 />
             }
             {
-                currentUser?.birthday && ((currentUser?.likeCount ?? 0) > 0 && (currentUser?.purposeCount ?? 0) > 0) &&
+                currentUser?.birthday && 
                 currentUser?.gender && currentUser?.location && !currentUser?.avatar &&
                 <ButtonWithLoading
                     text={'Add My Avatar'}
                     onPress={openAvatar}
                 />
             }
-            <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+            {
+                currentUser?.birthday && 
+                currentUser?.gender && currentUser?.location && !currentUser?.avatar
+                 && ((currentUser?.likeCount ?? 0) === 0 || (currentUser?.purposeCount ?? 0) === 0) &&
+                <ButtonWithLoading
+                    text={'Add My Interests'}
+                    onPress={openInterest}
+                />
+            }
+            {/* <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
                 <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 8 }}
                     onPress={() => NavigationService.reset('OnboardingVideoTutorialScreen')}>
                     <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#F1F1F3' }}>Record a video</Text>
                 </TouchableOpacity>
-            </View>
+            </View> */}
         </View>
     )
 }

@@ -504,7 +504,20 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                 }}
                 posterSource={{ uri: currentProfile?.avatar }}
                 ref={videoRef}
-                source={{ uri: currentProfile?.video_intro }}
+                sources={[
+                  currentProfile?.video_intro,
+                  currentProfile?.video_why,
+                  currentProfile?.video_challenge,
+                  currentProfile?.video_purpose,
+                  currentProfile?.video_interests
+                ]}
+                subtitles={[
+                  currentProfile?.subtitle_intro,
+                  currentProfile?.subtitle_why,
+                  currentProfile?.subtitle_challenge,
+                  currentProfile?.subtitle_purpose,
+                  currentProfile?.subtitle_interests
+                ]}
                 resizeMode={ResizeMode.COVER}
                 onPlaybackStatusUpdate={(status) => {
                   // console.log({ status });
@@ -534,11 +547,12 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                 }}
               />
             )}
-
-            <LinearGradient
-              colors={["transparent", "rgba(0,0,0,0.79)"]}
-              style={styles.nameBackground}
-            />
+            {!(playing || pendingVideo) &&
+              <LinearGradient
+                colors={["transparent", "rgba(0,0,0,0.79)"]}
+                style={styles.nameBackground}
+              />
+            }
 
             <View
               style={{
@@ -548,7 +562,29 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                 justifyContent: "space-between",
               }}
             >
-              <View style={{ width: "100%", alignItems: "space-between", padding: 16 }}>
+              <View style={{ flexDirection: 'row', width: "100%", alignItems: "center", justifyContent: 'space-between', padding: 16 }}>
+                {(playing || pendingVideo) && (
+                  <TouchableOpacity
+                    onPress={pauseVideo}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Image
+                      source={images.pause_icon}
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 20,
+                      }}
+                      contentFit="contain"
+                    />
+                  </TouchableOpacity>
+                )}
                 {
                   (playing || pendingVideo) &&
                   <TouchableOpacity onPress={onChangeMuteOption} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.mainColor }}>
@@ -556,9 +592,9 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                   </TouchableOpacity>
                 }
                 {!(playing || pendingVideo) && currentProfile?.user_note &&
-                  <View style={{position: 'absolute', top: 5, left: 5, right: 10, }}>
-                    <View style={{width: 18, height: 18, borderRadius: 9, backgroundColor: '#7B65E8ee'}} />
-                    <View style={{marginLeft: 12, width: 9, height: 9, borderRadius: 4.5, backgroundColor: '#7B65E8ee'}} />
+                  <View style={{ position: 'absolute', top: 5, left: 5, right: 10, }}>
+                    <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: '#7B65E8ee' }} />
+                    <View style={{ marginLeft: 12, width: 9, height: 9, borderRadius: 4.5, backgroundColor: '#7B65E8ee' }} />
                     <View style={{
                       backgroundColor: '#7B65E8ee', marginLeft: 10, marginTop: 2,
                       paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10,
@@ -567,19 +603,6 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                     </View>
                   </View>
                 }
-                {/* {!(playing || pendingVideo) && <View style={styles.tagContainer}>
-                  <Text
-                    style={[
-                      styles.tagText,
-                      {
-                        fontSize: (currentProfile?.tag?.name ?? "").length > 20 ? 13 : 15,
-                      },
-                    ]}
-                  >
-                    {currentProfile?.tag?.name}
-                  </Text>
-                </View>
-                } */}
               </View>
 
 
@@ -593,160 +616,140 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                   gap: 16,
                 }}
               >
-                {/* {!playing && (
-                  <View style={{flexDirection: 'row', gap: 5, width: '100%'}}>
-                    <Text style={{ fontSize: 32, color: "white", fontWeight: "bold", maxWidth: Dimensions.get('screen').width - 86 }}>
-                      {currentProfile?.full_name}
-                    </Text>
-                    {isRecentOnline &&
-                      <View style={styles.onlineStatusBg}>
-                        <OnlineStatus isRecentOnline={isRecentOnline} status={currentProfile?.online_status} radius={12} />
-                      </View>
-                    }
-                  </View>
-                )} */}
-                {/* <View style={{ width: '100%', flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                    {
-                                        currentProfile?.interests.map((interest) => (
-                                            <View key={`interest-${interest.id}`} style={{ flexDirection: 'row', gap: 5, alignItems: 'center', padding: 8, borderRadius: 10, backgroundColor: interest?.user_interests?.interest_type !== 'dislike' ? 'rgba(123, 101,232,0.75)' : 'rgba(250, 139, 139,0.75)' }}>
-                                                <Image source={images.category_icon} style={{ width: 16, height: 16 }} contentFit='contain' />
-                                                <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'white' }}>{interest.name}</Text>
-                                            </View>
-                                        ))
-                                    }
-                                </View> */}
-
-                <View
-                  style={{
-                    marginTop: 32,
-                    width: "100%",
-                    flexDirection: "row",
-                    alignItems: "flex-end",
-                    justifyContent: showAcceptReject && !matchInfo ? "space-between" : "center",
-                    paddingHorizontal: 9,
-                  }}
-                >
-                  {showAcceptReject && currentUser.id !== currentProfile.id && !matchInfo && (
-                    <View style={{ alignItems: "center", gap: 13 }}>
-                      <TouchableOpacity
-                        disabled={loading}
-                        onPress={rejectAction}
-                        style={{
-                          width: 60,
-                          height: 60,
-                          borderRadius: 30,
-                          backgroundColor: "#6C6C6C",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <Image
-                          source={images.close_icon}
-                          style={{
-                            width: 26,
-                            height: 26,
-                            tintColor: "#E8FF58",
-                          }}
-                          contentFit="contain"
-                        />
-                      </TouchableOpacity>
-                      <Text
-                        style={{
-                          color: "#949494",
-                          fontSize: 10,
-                          fontWeight: "bold",
-                        }}
-                      >
-                        Pass
-                      </Text>
-                    </View>
-                  )}
-                  {currentProfile?.video_intro && (
-                    <View style={{ alignItems: "center", gap: 13 }}>
-                      {!playing && !pendingVideo && (
+                {
+                  !playing && !pendingVideo &&
+                  <View
+                    style={{
+                      marginTop: 32,
+                      width: "100%",
+                      flexDirection: "row",
+                      alignItems: "flex-end",
+                      justifyContent: showAcceptReject && !matchInfo ? "space-between" : "center",
+                      paddingHorizontal: 9,
+                    }}
+                  >
+                    {showAcceptReject && currentUser.id !== currentProfile.id && !matchInfo && (
+                      <View style={{ alignItems: "center", gap: 13 }}>
                         <TouchableOpacity
-                          onPress={playVideo}
+                          disabled={loading}
+                          onPress={rejectAction}
                           style={{
+                            width: 60,
+                            height: 60,
+                            borderRadius: 30,
+                            backgroundColor: "#6C6C6C",
                             alignItems: "center",
                             justifyContent: "center",
                           }}
                         >
                           <Image
-                            source={images.play_icon}
-                            style={{ width: 80, height: 80 }}
-                            contentFit="contain"
-                          />
-                        </TouchableOpacity>
-                      )}
-                      {(playing || pendingVideo) && (
-                        <TouchableOpacity
-                          onPress={pauseVideo}
-                          style={{
-                            width: 80,
-                            height: 80,
-                            borderRadius: 40,
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <Image
-                            source={images.pause_icon}
+                            source={images.close_icon}
                             style={{
-                              width: 80,
-                              height: 80,
-                              borderRadius: 40,
+                              width: 26,
+                              height: 26,
+                              tintColor: "#E8FF58",
                             }}
                             contentFit="contain"
                           />
                         </TouchableOpacity>
-                      )}
-                      <Text
-                        style={{
-                          color: "#949494",
-                          fontSize: 10,
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {playing || pendingVideo ? "Pause video" : "Watch video"}
-                      </Text>
-                    </View>
-                  )}
-                  {showAcceptReject && currentUser.id !== currentProfile.id && !matchInfo && (
-                    <View style={{ alignItems: "center", gap: 13 }}>
-                      <TouchableOpacity
-                        disabled={loading}
-                        onPress={likeAction}
-                        style={{
-                          width: 60,
-                          height: 60,
-                          borderRadius: 30,
-                          backgroundColor: "#6C6C6C",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <Image
-                          source={images.like_icon}
+                        <Text
                           style={{
-                            width: 26,
-                            height: 26,
-                            tintColor: "#E8FF58",
+                            color: "#949494",
+                            fontSize: 10,
+                            fontWeight: "bold",
                           }}
-                          contentFit="contain"
-                        />
-                      </TouchableOpacity>
-                      <Text
-                        style={{
-                          color: "#949494",
-                          fontSize: 10,
-                          fontWeight: "bold",
-                        }}
-                      >
-                        Connect
-                      </Text>
-                    </View>
-                  )}
-                </View>
+                        >
+                          Pass
+                        </Text>
+                      </View>
+                    )}
+                    {currentProfile?.video_intro && (
+                      <View style={{ alignItems: "center", gap: 13 }}>
+                        {!playing && !pendingVideo && (
+                          <TouchableOpacity
+                            onPress={playVideo}
+                            style={{
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <Image
+                              source={images.play_icon}
+                              style={{ width: 80, height: 80 }}
+                              contentFit="contain"
+                            />
+                          </TouchableOpacity>
+                        )}
+                        {(playing || pendingVideo) && (
+                          <TouchableOpacity
+                            onPress={pauseVideo}
+                            style={{
+                              width: 80,
+                              height: 80,
+                              borderRadius: 40,
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <Image
+                              source={images.pause_icon}
+                              style={{
+                                width: 80,
+                                height: 80,
+                                borderRadius: 40,
+                              }}
+                              contentFit="contain"
+                            />
+                          </TouchableOpacity>
+                        )}
+                        <Text
+                          style={{
+                            color: "#949494",
+                            fontSize: 10,
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {playing || pendingVideo ? "Pause video" : "Watch video"}
+                        </Text>
+                      </View>
+                    )}
+                    {showAcceptReject && currentUser.id !== currentProfile.id && !matchInfo && (
+                      <View style={{ alignItems: "center", gap: 13 }}>
+                        <TouchableOpacity
+                          disabled={loading}
+                          onPress={likeAction}
+                          style={{
+                            width: 60,
+                            height: 60,
+                            borderRadius: 30,
+                            backgroundColor: "#6C6C6C",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <Image
+                            source={images.like_icon}
+                            style={{
+                              width: 26,
+                              height: 26,
+                              tintColor: "#E8FF58",
+                            }}
+                            contentFit="contain"
+                          />
+                        </TouchableOpacity>
+                        <Text
+                          style={{
+                            color: "#949494",
+                            fontSize: 10,
+                            fontWeight: "bold",
+                          }}
+                        >
+                          Connect
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                }
               </View>
             </View>
           </View>
