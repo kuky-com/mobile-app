@@ -36,7 +36,7 @@ const GetStartScreen = ({ navigation }) => {
         <View style={styles.container}>
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', width: Platform.isPad ? 600 : '100%', alignSelf: 'center' }}>
                 <View style={{ paddingVertical: 24, flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-                    <Image contentFit='contain' source={images.get_start_bg} style={{ width: 300, height: 300, position: 'absolute' }} />
+                    <Image contentFit='contain' source={images.wave_bg} style={{ width: 300, height: 300, position: 'absolute' }} />
                         <Text style={{ fontSize: 20, color: '#4C4C4C', fontWeight: 'bold', lineHeight: 30, textAlign: 'center'}}>
                             {`Kuky \nis here to bring you together through support and shared journeys.`}
                         </Text>

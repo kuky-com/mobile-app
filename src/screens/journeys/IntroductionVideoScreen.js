@@ -40,6 +40,7 @@ import apiClient, { NODE_ENV } from "../../utils/apiClient";
 import { uploadData, getUrl, } from 'aws-amplify/storage'
 import { getAuthenScreen, getVideoResizeDimensions } from "../../utils/utils";
 import Voice from '@react-native-voice/voice'
+import { PERMISSIONS, request } from "react-native-permissions";
 
 const styles = StyleSheet.create({
   container: {
@@ -74,11 +75,11 @@ const styles = StyleSheet.create({
   },
 });
 
-const MAX_DURATION = 15
+const MAX_DURATION = 30
 
-const OnboardingVideoScreen = ({ navigation, route }) => {
+const IntroductionVideoScreen = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
-  const { recording_type } = route && route.params ? route.params : { recording_type: 'intro' }
+  const { fromOnboarding } = route && route.params ? route.params : {}
   const [currentUser, setUser] = useAtom(userAtom)
   const [videoUrl, setVideoUrl] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -105,35 +106,7 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
 
   let latestRequest = null;
 
-
-  let step = 1
-  let title = ''
-  let message = ''
-
-  if (recording_type === 'intro') {
-    step = 1
-    title = 'Tell us a little about yourself'
-    message = `What’s your name?\nWhat you do?\nWhere you're from?`
-  } else if (recording_type === 'why') {
-    step = 2
-    title = 'Why Kuky?'
-    message = `What brought you here? What made you want to join Kuky? \nOr mention what you're looking for in a community.`
-  } else if (recording_type === 'challenge') {
-    step = 3
-    title = 'Your Personal Challenge'
-    message = `What’s a personal challenge you’ve been facing? It can be personal growth, mental well-being, or anything you'd like to share. ❤️`
-  } else if (recording_type === 'purpose') {
-    step = 4
-    title = 'Goals & Aspirations'
-    message = `What are your personal goals? What are you hoping to achieve? It can be personal growth, mental wellness, or something exciting you're working toward! 🚀`
-  } else if (recording_type === 'interests') {
-    step = 5
-    title = 'Your Likes & Dislikes!'
-    message = 'Tell us something you really like! (A favorite food, hobby, or activity)'
-  }
-
   const setupTranscript = async () => {
-
     await Audio.setAudioModeAsync({
       allowsRecordingIOS: true,
       playsInSilentModeIOS: true,
@@ -142,11 +115,6 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
 
   const startTranscript = async () => {
     try {
-      Voice.onSpeechPartialResults = (e) => {
-        console.log({ e })
-        processTranscript(e.value[0])
-      }
-      
       await Voice.start('en-US')
     } catch (error) {
       console.log({ error })
@@ -165,13 +133,42 @@ const OnboardingVideoScreen = ({ navigation, route }) => {
   }
 
   useEffect(() => {
+    Voice.onSpeechPartialResults = (e) => {
+        console.log({ e })
+        processTranscript(e.value[0])
+    }
+
+    return () => {
+        Voice.destroy().then(Voice.removeAllListeners).catch(e => {
+            console.log("UNABLE TO DESTROY");
+            console.log(e.error);
+        });
+    }
+}, [])
+
+useEffect(() => {
+    if (permission &&
+        permission.granted &&
+        audioPermission &&
+        audioPermission.granted) {
+        if (Platform.OS === 'ios') {
+            request(PERMISSIONS.IOS.SPEECH_RECOGNITION).then((status) => {
+                console.log({ status })
+            })
+                .catch((error) => {
+                    console.log({ error })
+                })
+        }
+    }
+}, [permission, audioPermission])
+  useEffect(() => {
     setupTranscript()
   }, [])
 
   useEffect(() => {
     analytics().logScreenView({
-      screen_name: 'OnboardingVideoScreen',
-      screen_class: 'OnboardingVideoScreen'
+      screen_name: 'IntroductionVideoScreen',
+      screen_class: 'IntroductionVideoScreen'
     })
   }, [])
 
@@ -407,25 +404,21 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
     ], [
       {
         text: 'Skip Video Uploading', onPress: () => {
-          NavigationService.reset('Dashboard')
+          NavigationService.reset('GeneralJPFScreen')
         }
       }
     ])
   }
 
   const updateProfile = (video, audio) => {
-    apiClient.post('users/update', { [`video_${recording_type}`]: video, [`audio_${recording_type}`]: audio })
+    apiClient.post('users/update', { video_intro: video, audio_intro: audio })
       .then((res) => {
         setProcessing(false)
         if (res && res.data && res.data.success) {
           setUser(res.data.data)
           console.log({ user: res.data.data })
 
-          if (res.data.data.video_intro && res.data.data.video_purpose) {
-            NavigationService.reset('OnboardingVideoResultScreen')
-          } else {
-            NavigationService.reset(getAuthenScreen(res.data.data, true))
-          }
+          NavigationService.reset('GeneralJPFScreen')
 
         } else {
           Toast.show({ text1: res.data.message, type: 'error' })
@@ -568,7 +561,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
       <View style={{ flex: 1, width: "100%", alignItems: "center", justifyContent: "center" }}>
         <View
           style={{
-            paddingTop: insets.top + 8, paddingBottom: 16,
+            paddingTop: insets.top + 32, paddingBottom: 16,
             gap: 8,
             alignItems: "center",
             justifyContent: "center",
@@ -576,21 +569,20 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
             backgroundColor: "#e5e5e5",
           }}
         >
-          <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'black' }}>{`${step} / 5`}</Text>
           <Text
-            style={{ fontSize: 20, fontWeight: "bold", color: "black" }}
-          >{title}</Text>
+            style={{ fontSize: 20, lineHeight: 30, fontWeight: "bold", color: "black", textAlign: 'center' }}
+          >{`Let’s Get to Know You!`}</Text>
           <Text
-            style={{ fontSize: 14, fontWeight: "500", color: "black" }}
+            style={{ fontSize: 14, lineHeight: 21, fontWeight: "500", color: "black", textAlign: 'center' }}
           >{`You have ${MAX_DURATION} seconds`}</Text>
-          <View style={{ position: 'absolute', top: 0, left: 0, width: "100%", alignItems: "flex-end", paddingHorizontal: 32, paddingTop: insets.top }}>
+          {/* <View style={{ position: 'absolute', top: 0, left: 0, width: "100%", alignItems: "flex-end", paddingHorizontal: 32, paddingTop: insets.top }}>
             <Text style={{ fontSize: 13, color: '#725ED4', fontWeight: 'bold' }} onPress={onSkip}>Skip</Text>
-          </View>
+          </View> */}
         </View>
         <View
           style={{
             width: "100%",
-            height: Dimensions.get("screen").height - insets.bottom - insets.top - 330,
+            height: Dimensions.get("screen").height - insets.bottom - insets.top - 350,
             alignItems: "center",
             justifyContent: "center",
             flexDirection: "row",
@@ -600,7 +592,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
           <View
             style={{
               width: Dimensions.get("screen").width - 64,
-              height: Dimensions.get("screen").height - insets.bottom - insets.top - 330,
+              height: Dimensions.get("screen").height - insets.bottom - insets.top - 350,
             }}
           >
             <View
@@ -868,11 +860,11 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                 borderBottomRightRadius: 10,
                 borderTopRightRadius: 10,
                 borderTopLeftRadius: 10,
-                paddingHorizontal: 10,
-                paddingVertical: 6,
-                flex: 1
+                paddingHorizontal: 16,
+                paddingVertical: 8,
+                flex: 1, marginRight: 32
               }}>
-                <Text style={{ fontSize: 13, color: 'white', lineHeight: 20 }}>{message}</Text>
+                <Text style={{ fontSize: 13, color: 'white', lineHeight: 20, fontWeight: '500' }}>{`Say hi, tell us your name, and why you’re here.`}</Text>
               </View>
             </View>
           </View>
@@ -1042,4 +1034,4 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
   );
 };
 
-export default OnboardingVideoScreen;
+export default IntroductionVideoScreen;

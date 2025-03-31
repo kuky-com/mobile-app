@@ -121,13 +121,13 @@ const ProfileTagScreen = ({ navigation, route }) => {
                 <Image source={images.logo_with_text} style={{ width: 120, height: 40, marginBottom: 32 }} contentFit='contain' />
                 <Text style={{ fontSize: 13, fontWeight: '600', color: 'black' }}>{`Your Profile Tag`}</Text>
                 <Text style={{ fontSize: 18, fontWeight: '600', color: 'black', lineHeight: 21, textAlign: 'center' }}>Based on your preferences, we’ve created a profile tag for you:</Text>
-                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                     <View style={{ justifyContent: 'space-between', width: (Platform.isPad ? 600 : Dimensions.get('screen').width) - 64, height: (Platform.isPad ? 600 : Dimensions.get('screen').width) - 64, borderRadius: 20, overflow: 'hidden' }}>
                         {/* <Image source={{ uri: currentUser?.avatar }} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} contentFit='cover' /> */}
                         <AvatarImage full_name={currentUser?.full_name} avatar={currentUser?.avatar} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} />
                         <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'flex-end', padding: 8 }}>
                             <View style={{ backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
-                                {!loading && <Text style={{ color: '#E8FF58', fontSize: 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>}
+                                {!loading && <Text style={{ color: '#E8FF58', fontSize: 14, fontWeight: 'bold' }}>{currentUser?.journey?.name}</Text>}
                                 {loading && <ActivityIndicator color='white' size='small' />}
                             </View>
                         </View>
@@ -144,7 +144,7 @@ const ProfileTagScreen = ({ navigation, route }) => {
                 </View>
                 <View style={{ width: Platform.isPad ? 600 : '100%', alignSelf: 'center', flexDirection: 'row', justifyContent: 'center' }}>
                     <View style={{ backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
-                        {!loading && <Text style={{ color: '#E8FF58', fontSize: 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>}
+                        {!loading && <Text style={{ color: '#E8FF58', fontSize: 14, fontWeight: 'bold' }}>{currentUser?.journey?.name}</Text>}
                         {loading && <ActivityIndicator color='white' size='small' />}
                     </View>
                 </View>

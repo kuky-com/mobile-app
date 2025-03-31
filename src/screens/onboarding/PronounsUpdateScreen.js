@@ -31,17 +31,18 @@ const styles = StyleSheet.create({
         gap: 24
     },
     itemContainer: {
-        backgroundColor: 'white',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: 45, borderRadius: 15,
+        backgroundColor: "white",
+        alignItems: "center",
+        justifyContent: "center",
+        height: 55,
+        borderRadius: 15,
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.25,
+        shadowOpacity: 0.15,
         elevation: 1,
-        shadowColor: '#000000',
-        flexDirection: 'row',
+        shadowColor: "#000000",
+        flexDirection: "row",
         paddingHorizontal: 22,
-        width: '100%'
+        marginHorizontal: 2
     },
     closeButton: {
         width: 30, height: 30, backgroundColor: '#333333',
@@ -52,7 +53,7 @@ const styles = StyleSheet.create({
 })
 
 const PronounsUpdateScreen = ({ navigation, route }) => {
-    // const { onboarding } = route.params
+    const { isUpdate } = route && route.params ? route.params : {}
     const insets = useSafeAreaInsets()
     const [pronouns, setPronouns] = useState(null);
     const [isPublic, setPublic] = useState(true);
@@ -76,7 +77,12 @@ const PronounsUpdateScreen = ({ navigation, route }) => {
                     if (res && res.data && res.data.success) {
                         setUser(res.data.data)
                         // NavigationService.reset('AskUpdateInfoScreen', { fromView: 'gender' })
-                        NavigationService.reset('LocationUpdateScreen')
+
+                        if (isUpdate) {
+                            navigation.goBack()
+                        } else {
+                            NavigationService.reset('LocationUpdateScreen')
+                        }
                     } else {
                         Toast.show({ text1: res.data.message, type: 'error' })
                     }
@@ -126,6 +132,12 @@ const PronounsUpdateScreen = ({ navigation, route }) => {
                 disabled={pronouns === null}
                 loading={loading}
             />
+            <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 3 }}
+                    onPress={() => NavigationService.push('SkipOnboardingScreen')}>
+                    <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#7a7a7a' }}>Skip for now</Text>
+                </TouchableOpacity>
+            </View>
             {/* <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
                 <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 8 }}
                     onPress={() => NavigationService.reset('OnboardingVideoTutorialScreen')}>

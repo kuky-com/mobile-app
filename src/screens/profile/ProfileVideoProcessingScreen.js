@@ -160,31 +160,31 @@ const ProfileVideoProcessingScreen = ({ navigation, route }) => {
 
             let likes = []
             let dislikes = []
-            let purposes = []
+            // let purposes = []
 
             if (processingData && processingData.tags) {
                 const tags = processingData.tags
 
-                try {
-                    let names = []
-                    if (tags.journey && tags.journey.length > 0) {
-                        names = tags.journey.map((item) => capitalize(item))
-                    }
+                // try {
+                //     let names = []
+                //     if (tags.journey && tags.journey.length > 0) {
+                //         names = tags.journey.map((item) => capitalize(item))
+                //     }
 
-                    if (currentUser && currentUser.purposes) {
-                        for (const purpose of currentUser.purposes) {
-                            if (!names.includes(capitalize(purpose.name)))
-                                names.push(capitalize(purpose.name))
-                        }
-                    }
-                    const res = await apiClient.post('interests/update-purposes', { purposes: names })
+                //     if (currentUser && currentUser.purposes) {
+                //         for (const purpose of currentUser.purposes) {
+                //             if (!names.includes(capitalize(purpose.name)))
+                //                 names.push(capitalize(purpose.name))
+                //         }
+                //     }
+                //     const res = await apiClient.post('interests/update-purposes', { purposes: names })
 
-                    if (res.data.data) {
-                        purposes = res.data.data.map((item) => ({ name: item.purpose.name }))
-                    }
-                } catch (error) {
-                    console.log({ error })
-                }
+                //     if (res.data.data) {
+                //         purposes = res.data.data.map((item) => ({ name: item.purpose.name }))
+                //     }
+                // } catch (error) {
+                //     console.log({ error })
+                // }
 
                 try {
                     let names = []
@@ -231,7 +231,7 @@ const ProfileVideoProcessingScreen = ({ navigation, route }) => {
 
             // console.log({ likes, dislikes, purposes, videoIntro })
 
-            NavigationService.replace('ProfileVideoReviewScreen', { likes, dislikes, purposes, videoIntro: videoIntro })
+            NavigationService.replace('ProfileVideoReviewScreen', { likes, dislikes, purposes: [], videoIntro: videoIntro })
         } catch (error) {
             console.log({ error })
             showAlert(images.video_error, 'Oops!', 'Something went wrong while processing your video.', 'Please try again recording your video', [

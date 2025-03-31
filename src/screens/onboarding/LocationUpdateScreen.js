@@ -129,7 +129,7 @@ const LocationUpdateScreen = ({ navigation, route }) => {
                             if (isUpdate) {
                                 navigation.goBack()
                             } else {
-                                NavigationService.reset('AvatarUpdateScreen')
+                                NavigationService.reset('MatchingInfoUpdateScreen')
                             }
                         } else {
                             Toast.show({ text1: res.data.message, type: 'error' })
@@ -209,6 +209,12 @@ const LocationUpdateScreen = ({ navigation, route }) => {
                 text='Continue'
                 loading={loading}
             />
+            <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 3 }}
+                    onPress={() => NavigationService.push('SkipOnboardingScreen')}>
+                    <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#7a7a7a' }}>Skip for now</Text>
+                </TouchableOpacity>
+            </View>
             {/* {!isUpdate &&
                 <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
                     <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 8 }}

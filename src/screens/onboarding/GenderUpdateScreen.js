@@ -33,13 +33,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     height: 55,
-    borderRadius: 20,
+    borderRadius: 15,
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.15,
     elevation: 1,
     shadowColor: "#000000",
     flexDirection: "row",
     paddingHorizontal: 22,
+    marginHorizontal: 2
   },
   closeButton: {
     width: 30,
@@ -55,7 +56,7 @@ const styles = StyleSheet.create({
 });
 
 const GenderUpdateScreen = ({ navigation, route }) => {
-  // const { onboarding } = route.params
+  const { isUpdate } = route && route.params ? route.params : {}
   const insets = useSafeAreaInsets();
   const [gender, setGender] = useState(null);
   const [isPublic, setPublic] = useState(true);
@@ -76,7 +77,11 @@ const GenderUpdateScreen = ({ navigation, route }) => {
         .then((res) => {
           setLoading(false);
           if (res && res.data && res.data.success) {
-            NavigationService.reset('PronounsUpdateScreen')
+            if (isUpdate) {
+              navigation.goBack()
+            } else {
+              NavigationService.reset('PronounsUpdateScreen')
+            }
             // NavigationService.reset(getAuthenScreen(res.data.data));
             // Toast.show({ text1: res.data.message, type: 'success' })
           } else {
@@ -148,6 +153,13 @@ const GenderUpdateScreen = ({ navigation, route }) => {
         disabled={gender === null}
         loading={loading}
       />
+
+      <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+        <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 3 }}
+          onPress={() => NavigationService.push('SkipOnboardingScreen')}>
+          <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#7a7a7a' }}>Skip for now</Text>
+        </TouchableOpacity>
+      </View>
       {/* <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
         <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 8 }}
           onPress={() => NavigationService.reset('OnboardingVideoTutorialScreen')}>

@@ -54,13 +54,14 @@ const styles = StyleSheet.create({
 
 const MatchingInfoUpdateScreen = ({ navigation, route }) => {
     const { canClose } = route && route.params ? route.params : {}
+    const [currentUser, setUser] = useAtom(userAtom)
     const insets = useSafeAreaInsets()
-    const [purposes, setPurposes] = useState([])
+    // const [purposes, setPurposes] = useState([])
     const [likes, setLikes] = useState([])
     const [dislikes, setDislikes] = useState([])
     const [loading, setLoading] = useState(false)
 
-    const [allPurposes, setAllPurposes] = useState(DEFAULT_PURPOSES);
+    // const [allPurposes, setAllPurposes] = useState(DEFAULT_PURPOSES);
     const [allLikes, setAllLikes] = useState(DEFAULT_LIKES);
     const [allDislikes, setAllDislikes] = useState(DEFAULT_DISLIKES);
 
@@ -94,16 +95,16 @@ const MatchingInfoUpdateScreen = ({ navigation, route }) => {
                 console.log({ error });
             });
 
-        apiClient
-            .get("interests/all-purposes")
-            .then((res) => {
-                if (res && res.data && res.data.success) {
-                    setAllPurposes(res.data.data)
-                }
-            })
-            .catch((error) => {
-                console.log({ error });
-            });
+        // apiClient
+        //     .get("interests/all-purposes")
+        //     .then((res) => {
+        //         if (res && res.data && res.data.success) {
+        //             setAllPurposes(res.data.data)
+        //         }
+        //     })
+        //     .catch((error) => {
+        //         console.log({ error });
+        //     });
     }, []);
 
     useEffect(() => {
@@ -131,17 +132,17 @@ const MatchingInfoUpdateScreen = ({ navigation, route }) => {
                 console.log({ error });
             });
 
-        apiClient
-            .get("interests/purposes")
-            .then((res) => {
-                if (res && res.data && res.data.success) {
-                    const options = res.data.data.map((item) => item.name)
-                    setPurposes(options);
-                }
-            })
-            .catch((error) => {
-                console.log({ error });
-            });
+        // apiClient
+        //     .get("interests/purposes")
+        //     .then((res) => {
+        //         if (res && res.data && res.data.success) {
+        //             const options = res.data.data.map((item) => item.name)
+        //             setPurposes(options);
+        //         }
+        //     })
+        //     .catch((error) => {
+        //         console.log({ error });
+        //     });
     }, []);
 
     const onContinue = async () => {
@@ -168,47 +169,60 @@ const MatchingInfoUpdateScreen = ({ navigation, route }) => {
         // }
 
         setLoading(true)
-        const updatePurposeRequest = await apiClient.post('interests/update-purposes', { purposes: purposes })
+        // const updatePurposeRequest = await apiClient.post('interests/update-purposes', { purposes: purposes })
         const updateLikesRequest = await apiClient.post('interests/update-likes', { likes: likes })
         const updateDislikesRequest = await apiClient.post('interests/update-dislikes', { dislikes: dislikes })
 
-        setLoading(false)
-        if (updatePurposeRequest && updatePurposeRequest.data && updatePurposeRequest.data.success &&
-            updateLikesRequest && updateLikesRequest.data && updateLikesRequest.data.success &&
+
+        if (updateLikesRequest && updateLikesRequest.data && updateLikesRequest.data.success &&
             updateDislikesRequest && updateDislikesRequest.data && updateDislikesRequest.data.success
         ) {
-            if(canClose) {
-                NavigationService.reset('AIMatchingScreen')
-            } else {
-                NavigationService.reset('OnboardingVideoTutorialScreen', {fromOnboarding: true})
-            }
+            apiClient("users/user-info")
+                .then((res) => {
+                    if (res && res.data && res.data.success) {
+                        setUser(res.data.data);
+                        setLoading(false)
+                        NavigationService.reset('Dashboard')
+                    }
+                })
+                .catch((error) => {
+                    console.log({ error });
+                    setLoading(false)
+                });
+
+
+            // if(canClose) {
+            //     NavigationService.reset('JourneyMatchingScreen')
+            // } else {
+            //     NavigationService.reset('OnboardingVideoTutorialScreen', {fromOnboarding: true})
+            // }
         } else {
             Toast.show({ text1: 'Your request failed. Please try again!', type: 'error' })
         }
     }
 
-    const onSelectPurpose = async () => {
-        const options = allPurposes.map((item) => {
-            return {
-                id: item,
-                text: item,
-            };
-        });
+    // const onSelectPurpose = async () => {
+    //     const options = allPurposes.map((item) => {
+    //         return {
+    //             id: item,
+    //             text: item,
+    //         };
+    //     });
 
-        purposes.forEach(purpose => {
-            if (!allPurposes.includes(purpose)) {
-                options.unshift({ id: purpose, text: purpose });
-            }
-        });
+    //     purposes.forEach(purpose => {
+    //         if (!allPurposes.includes(purpose)) {
+    //             options.unshift({ id: purpose, text: purpose });
+    //         }
+    //     });
 
-        await SheetManager.show('selection-sheets', {
-            payload: {
-                actions: options,
-                selectedList: purposes ?? [],
-                onSelected: (list) => setPurposes(list),
-            },
-        });
-    }
+    //     await SheetManager.show('selection-sheets', {
+    //         payload: {
+    //             actions: options,
+    //             selectedList: purposes ?? [],
+    //             onSelected: (list) => setPurposes(list),
+    //         },
+    //     });
+    // }
 
     const onSelectLike = async () => {
         const options = allLikes.map((item) => {
@@ -264,7 +278,7 @@ const MatchingInfoUpdateScreen = ({ navigation, route }) => {
                 <Text style={{ fontSize: 24, lineHeight: 40, maxWidth: '80%', fontWeight: 'bold', color: 'black' }}>{`Let’s complete your profile!`}</Text>
                 <ScrollView style={{ flex: 1, width: '100%' }} showsVerticalScrollIndicator={false}>
                     <View style={{ flex: 1, width: '100%', paddingVertical: 16, gap: 32, alignItems: 'flex-start', justifyContent: 'flex-start' }}>
-                        <View style={{ gap: 8, width: "100%" }}>
+                        {/* <View style={{ gap: 8, width: "100%" }}>
                             <Text style={{ fontSize: 13, fontWeight: 'bold', color: 'black' }}>{'What’s your goal here?'}<Text style={{ color: 'red' }}>{' *'}</Text></Text>
                             <TouchableOpacity onPress={onSelectPurpose} style={{
                                 borderRadius: 15, paddingVertical: 15, paddingHorizontal: 16, alignItems: 'center',
@@ -277,7 +291,7 @@ const MatchingInfoUpdateScreen = ({ navigation, route }) => {
                                 >{purposes.length > 0 ? purposes.join(', ') : 'Find support for anxiety'}</Text>
                                 <FontAwesome6 name='chevron-down' size={16} color='#333333' />
                             </TouchableOpacity>
-                        </View>
+                        </View> */}
                         <View style={{ gap: 8, width: "100%" }}>
                             <Text style={{ fontSize: 13, fontWeight: 'bold', color: 'black' }}>{'What are your hobbies and interests?'}<Text style={{ color: 'red' }}>{' *'}</Text></Text>
                             <TouchableOpacity onPress={onSelectLike} style={{
@@ -286,7 +300,7 @@ const MatchingInfoUpdateScreen = ({ navigation, route }) => {
                             }}>
                                 <Text style={{
                                     flex: 1, lineHeight: 18, fontSize: 13, color: likes.length > 0 ? '#000000' : '#aaaaaa',
-                                    likes: purposes.length > 0 ? 'bold' : '400'
+                                    likes: likes.length > 0 ? 'bold' : '400'
                                 }}
                                 >{likes.length > 0 ? likes.join(', ') : 'Reading, hiking, painting'}</Text>
                                 <FontAwesome6 name='chevron-down' size={16} color='#333333' />
@@ -300,7 +314,7 @@ const MatchingInfoUpdateScreen = ({ navigation, route }) => {
                             }}>
                                 <Text style={{
                                     flex: 1, lineHeight: 18, fontSize: 13, color: dislikes.length > 0 ? '#000000' : '#aaaaaa',
-                                    dislikes: purposes.length > 0 ? 'bold' : '400'
+                                    dislikes: dislikes.length > 0 ? 'bold' : '400'
                                 }}
                                 >{dislikes.length > 0 ? dislikes.join(', ') : 'Crowded places, loud noises'}</Text>
                                 <FontAwesome6 name='chevron-down' size={16} color='#333333' />
@@ -324,9 +338,15 @@ const MatchingInfoUpdateScreen = ({ navigation, route }) => {
             <ButtonWithLoading
                 text={'Save & Continue'}
                 onPress={onContinue}
-                disabled={purposes.length === 0 || likes.length === 0}
+                disabled={likes.length === 0}
                 loading={loading}
             />
+            <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 3 }}
+                    onPress={() => NavigationService.push('SkipOnboardingScreen')}>
+                    <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#7a7a7a' }}>Skip for now</Text>
+                </TouchableOpacity>
+            </View>
             {/* <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
                 <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 8 }}
                     onPress={() => NavigationService.reset('OnboardingVideoTutorialScreen')}>

@@ -251,17 +251,11 @@ const OnboardingVideoResultScreen = ({ navigation, route }) => {
                     ref={videoRef}
                     sources={[
                         currentUser?.video_intro,
-                        currentUser?.video_why,
-                        currentUser?.video_challenge,
                         currentUser?.video_purpose,
-                        currentUser?.video_interests
                     ]}
                     subtitles={[
                         currentUser?.subtitle_intro,
-                        currentUser?.subtitle_why,
-                        currentUser?.subtitle_challenge,
                         currentUser?.subtitle_purpose,
-                        currentUser?.subtitle_interests
                     ]}
                     resizeMode={ResizeMode.COVER}
                     onPlaybackStatusUpdate={status => {

@@ -48,6 +48,7 @@ target 'Kuky' do
   setup_permissions([
      'Camera',
      'Microphone',
+     'SpeechRecognition'
   ])
 
   config = use_native_modules!(config_command)

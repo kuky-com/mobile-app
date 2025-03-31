@@ -38,21 +38,33 @@ export const getAuthenScreen = (currentUser, fromRecording = false) => {
 
     if (!currentUser?.full_name) {
         return 'NameUpdateScreen'
-    } else if (!currentUser?.birthday || !currentUser?.gender || !currentUser?.pronouns || !currentUser?.location || ((currentUser?.likeCount ?? 0) === 0 || (currentUser?.purposeCount ?? 0) === 0)) {
-        return 'AskUpdateInfoScreen'
-    } else if (!currentUser?.profile_tag) {
-        return 'AIMatchingScreen'
+    } else if (!currentUser?.journey_category_id) {
+        return 'ReferralUpdateScreen'
+    } else if (!currentUser?.journey_id) {
+        return 'StruggleSelectionScreen'
     } else if (!currentUser?.avatar) {
-        return 'AskUpdateInfoScreen'
-    } else if (!currentUser?.video_intro || !currentUser?.video_why || !currentUser?.video_challenge
-        || !currentUser?.video_purpose || !currentUser?.video_interests
-    ) {
-        if (fromRecording) {
-            return 'VideoIntroductionScreen'
-        } else {
-            return 'OnboardingVideoTutorialScreen'
-        }
+        return 'CommunitySuggestionScreen'
+    } else if (!currentUser?.video_intro) {
+        return 'IntroductionVideoScreen'
+    } else if (currentUser?.askJPFGeneral) {
+        return 'GeneralJPFScreen'
+    } else if (currentUser?.askJPFSpecific) {
+        return 'SpecificJPFScreen'
+    } else if (!currentUser?.video_purpose) {
+        return 'JourneyVideoTutorialScreen'
     }
+    // else if (!currentUser?.birthday || !currentUser?.gender || !currentUser?.pronouns || !currentUser?.location || ((currentUser?.likeCount ?? 0) === 0)) {
+    //     return 'AskUpdateInfoScreen'
+    // }
+    // else if (!currentUser?.video_intro || !currentUser?.video_why || !currentUser?.video_challenge
+    //     || !currentUser?.video_purpose || !currentUser?.video_interests
+    // ) {
+    //     if (fromRecording) {
+    //         return 'VideoIntroductionScreen'
+    //     } else {
+    //         return 'OnboardingVideoTutorialScreen'
+    //     }
+    // }
 
     return 'Dashboard'
 }
@@ -81,6 +93,13 @@ export const getVideoResizeDimensions = async (filePath) => {
         });
     });
 };
+
+export const naturalJoin = (arr) => {
+    if (arr.length === 0) return '';
+    if (arr.length === 1) return arr[0];
+    if (arr.length === 2) return arr.join(' and ');
+    return arr.slice(0, -1).join(', ') + ' and ' + arr[arr.length - 1];
+}
 
 export const formatCallSeconds = (milliseconds) => {
     const durationObj = dayjs.duration(milliseconds, 'milliseconds');

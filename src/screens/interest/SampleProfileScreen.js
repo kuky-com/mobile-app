@@ -239,17 +239,11 @@ const SampleProfileScreen = ({ navigation, route }) => {
                 posterSource={{ uri: currentProfile?.avatar }}
                 sources={[
                   currentProfile?.video_intro,
-                  currentProfile?.video_why,
-                  currentProfile?.video_challenge,
                   currentProfile?.video_purpose,
-                  currentProfile?.video_interests
                 ]}
                 subtitles={[
                   currentProfile?.subtitle_intro,
-                  currentProfile?.subtitle_why,
-                  currentProfile?.subtitle_challenge,
                   currentProfile?.subtitle_purpose,
-                  currentProfile?.subtitle_interests
                 ]}
                 resizeMode={ResizeMode.COVER}
                 onPlaybackStatusUpdate={(status) => {
@@ -328,11 +322,11 @@ const SampleProfileScreen = ({ navigation, route }) => {
                     style={[
                       styles.tagText,
                       {
-                        fontSize: (currentProfile?.tag?.name ?? "").length > 20 ? 13 : 15,
+                        fontSize: (currentProfile?.journey?.name ?? "").length > 20 ? 13 : 15,
                       },
                     ]}
                   >
-                    {currentProfile?.tag?.name}
+                    {currentProfile?.journey?.name}
                   </Text>
                 </View>
                 }
@@ -579,7 +573,7 @@ const SampleProfileScreen = ({ navigation, route }) => {
             </View>
           </View>
 
-          {(currentProfile?.purposes ?? []).length > 0 && (
+          {/* {(currentProfile?.purposes ?? []).length > 0 && (
             <View style={{ width: "100%" }}>
               <View
                 style={{
@@ -598,7 +592,6 @@ const SampleProfileScreen = ({ navigation, route }) => {
                   Journeys & Purposes
                 </Text>
               </View>
-              {/* <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} /> */}
               <SectionCard
                 style={{
                   borderRadius: 20,
@@ -641,7 +634,7 @@ const SampleProfileScreen = ({ navigation, route }) => {
                 })}
               </SectionCard>
             </View>
-          )}
+          )} */}
           {userInterests.length > 0 && (
             <View style={{ width: "100%" }}>
               <View

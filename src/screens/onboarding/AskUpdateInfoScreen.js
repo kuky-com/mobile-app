@@ -33,12 +33,12 @@ const AskUpdateInfoScreen = ({ navigation, route }) => {
         })
     }, [])
 
-    const onContinue = () => {
+    const onSkip = () => {
         NavigationService.push('SkipOnboardingScreen')
     }
 
     const openBirthday = () => {
-        NavigationService.reset('ReferralUpdateScreen')
+        NavigationService.reset('BirthdayUpdateScreen')
     }
 
     const openGender = () => {
@@ -51,10 +51,6 @@ const AskUpdateInfoScreen = ({ navigation, route }) => {
 
     const openInterest = () => {
         NavigationService.reset('MatchingInfoUpdateScreen')
-    }
-
-    const openAvatar = () => {
-        NavigationService.reset('AvatarUpdateScreen')
     }
 
     let title = 'Your profile is waiting to be personalized!'
@@ -70,9 +66,6 @@ const AskUpdateInfoScreen = ({ navigation, route }) => {
         } else if (fromView === 'location') {
             title = 'Your location has been saved!'
             subtitle = 'Let’s keep going to make your profile even better.'
-        } else if (fromView === 'avatar') {
-            title = 'Your avatar has been saved!'
-            subtitle = 'Let’s keep going to make your profile even better.'
         }
     } else {
         if (currentUser?.birthday && (!currentUser?.gender || !currentUser?.pronouns)) {
@@ -81,12 +74,9 @@ const AskUpdateInfoScreen = ({ navigation, route }) => {
         } else if (currentUser?.birthday && currentUser?.gender && currentUser?.pronouns && !currentUser?.location) {
             title = 'Make your profile even better!'
             subtitle = 'Adding your location helps us create a more personalized and inclusive experience for you'
-        } else if (currentUser?.birthday && currentUser?.gender && currentUser?.pronouns && currentUser?.location && !currentUser?.avatar) {
-            title = 'Make your profile even better!'
-            subtitle = 'Adding your avatar helps us create a more personalized and inclusive experience for you'
         } else {
             title = 'Make your profile even better!'
-            subtitle = 'Adding more details like your journey and interests will help us personalize your experience.'
+            subtitle = 'Adding more details like your interests and dislikes will help us personalize your experience.'
         }
     }
 
@@ -106,18 +96,10 @@ const AskUpdateInfoScreen = ({ navigation, route }) => {
                 }
                 <Text style={{ fontSize: 14, lineHeight: 21, textAlign: 'center', fontWeight: '500', color: '#F1F1F3', width: '100%' }}>{subtitle}</Text>
             </View>
-
-            {/* <TouchableOpacity style={{
-                position: 'absolute', top: insets.top + 5, right: 16,
-                width: 25, height: 25, alignItems: 'center', justifyContent: 'center'
-            }}
-                onPress={onContinue}>
-                <FontAwesome6 name='xmark' size={20} color='#ffffff' />
-            </TouchableOpacity> */}
             {
                 !currentUser?.birthday &&
                 <ButtonWithLoading
-                    text={'Add Manually'}
+                    text={'Add Birthday'}
                     onPress={openBirthday}
                 />
             }
@@ -139,27 +121,19 @@ const AskUpdateInfoScreen = ({ navigation, route }) => {
             }
             {
                 currentUser?.birthday && 
-                currentUser?.gender && currentUser?.location && !currentUser?.avatar &&
-                <ButtonWithLoading
-                    text={'Add My Avatar'}
-                    onPress={openAvatar}
-                />
-            }
-            {
-                currentUser?.birthday && 
-                currentUser?.gender && currentUser?.location && !currentUser?.avatar
-                 && ((currentUser?.likeCount ?? 0) === 0 || (currentUser?.purposeCount ?? 0) === 0) &&
+                currentUser?.gender && currentUser?.location
+                 && ((currentUser?.likeCount ?? 0) === 0) &&
                 <ButtonWithLoading
                     text={'Add My Interests'}
                     onPress={openInterest}
                 />
             }
-            {/* <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
                 <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 8 }}
-                    onPress={() => NavigationService.reset('OnboardingVideoTutorialScreen')}>
-                    <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#F1F1F3' }}>Record a video</Text>
+                    onPress={() => NavigationService.push('SkipOnboardingScreen')}>
+                    <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#F1F1F3' }}>Skip for now</Text>
                 </TouchableOpacity>
-            </View> */}
+            </View>
         </View>
     )
 }

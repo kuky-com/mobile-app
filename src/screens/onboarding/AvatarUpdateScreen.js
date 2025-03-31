@@ -101,7 +101,7 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
                             navigation.goBack()
                         } else {
                             // NavigationService.reset(getAuthenScreen(res.data.data))
-                            NavigationService.reset('MatchingInfoUpdateScreen')
+                            NavigationService.reset('IntroductionVideoScreen')
                         }
                         
                         // Toast.show({ text1: res.data.message, type: 'success' })
@@ -122,7 +122,7 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
     }
 
     const onSkip = () => {
-        NavigationService.reset('Dashboard')
+        NavigationService.reset('IntroductionVideoScreen')
         // navigation.goBack()
     }
 
@@ -202,9 +202,9 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
             <TouchableOpacity onPress={imageUrl ? onContinue : onUpload} disabled={image === null} style={{ width: Platform.isPad ? 600 : '100%', alignSelf: 'center', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: image === null ? '#9A9A9A' : '#333333', }}>
                 <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>{imageUrl ? 'Continue' : 'Upload'}</Text>
             </TouchableOpacity>
-            {/* <View style={{ width: '100%', alignItems: 'center' }}>
+            <View style={{ width: '100%', alignItems: 'center' }}>
                 <Text style={{ padding: 8, fontSize: 14, fontWeight: 'bold' }} onPress={onSkip}>Skip for now</Text>
-            </View> */}
+            </View>
             {
                 loading && <LoadingView />
             }

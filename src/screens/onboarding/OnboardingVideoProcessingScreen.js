@@ -168,7 +168,7 @@ const OnboardingVideoProcessingScreen = ({ navigation, route }) => {
 
             let likes = []
             let dislikes = []
-            let purposes = []
+            // let purposes = []
             let age = null
             let gender = null
             let name = null
@@ -176,26 +176,26 @@ const OnboardingVideoProcessingScreen = ({ navigation, route }) => {
             if (processingData.tags) {
                 const tags = processingData.tags
 
-                try {
-                    let names = []
-                    if (tags.journey && tags.journey.length > 0) {
-                        names = tags.journey.map((item) => capitalize(item))
-                    }
+                // try {
+                //     let names = []
+                //     if (tags.journey && tags.journey.length > 0) {
+                //         names = tags.journey.map((item) => capitalize(item))
+                //     }
 
-                    if (currentUser && currentUser.purposes) {
-                        for (const purpose of currentUser.purposes) {
-                            if (!names.includes(capitalize(purpose.name)))
-                                names.push(capitalize(purpose.name))
-                        }
-                    }
-                    const res = await apiClient.post('interests/update-purposes', { purposes: names })
+                //     if (currentUser && currentUser.purposes) {
+                //         for (const purpose of currentUser.purposes) {
+                //             if (!names.includes(capitalize(purpose.name)))
+                //                 names.push(capitalize(purpose.name))
+                //         }
+                //     }
+                //     const res = await apiClient.post('interests/update-purposes', { purposes: names })
 
-                    if (res.data.data) {
-                        purposes = res.data.data.map((item) => ({ name: item.purpose.name }))
-                    }
-                } catch (error) {
-                    console.log({ error })
-                }
+                //     if (res.data.data) {
+                //         purposes = res.data.data.map((item) => ({ name: item.purpose.name }))
+                //     }
+                // } catch (error) {
+                //     console.log({ error })
+                // }
 
                 try {
                     let names = []
@@ -246,7 +246,7 @@ const OnboardingVideoProcessingScreen = ({ navigation, route }) => {
 
             // console.log({ likes, dislikes, purposes, age, gender, name, videoIntro })
 
-            NavigationService.reset('OnboardingReviewProfileScreen', { likes, dislikes, purposes, age, gender, name, videoIntro: videoIntro })
+            NavigationService.reset('OnboardingReviewProfileScreen', { likes, dislikes, purposes: [], age, gender, name, videoIntro: videoIntro })
         } catch (error) {
             console.log({ error })
             showError()

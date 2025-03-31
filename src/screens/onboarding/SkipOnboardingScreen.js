@@ -39,9 +39,9 @@ const SkipOnboardingScreen = ({ navigation }) => {
     let stepLeft = 0
     if (!currentUser?.birthday) stepLeft += 1
     if (!currentUser?.gender) stepLeft += 1
+    if (!currentUser?.pronouns) stepLeft += 1
     if (!currentUser?.location) stepLeft += 1
-    if ((currentUser?.likeCount ?? 0) === 0 || (currentUser?.purposeCount ?? 0) === 0) stepLeft += 1
-    if (!currentUser?.avatar) stepLeft += 1
+    if ((currentUser?.likeCount ?? 0) === 0) stepLeft += 1
 
     return (
         <View style={[styles.container, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 16 }]}>
@@ -55,20 +55,20 @@ const SkipOnboardingScreen = ({ navigation }) => {
                         <Text style={{ fontSize: 18, lineHeight: 30, fontWeight: 'bold', color: 'white' }}>Birthday</Text>
                     </View>
                     <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-                        <FontAwesome6 iconStyle='solid' name={!((currentUser?.likeCount ?? 0) === 0 || (currentUser?.purposeCount ?? 0) === 0) ? 'check-circle' : 'circle'} size={20} color={!((currentUser?.likeCount ?? 0) === 0 || (currentUser?.purposeCount ?? 0) === 0) ? '#68C668' : '#C2C2C2'} />
-                        <Text style={{ fontSize: 18, lineHeight: 30, fontWeight: 'bold', color: 'white' }}>Goals & Interests</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
                         <FontAwesome6 iconStyle='solid' name={currentUser?.gender ? 'check-circle' : 'circle'} size={20} color={currentUser?.gender ? '#68C668' : '#C2C2C2'} />
                         <Text style={{ fontSize: 18, lineHeight: 30, fontWeight: 'bold', color: 'white' }}>Gender</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+                        <FontAwesome6 iconStyle='solid' name={currentUser?.pronouns ? 'check-circle' : 'circle'} size={20} color={currentUser?.pronouns ? '#68C668' : '#C2C2C2'} />
+                        <Text style={{ fontSize: 18, lineHeight: 30, fontWeight: 'bold', color: 'white' }}>Pronouns</Text>
                     </View>
                     <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
                         <FontAwesome6 iconStyle='solid' name={currentUser?.location ? 'check-circle' : 'circle'} size={20} color={currentUser?.location ? '#68C668' : '#C2C2C2'} />
                         <Text style={{ fontSize: 18, lineHeight: 30, fontWeight: 'bold', color: 'white' }}>Location</Text>
                     </View>
                     <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-                        <FontAwesome6 iconStyle='solid' name={currentUser?.avatar ? 'check-circle' : 'circle'} size={20} color={currentUser?.avatar ? '#68C668' : '#C2C2C2'} />
-                        <Text style={{ fontSize: 18, lineHeight: 30, fontWeight: 'bold', color: 'white' }}>Avatar</Text>
+                        <FontAwesome6 iconStyle='solid' name={!((currentUser?.likeCount ?? 0) === 0) ? 'check-circle' : 'circle'} size={20} color={!((currentUser?.likeCount ?? 0) === 0) ? '#68C668' : '#C2C2C2'} />
+                        <Text style={{ fontSize: 18, lineHeight: 30, fontWeight: 'bold', color: 'white' }}>Interests & Dislikes</Text>
                     </View>
                 </View>
                 <Text style={{ fontSize: 13, lineHeight: 21, fontWeight: '600', color: '#F1F1F3', width: '100%' }}>{`Did you know? \n\nProfiles with complete details are 3x more likely to make meaningful connections!`}</Text>

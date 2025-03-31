@@ -25,7 +25,7 @@ const GetMatchScreen = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
   const { match } = route.params;
   const currentUser = useAtomValue(userAtom);
-  
+
   useEffect(() => {
     analytics().logScreenView({
       screen_name: "GetMatchScreen",
@@ -93,7 +93,7 @@ const GetMatchScreen = ({ navigation, route }) => {
             }}
           >
             <Text style={{ fontSize: 11, fontWeight: "bold", color: "black" }}>
-              {currentUser?.tag?.name}
+              {currentUser?.journey?.name}
             </Text>
           </View>
         </View>
@@ -124,7 +124,7 @@ const GetMatchScreen = ({ navigation, route }) => {
             }}
           >
             <Text style={{ fontSize: 11, fontWeight: "bold", color: "black" }}>
-              {match?.profile?.tag?.name}
+              {match?.profile?.journey?.name}
             </Text>
           </View>
         </View>

@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     },
     nameBackground: {
         position: "absolute",
-        height: "50%",
+        height: "60%",
         left: 0,
         right: 0,
         bottom: 0,
@@ -97,9 +97,10 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
             apiClient.get(`matches/sample-profiles`)
                 .then((res) => {
                     setLoading(false);
-                    console.log({ sampleProfiles: res })
+                    
                     if (res && res.data && res.data.success) {
                         const profiles = res.data.data
+                        console.log({ sampleProfiles: profiles })
                         setSampleProfiles(profiles)
                         if (profiles.length > 0) {
                             setCurrentProfileIndex(0)
@@ -289,18 +290,12 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                                 resizeMode={ResizeMode.COVER}
                                 sources={[
                                     currentProfile?.video_intro,
-                                    currentProfile?.video_why,
-                                    currentProfile?.video_challenge,
                                     currentProfile?.video_purpose,
-                                    currentProfile?.video_interests
-                                  ]}
-                                  subtitles={[
+                                ]}
+                                subtitles={[
                                     currentProfile?.subtitle_intro,
-                                    currentProfile?.subtitle_why,
-                                    currentProfile?.subtitle_challenge,
                                     currentProfile?.subtitle_purpose,
-                                    currentProfile?.subtitle_interests
-                                  ]}
+                                ]}
                                 onPlaybackStatusUpdate={(status) => {
                                     setPlaying(status.isPlaying || status.isBuffering || status.shouldPlay);
                                     if (status.didJustFinish || status.isPlaying) {
@@ -331,7 +326,7 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                         )}
                         {!(playing || pendingVideo) &&
                             <LinearGradient
-                                colors={["transparent", "rgba(0,0,0,0.79)"]}
+                                colors={["transparent", "black"]}
                                 style={styles.nameBackground}
                             />
                         }
@@ -377,11 +372,11 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                                         style={[
                                             styles.tagText,
                                             {
-                                                fontSize: (currentProfile?.tag?.name ?? "").length > 20 ? 13 : 15,
+                                                fontSize: (currentProfile?.journey?.name ?? "").length > 20 ? 13 : 15,
                                             },
                                         ]}
                                     >
-                                        {currentProfile?.tag?.name}
+                                        {currentProfile?.journey?.name}
                                     </Text>
                                 </View>
                             </View>
@@ -415,8 +410,8 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                                     }}
                                 >
                                     {
-                                        currentProfile && !(playing || pendingVideo) &&
-                                        <View style={{ alignItems: "center", gap: 15, width: 45 }}>
+                                        currentProfile &&
+                                        <View style={{ alignItems: "center", gap: 15, width: 45, paddingBottom: (playing || pendingVideo) ? 120 : 0 }}>
                                             {
                                                 currentProfileIndex > 0 &&
                                                 <TouchableOpacity
@@ -479,8 +474,8 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                                         </View>
                                     )}
                                     {
-                                        currentProfile && !(playing || pendingVideo) &&
-                                        <View style={{ alignItems: "center", gap: 15, }}>
+                                        currentProfile &&
+                                        <View style={{ alignItems: "center", gap: 15, width: 45, paddingBottom: (playing || pendingVideo) ? 120 : 0 }}>
                                             <TouchableOpacity
                                                 disabled={loading}
                                                 onPress={likeAction}
@@ -626,7 +621,7 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                         </View>
                     </View>
 
-                    {(currentProfile?.purposes ?? []).length > 0 && (
+                    {/* {(currentProfile?.purposes ?? []).length > 0 && (
                         <View style={{ width: "100%" }}>
                             <View
                                 style={{
@@ -645,7 +640,6 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                                     Journeys & Purposes
                                 </Text>
                             </View>
-                            {/* <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} /> */}
                             <SectionCard
                                 style={{
                                     borderRadius: 20,
@@ -688,7 +682,7 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                                 })}
                             </SectionCard>
                         </View>
-                    )}
+                    )} */}
                     {userInterests.length > 0 && (
                         <View style={{ width: "100%" }}>
                             <View

@@ -221,6 +221,13 @@ const BirthdayUpdateScreen = ({ navigation, route }) => {
                 onPress={onContinue}
                 loading={loading}
             />
+
+            <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 3 }}
+                    onPress={() => NavigationService.push('SkipOnboardingScreen')}>
+                    <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#7a7a7a' }}>Skip for now</Text>
+                </TouchableOpacity>
+            </View>
             {/* {
                 !isUpdate &&
                 <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>

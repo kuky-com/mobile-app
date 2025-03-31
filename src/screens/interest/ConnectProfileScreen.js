@@ -73,8 +73,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#47F644',
   },
   onlineStatusBg: {
-    marginTop: 13
   },
+  shadow: {
+    shadowOffset: { width: 1, height: 1 },
+    shadowOpacity: 0.25,
+    elevation: 1,
+    shadowColor: '#000000',
+  }
 });
 
 const ConnectProfileScreen = ({ navigation, route }) => {
@@ -85,7 +90,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
   const [matchInfo, setMatchInfo] = useState(null);
   const currentUser = useAtomValue(userAtom);
   const showAlert = useAlert();
-  const [commonPurposes, setCommonPurposes] = useState(null);
+  // const [commonPurposes, setCommonPurposes] = useState(null);
   const [commonInterests, setCommonInterests] = useState([]);
   const [playing, setPlaying] = useState(false);
   const [showShare, setShowShare] = useState(null);
@@ -134,16 +139,16 @@ const ConnectProfileScreen = ({ navigation, route }) => {
         });
 
       if (isStringInteger(currentProfile.id) && currentProfile.id !== currentUser.id) {
-        apiClient
-          .get(`users/${profile.id}/journey`)
-          .then((res) => {
-            if (res && res.data && res.data.success) {
-              setCommonPurposes(res.data.data);
-            }
-          })
-          .catch((error) => {
-            console.log({ error });
-          });
+        // apiClient
+        //   .get(`users/${profile.id}/journey`)
+        //   .then((res) => {
+        //     if (res && res.data && res.data.success) {
+        //       setCommonPurposes(res.data.data);
+        //     }
+        //   })
+        //   .catch((error) => {
+        //     console.log({ error });
+        //   });
 
         apiClient
           .get(`users/${profile.id}/common-interests`)
@@ -165,16 +170,16 @@ const ConnectProfileScreen = ({ navigation, route }) => {
 
   useEffect(() => {
     if (isStringInteger(currentProfile.id) && currentProfile.id !== currentUser.id) {
-      apiClient
-        .get(`users/${profile.id}/journey`)
-        .then((res) => {
-          if (res && res.data && res.data.success) {
-            setCommonPurposes(res.data.data);
-          }
-        })
-        .catch((error) => {
-          console.log({ error });
-        });
+      // apiClient
+      //   .get(`users/${profile.id}/journey`)
+      //   .then((res) => {
+      //     if (res && res.data && res.data.success) {
+      //       setCommonPurposes(res.data.data);
+      //     }
+      //   })
+      //   .catch((error) => {
+      //     console.log({ error });
+      //   });
 
       apiClient
         .get(`users/${profile.id}/common-interests`)
@@ -450,27 +455,39 @@ const ConnectProfileScreen = ({ navigation, route }) => {
               <Text style={{ fontSize: 24, color: "black", fontWeight: "bold" }}>
                 {currentProfile?.full_name}
               </Text>
-              {isRecentOnline &&
-                <View style={styles.onlineStatusBg}>
-                  <OnlineStatus isRecentOnline={isRecentOnline} status={currentProfile?.online_status} radius={12} />
-                </View>
-              }
+              <View style={styles.onlineStatusBg}>
+                <OnlineStatus isRecentOnline={isRecentOnline} status={currentProfile?.online_status} radius={12} />
+              </View>
             </View>
 
-            <View style={styles.tagContainer}>
-              <Text
-                style={[
-                  styles.tagText,
-                  {
-                    fontSize: (currentProfile?.tag?.name ?? "").length > 20 ? 13 : 15,
-                  },
-                ]}
-              >
-                {currentProfile?.tag?.name}
-              </Text>
-            </View>
+            {/* <View style={styles.tagContainer}>
+              {
+                currentProfile?.journey ?
+                  <Text
+                    style={[
+                      styles.tagText,
+                      {
+                        fontSize: (currentProfile?.journey?.name ?? "").length > 20 ? 13 : 15,
+                      },
+                    ]}
+                  >
+                    {currentProfile?.journey?.name}
+                  </Text>
+                  :
+                  <Text
+                    style={[
+                      styles.tagText,
+                      {
+                        fontSize: (currentProfile?.tag?.name ?? "").length > 20 ? 13 : 15,
+                      },
+                    ]}
+                  >
+                    {currentProfile?.tag?.name}
+                  </Text>
+              }
+            </View> */}
           </View>
-          {
+          {/* {
             commonPurposes && commonPurposes.message &&
             <View style={{ gap: 12, flexDirection: 'row', alignItems: 'center', width: '100%', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10, backgroundColor: '#E9E5FF' }}>
               <Image source={images.match_icon} style={{ width: 40, height: 40 }} contentFit='contain' />
@@ -478,13 +495,14 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                 fontSize: 13, fontWeight: 'bold', flex: 1
               }}>{commonPurposes.message}</Text>
             </View>
-          }
+          } */}
           <View
             style={{
               width: "100%",
               height: Math.min(
                 700,
-                Dimensions.get("screen").height - insets.top - insets.bottom - 150 - (commonPurposes && commonPurposes.message ? 60 : 0),
+                Dimensions.get("screen").height - insets.top - insets.bottom - 150,
+                // Dimensions.get("screen").height - insets.top - insets.bottom - 150 - (commonPurposes && commonPurposes.message ? 60 : 0),
               ),
               borderWidth: 8,
               borderColor: "white",
@@ -506,17 +524,11 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                 ref={videoRef}
                 sources={[
                   currentProfile?.video_intro,
-                  currentProfile?.video_why,
-                  currentProfile?.video_challenge,
                   currentProfile?.video_purpose,
-                  currentProfile?.video_interests
                 ]}
                 subtitles={[
                   currentProfile?.subtitle_intro,
-                  currentProfile?.subtitle_why,
-                  currentProfile?.subtitle_challenge,
                   currentProfile?.subtitle_purpose,
-                  currentProfile?.subtitle_interests
                 ]}
                 resizeMode={ResizeMode.COVER}
                 onPlaybackStatusUpdate={(status) => {
@@ -624,7 +636,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                       width: "100%",
                       flexDirection: "row",
                       alignItems: "flex-end",
-                      justifyContent: showAcceptReject && !matchInfo ? "space-between" : "center",
+                      justifyContent: (showAcceptReject && !matchInfo && currentUser.id !== currentProfile.id) ? "space-between" : "center",
                       paddingHorizontal: 9,
                     }}
                   >
@@ -1049,7 +1061,37 @@ const ConnectProfileScreen = ({ navigation, route }) => {
               </View>
             )}
 
-          {(currentProfile?.purposes ?? []).length > 0 && (
+
+          {
+            currentProfile?.journey_category &&
+            <View style={{ width: "100%" }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 8,
+                  paddingVertical: 12,
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ color: "black", fontSize: 14, fontWeight: "bold" }}>
+                  Journey
+                </Text>
+              </View>
+
+              <View style={[styles.shadow, { backgroundColor: '#E9E5FF', borderRadius: 15, paddingHorizontal: 16, paddingVertical: 12, gap: 10 }]}
+              >
+                <Text style={{ fontSize: 14, color: 'black', fontWeight: 'bold' }}>{currentProfile?.journey_category?.name}</Text>
+                {
+                  currentProfile?.journey &&
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#725ED4' }} />
+                    <Text style={{ flex: 1, color: '#333333', fontSize: 14, fontWeight: '400' }}>{currentProfile?.journey?.name}</Text>
+                  </View>
+                }
+              </View>
+            </View>
+          }
+          {/* {(currentProfile?.purposes ?? []).length > 0 && (
             <View style={{ width: "100%" }}>
               <View
                 style={{
@@ -1068,7 +1110,6 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                   Journeys & Purposes
                 </Text>
               </View>
-              {/* <View style={{ width: '100%', backgroundColor: '#9889E1', height: 1 }} /> */}
               <SectionCard
                 style={{
                   borderRadius: 20,
@@ -1111,7 +1152,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                 })}
               </SectionCard>
             </View>
-          )}
+          )} */}
           {userInterests.length > 0 && (
             <View style={{ width: "100%" }}>
               <View

@@ -7,6 +7,7 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import analytics from '@react-native-firebase/analytics'
 import { OneSignal } from 'react-native-onesignal'
+import colors from '../../utils/colors'
 
 const styles = StyleSheet.create({
     container: {
@@ -38,27 +39,29 @@ const VerificationSuccessScreen = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <Image
-                source={images.verification_success_bg}
-                style={StyleSheet.absoluteFill}
+                source={images.verify_success_bg}
+                style={[StyleSheet.absoluteFill, { backgroundColor: colors.mainColor }]}
                 contentFit='cover' />
             <View
-                source={images.verification_success_bg}
                 style={{
-                    width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center',
+                    width: '100%', height: '100%', alignItems: 'center', justifyContent: 'space-between',
                     paddingTop: insets.top + 40,
                     paddingBottom: insets.bottom + 32,
                     paddingHorizontal: 24,
-                    backgroundColor: '#00000077'
                 }}
             >
                 <Image source={images.logo_with_text} style={{ width: 100, height: 35, tintColor: 'white' }} contentFit='contain' />
-                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 26 }}>
-                    <Image source={images.success_icon} style={{ width: 66, height: 66, tintColor: 'white' }} contentFit='contain' />
-                    <Text style={{ fontSize: 32, color: 'white', fontWeight: 'bold', textAlign: 'center', lineHeight: 50 }}>{'Your email has been successfully verified.'}</Text>
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 20 }}>
+                    <Image source={images.verify_success_icon} style={{ width: 120, height: 120 }} contentFit='contain' />
+                    <Text style={{ fontSize: 18, color: '#F1F1F3', fontWeight: '500' }}>Verified</Text>
                 </View>
-                <TouchableOpacity onPress={onContinue} style={{ width: '100%', backgroundColor: 'white', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#333333' }}>Continue</Text>
-                </TouchableOpacity>
+
+                <View style={{width: '100%', alignItems: 'center', justifyContent: 'center', gap: 40}}>
+                    <Text style={{ fontSize: 18, color: 'white', fontWeight: '400', textAlign: 'center', lineHeight: 22 }}>{'Your email has been successfully verified.'}</Text>
+                    <TouchableOpacity onPress={onContinue} style={{ width: '100%', backgroundColor: '#333333', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center' }}>
+                        <Text style={{ fontSize: 18, fontWeight: 'bold', color: 'white' }}>Continue</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
         </View>
     )

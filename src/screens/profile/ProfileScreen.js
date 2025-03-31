@@ -248,7 +248,9 @@ const ProfileScreen = ({ navigation }) => {
             });
     }
 
-    console.log({ uri: currentUser })
+    const onUpdateJourney = () => {
+        navigation.push('JourneySelectionScreen', {isUpdate: true})
+    }
 
     return (
         <View style={styles.container}>
@@ -322,17 +324,6 @@ const ProfileScreen = ({ navigation }) => {
                             onRefresh={onRefresh} />}
                         showsVerticalScrollIndicator={false} style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 16, paddingTop: 24 }}>
                         <View style={{ flex: 1, width: Platform.isPad ? 600 : '100%', alignSelf: 'center', gap: 16, marginBottom: insets.bottom + 120 }}>
-                            {/* <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1 }}>
-                                    <TouchableOpacity onPress={openNameEdit} style={{ width: 26, height: 26, alignItems: 'center', justifyContent: 'center', borderRadius: 15, backgroundColor: colors.mainColor }}>
-                                        <Image source={images.edit_icon} style={{ width: 12, height: 12, tintColor: '#E8FF58' }} />
-                                    </TouchableOpacity>
-                                    <Text style={{ fontSize: 24, color: 'black', fontWeight: 'bold', flex: 1 }}>{`${currentUser?.full_name}`}</Text>
-                                </View>
-                                <View style={{ maxWidth: '50%', backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
-                                    <Text style={{ color: '#E8FF58', textAlign: 'center', fontSize: (currentUser?.tag?.name ?? '').length > 20 ? 12 : 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>
-                                </View>
-                            </View> */}
                             <View>
                                 <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12, alignItems: 'center' }}>
                                     <Image source={images.update_video} style={{ width: 18, height: 18, tintColor: 'black' }} contentFit='contain' />
@@ -349,17 +340,11 @@ const ProfileScreen = ({ navigation }) => {
                                             ref={videoRef}
                                             sources={[
                                                 currentUser?.video_intro,
-                                                currentUser?.video_why,
-                                                currentUser?.video_challenge,
                                                 currentUser?.video_purpose,
-                                                currentUser?.video_interests
                                             ]}
                                             subtitles={[
                                                 currentUser?.subtitle_intro,
-                                                currentUser?.subtitle_why,
-                                                currentUser?.subtitle_challenge,
                                                 currentUser?.subtitle_purpose,
-                                                currentUser?.subtitle_interests
                                             ]}
                                             resizeMode={ResizeMode.COVER}
                                             onPlaybackStatusUpdate={status => {
@@ -424,7 +409,7 @@ const ProfileScreen = ({ navigation }) => {
                                 </View>
                             </View> */}
 
-                            <View>
+                            {/* <View>
                                 <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12, alignItems: 'center' }}>
                                     <Text style={{ color: 'black', fontSize: 16, fontWeight: 'bold' }}>My profile tag</Text>
                                 </View>
@@ -435,13 +420,47 @@ const ProfileScreen = ({ navigation }) => {
                                 }}>
                                     <View style={{ flex: 1, gap: 5 }}>
                                         <Text style={{ fontSize: 11, color: '#333333aa' }}>My profile tag</Text>
-                                        <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'black' }}>{currentUser?.tag?.name}</Text>
+                                        {
+                                            currentUser?.journey ?
+                                                <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'black' }}>{currentUser?.journey?.name}</Text>
+                                                :
+                                                <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'black' }}>{currentUser?.tag?.name}</Text>
+                                        }
                                     </View>
-                                    {/* <FontAwesome6 name='chevron-right' size={20} color='#725ED4' /> */}
                                 </View>
+                            </View> */}
+
+                            <View style={{ width: "100%" }}>
+                                <View
+                                    style={{
+                                        flexDirection: "row",
+                                        gap: 8,
+                                        paddingVertical: 12,
+                                        alignItems: "center",
+                                    }}
+                                >
+                                    <Text style={{ color: "black", fontSize: 14, fontWeight: "bold" }}>
+                                        Journey
+                                    </Text>
+                                </View>
+
+                                <TouchableOpacity onPress={onUpdateJourney} style={[styles.shadow, { alignItems: 'center', backgroundColor: '#E9E5FF', borderRadius: 15, paddingHorizontal: 16, paddingVertical: 12, gap: 8, flexDirection: 'row' }]}
+                                >
+                                    <View style={{ flex: 1, gap: 10 }}>
+                                        <Text style={{ fontSize: 14, color: 'black', fontWeight: 'bold' }}>{currentUser?.journey_category?.name}</Text>
+                                        {
+                                            currentUser?.journey &&
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#725ED4' }} />
+                                                <Text style={{ flex: 1, color: '#333333', fontSize: 14, fontWeight: '400' }}>{currentUser?.journey?.name}</Text>
+                                            </View>
+                                        }
+                                    </View>
+                                    <FontAwesome6 name='chevron-right' size={20} color={colors.mainColor} />
+                                </TouchableOpacity>
                             </View>
 
-                            <View >
+                            {/* <View >
                                 <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12, alignItems: 'center' }}>
                                     <Text style={{ color: 'black', fontSize: 16, fontWeight: 'bold' }}>Your purposes</Text>
 
@@ -460,7 +479,7 @@ const ProfileScreen = ({ navigation }) => {
                                         })
                                     }
                                 </View>
-                            </View>
+                            </View> */}
                             <View>
                                 <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12, alignItems: 'center' }}>
                                     <Image source={images.interest_icon} style={{ width: 18, height: 18, tintColor: '#000000' }} contentFit='contain' />
@@ -529,6 +548,34 @@ const ProfileScreen = ({ navigation }) => {
                                     <Text style={{ fontSize: 11, color: '#333333aa' }}>Age</Text>
                                     {currentUser?.birthday && currentUser?.birthday.includes('/') && <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'black' }}>{`${dayjs().diff(dayjs(currentUser?.birthday, 'DD/MM/YYYY'), 'year')} yrs`}</Text>}
                                     {currentUser?.birthday && currentUser?.birthday.includes('-') && <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'black' }}>{`${dayjs().diff(dayjs(currentUser?.birthday, 'MM-DD-YYYY'), 'year')} yrs`}</Text>}
+                                </View>
+                                <FontAwesome6 name='chevron-right' size={20} color='#725ED4' />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                onPress={() => navigation.navigate('GenderUpdateScreen', { isUpdate: true })}
+                                style={{
+                                    gap: 8, borderRadius: 15, height: 55, paddingHorizontal: 16, backgroundColor: 'white',
+                                    alignItems: 'center', justifyContent: 'center', flexDirection: 'row', shadowColor: '#000000',
+                                    shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.25, elevation: 1
+                                }}>
+                                <View style={{ flex: 1, gap: 5 }}>
+                                    <Text style={{ fontSize: 11, color: '#333333aa' }}>Your gender</Text>
+                                    <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'black' }}>{currentUser?.gender ?? ''}</Text>
+                                </View>
+                                <FontAwesome6 name='chevron-right' size={20} color='#725ED4' />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                onPress={() => navigation.navigate('PronounsUpdateScreen', { isUpdate: true })}
+                                style={{
+                                    gap: 8, borderRadius: 15, height: 55, paddingHorizontal: 16, backgroundColor: 'white',
+                                    alignItems: 'center', justifyContent: 'center', flexDirection: 'row', shadowColor: '#000000',
+                                    shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.25, elevation: 1
+                                }}>
+                                <View style={{ flex: 1, gap: 5 }}>
+                                    <Text style={{ fontSize: 11, color: '#333333aa' }}>Your pronouns</Text>
+                                    <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'black' }}>{currentUser?.pronouns ?? ''}</Text>
                                 </View>
                                 <FontAwesome6 name='chevron-right' size={20} color='#725ED4' />
                             </TouchableOpacity>
@@ -615,9 +662,9 @@ const ProfileScreen = ({ navigation }) => {
                                     <Text style={{ fontSize: 24, color: 'black', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text>
                                     <OnlineStatus radius={20} status={currentUser?.online_status} isRecentOnline={true} />
                                 </View>
-                                <View style={{ maxWidth: '50%', backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
-                                    <Text style={{ color: '#E8FF58', textAlign: 'center', fontSize: (currentUser?.tag?.name ?? '').length > 20 ? 12 : 14, fontWeight: 'bold' }}>{currentUser?.tag?.name}</Text>
-                                </View>
+                                {/* <View style={{ maxWidth: '50%', backgroundColor: '#7B65E8', height: 30, borderRadius: 15, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
+                                    <Text style={{ color: '#E8FF58', textAlign: 'center', fontSize: (currentUser?.journey?.name ?? '').length > 20 ? 12 : 14, fontWeight: 'bold' }}>{currentUser?.journey?.name}</Text>
+                                </View> */}
                             </View>
                             <View style={{ justifyContent: 'flex-end', width: Math.min(Dimensions.get('screen').width - 32, 600), height: Math.min(Dimensions.get('screen').width + 60, 750), borderRadius: 20, overflow: 'hidden' }}>
                                 {!playing && <AvatarImage avatar={currentUser?.avatar} full_name={currentUser?.full_name} style={{ borderWidth: 2, borderColor: '#CDB8E2', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} />}
@@ -628,17 +675,11 @@ const ProfileScreen = ({ navigation }) => {
                                         ref={videoRef}
                                         sources={[
                                             currentUser?.video_intro,
-                                            currentUser?.video_why,
-                                            currentUser?.video_challenge,
                                             currentUser?.video_purpose,
-                                            currentUser?.video_interests
                                         ]}
                                         subtitles={[
                                             currentUser?.subtitle_intro,
-                                            currentUser?.subtitle_why,
-                                            currentUser?.subtitle_challenge,
                                             currentUser?.subtitle_purpose,
-                                            currentUser?.subtitle_interests
                                         ]}
                                         resizeMode={ResizeMode.COVER}
                                         onPlaybackStatusUpdate={status => {
@@ -696,7 +737,7 @@ const ProfileScreen = ({ navigation }) => {
                                     <Text style={{ fontSize: 14, color: 'black' }}>{`${currentUser?.location ?? ''}`}</Text>
                                 </View>
                             </View>
-                            <View>
+                            {/* <View>
                                 <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12, alignItems: 'center' }}>
                                     <Text style={{ color: 'black', fontSize: 16, fontWeight: 'bold' }}>Your purposes</Text>
                                 </View>
@@ -714,7 +755,37 @@ const ProfileScreen = ({ navigation }) => {
                                         }
                                     </View>
                                 </View>
+                            </View> */}
+
+                            <View style={{ width: "100%" }}>
+                                <View
+                                    style={{
+                                        flexDirection: "row",
+                                        gap: 8,
+                                        paddingVertical: 12,
+                                        alignItems: "center",
+                                    }}
+                                >
+                                    <Text style={{ color: "black", fontSize: 14, fontWeight: "bold" }}>
+                                        Journey
+                                    </Text>
+                                </View>
+
+                                <View style={[styles.shadow, { alignItems: 'center', backgroundColor: '#E9E5FF', borderRadius: 15, paddingHorizontal: 16, paddingVertical: 12, gap: 8, flexDirection: 'row' }]}
+                                >
+                                    <View style={{ flex: 1, gap: 10 }}>
+                                        <Text style={{ fontSize: 14, color: 'black', fontWeight: 'bold' }}>{currentUser?.journey_category?.name}</Text>
+                                        {
+                                            currentUser?.journey &&
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#725ED4' }} />
+                                                <Text style={{ flex: 1, color: '#333333', fontSize: 14, fontWeight: '400' }}>{currentUser?.journey?.name}</Text>
+                                            </View>
+                                        }
+                                    </View>
+                                </View>
                             </View>
+
                             <View>
                                 <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12, alignItems: 'center' }}>
                                     <Image source={images.interest_icon} style={{ width: 18, height: 18, tintColor: 'black' }} contentFit='contain' />

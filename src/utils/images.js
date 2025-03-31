@@ -96,6 +96,10 @@ const bot_avatar = require("../assets/images/bot_avatar.png");
 const progress_bg = require("../assets/images/progress_bg.png");
 const happy_cloud = require("../assets/images/happy_cloud.png");
 const cry_cloud = require("../assets/images/cry_cloud.png");
+const record_tutorial = require("../assets/images/record_tutorial.png");
+
+const verify_success_icon = require("../assets/images/verify_success_icon.png");
+const verify_success_bg = require("../assets/images/verify_success_bg.png");
 
 const instagram_icon = require("../assets/images/social/instagram.png");
 const twitter_icon = require("../assets/images/social/twitter.png");
@@ -208,4 +212,7 @@ export default {
   progress_bg,
   happy_cloud,
   cry_cloud,
+  verify_success_bg,
+  verify_success_icon,
+  record_tutorial
 };

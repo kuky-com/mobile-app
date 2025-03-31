@@ -20,21 +20,26 @@ const DynamicLikeItem = ({ itemWidth, item, onPress }) => {
                 style={[styles.image, { height: itemHeight }]}
             />
             <View style={styles.tagContainer}>
-                <Text style={styles.tagText}>{item?.tag?.name}</Text>
+                <View style={styles.tagView}>
+                    <Text style={styles.tagText}>{item?.journey?.name}</Text>
+                </View>
             </View>
 
             <View style={styles.bottomContainer}>
                 <LinearGradient
-                    colors={['transparent', 'rgba(0,0,0,0.79)']}
+                    colors={['transparent', 'black']}
                     style={styles.nameBackground}
                 />
+                {item.user_note &&
+                    <View style={{ backgroundColor: '#7B65E8dd', padding: 16, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderBottomRightRadius: 20 }}>
+                        <Text style={{ fontSize: 13, lineHeight: 20, fontWeight: '600', color: '#E8FF58' }}>{`"${item.user_note}"`}</Text>
+                    </View>
+                }
                 <View style={styles.nameContainer}>
-                    {item.birthday && item.birthday.includes('-') && <Text style={[styles.name, {maxWidth: itemWidth - 30}]}>{`${item.full_name}, ${dayjs().diff(dayjs(item.birthday, 'MM-DD-YYYY'), 'year')}`}</Text>}
-                    {item.birthday && item.birthday.includes('/') && <Text style={[styles.name, {maxWidth: itemWidth - 30}]}>{`${item.full_name}, ${dayjs().diff(dayjs(item.birthday, 'DD/MM/YYYY'), 'year')}`}</Text>}
-                    {!item.birthday && <Text style={[styles.name, {maxWidth: itemWidth - 30}]}>{`${item.full_name}`}</Text>}
-                    {isRecentOnline &&
-                        <OnlineStatus isRecentOnline={isRecentOnline} status={item?.online_status} radius={12} />
-                    }
+                    {item.birthday && item.birthday.includes('-') && <Text style={[styles.name, { maxWidth: itemWidth - 30 }]}>{`${item.full_name}, ${dayjs().diff(dayjs(item.birthday, 'MM-DD-YYYY'), 'year')} yo`}</Text>}
+                    {item.birthday && item.birthday.includes('/') && <Text style={[styles.name, { maxWidth: itemWidth - 30 }]}>{`${item.full_name}, ${dayjs().diff(dayjs(item.birthday, 'DD/MM/YYYY'), 'year')} yo`}</Text>}
+                    {!item.birthday && <Text style={[styles.name, { maxWidth: itemWidth - 30 }]}>{`${item.full_name}`}</Text>}
+                    <OnlineStatus isRecentOnline={isRecentOnline} status={item?.online_status} radius={12} />
                 </View>
             </View>
         </TouchableOpacity>
@@ -47,31 +52,34 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         overflow: 'hidden',
         margin: 8,
-        borderWidth: 1, borderColor: 'white'
+        borderWidth: 3, borderColor: 'white'
     },
     image: {
         width: '100%',
         borderRadius: 12,
     },
     tagContainer: {
-        backgroundColor: '#7B65E8',
         position: 'absolute',
-        paddingVertical: 5, borderRadius: 11,
-        justifyContent: 'center',
-        paddingHorizontal: 10,
-        top: 8,
-        right: 3,
-        maxWidth: '80%'
+        justifyContent: 'flex-end',
+        flexDirection: 'row',
+        top: 12,
+        right: 8,
+        left: 8
+    },
+    tagView: {
+        backgroundColor: '#7B65E8dd',
+        paddingVertical: 5, borderRadius: 11, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 10
     },
     tagText: {
         color: '#E8FF58',
-        fontSize: 8,
+        fontSize: 12,
         fontWeight: 'bold',
-        textAlign: 'center'
+        textAlign: 'center',
+        lineHeight: 18
     },
     name: {
         fontWeight: 'bold',
-        fontSize: Platform.isPad ? 20 : 14,
+        fontSize: 16,
         textAlign: 'left',
         color: 'white'
     },
@@ -81,11 +89,11 @@ const styles = StyleSheet.create({
         height: '50%',
         justifyContent: 'flex-end',
         alignItems: 'flex-start',
-        paddingBottom: 16, paddingLeft: 10,
-        width: '100%'
+        paddingBottom: 22, paddingLeft: 12,
+        width: '100%', gap: 10
     },
     nameContainer: {
-        flexDirection: "row", gap: 3
+        flexDirection: "row", alignItems: 'center', gap: 5
     },
     nameBackground: {
         position: 'absolute',

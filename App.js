@@ -43,6 +43,7 @@ import { SendbirdCalls } from "@sendbird/calls-react-native";
 import { AlertIconProvider } from "./src/components/AlertIconProvider";
 import DeviceInfo from "react-native-device-info";
 import { NODE_ENV } from "./src/utils/apiClient";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 dayjs.extend(advancedFormat);
 dayjs.extend(relativeTime);
@@ -51,7 +52,7 @@ dayjs.extend(duration)
 
 const queryClient = new QueryClient();
 
-if(NODE_ENV === 'development') {
+if (NODE_ENV === 'development') {
   analytics().setAnalyticsCollectionEnabled(false)
 } else {
   analytics().setAnalyticsCollectionEnabled(true)
@@ -209,7 +210,7 @@ export default function App() {
   });
 
   return (
-    <>
+    <GestureHandlerRootView>
       <SafeAreaProvider>
         <SheetProvider>
           <AppUpdateAlertProvider>
@@ -237,6 +238,6 @@ export default function App() {
         </SheetProvider>
       </SafeAreaProvider>
       <Toast config={toastConfig} />
-    </>
+    </GestureHandlerRootView>
   );
 }

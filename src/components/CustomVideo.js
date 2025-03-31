@@ -92,6 +92,7 @@ const CustomVideo = React.forwardRef((props, ref) => {
   }, [loadNewSource]);
 
   const handlePressLeft = () => {
+    console.log('handlePressRight')
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
       // flatListRef.current.scrollToIndex({ index: currentIndex - 1 });
@@ -99,6 +100,8 @@ const CustomVideo = React.forwardRef((props, ref) => {
   };
 
   const handlePressRight = () => {
+    console.log('handlePressRight')
+
     if (currentIndex < sources.length - 1) {
       setCurrentIndex(currentIndex + 1);
       // flatListRef.current.scrollToIndex({ index: currentIndex + 1 });
@@ -106,6 +109,8 @@ const CustomVideo = React.forwardRef((props, ref) => {
   };
 
   const handlePressCenter = () => {
+    console.log('handlePressCenter')
+
     ref.current.setStatusAsync({ shouldPlay: false });
   };
 
@@ -156,6 +161,9 @@ const CustomVideo = React.forwardRef((props, ref) => {
             <Animated.View
               style={[
                 styles.progress,
+                {
+                  backgroundColor: currentIndex < index ? '#555' : 'white'
+                },
                 {
                   width: currentIndex === index ? progress.interpolate({
                     inputRange: [0, 1],
@@ -209,6 +217,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     flexDirection: 'row',
+    zIndex: 15
   },
   touchableLeft: {
     flex: 1,

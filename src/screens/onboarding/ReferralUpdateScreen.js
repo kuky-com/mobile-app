@@ -68,7 +68,7 @@ const ReferralUpdateScreen = ({ navigation, route }) => {
         console.log({resR})
 
         if(resR.data.success){
-          NavigationService.reset("BirthdayUpdateScreen");
+          NavigationService.reset("JourneySelectionScreen");
         } else {
           if(resR.data.message) {
             Toast.show({ text1: resR.data.message, type: 'error' })
@@ -88,7 +88,7 @@ const ReferralUpdateScreen = ({ navigation, route }) => {
       <StatusBar translucent style='dark' />
       <View style={{ flex: 1, gap: 16, width: Platform.isPad ? 600 : '100%', alignSelf: 'center' }}>
         <Image source={images.logo_icon} style={{ width: 40, height: 40, marginBottom: 8 }} contentFit='contain' />
-        <Text style={{ fontSize: 24, lineHeight: 40, maxWidth: '80%', fontWeight: 'bold', color: 'black' }}>{`Let’s complete your profile!`}</Text>
+        <Text style={{ fontSize: 20, lineHeight: 40, maxWidth: '80%', fontWeight: '600', color: 'black' }}>{`Let’s complete your profile!`}</Text>
         <Text style={{ fontSize: 13, fontWeight: '600', color: 'black' }}>Enter your referral code <Text style={{ color: '#949494' }}>(optional)</Text></Text>
         <KeyboardAwareScrollView>
           <View
@@ -131,7 +131,7 @@ const ReferralUpdateScreen = ({ navigation, route }) => {
         />
         <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
           <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 8 }}
-            onPress={() => NavigationService.reset('BirthdayUpdateScreen')}>
+            onPress={() => NavigationService.reset('JourneySelectionScreen')}>
             <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#333333' }}>Continue without referral</Text>
           </TouchableOpacity>
         </View>

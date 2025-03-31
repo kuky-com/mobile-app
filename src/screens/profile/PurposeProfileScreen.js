@@ -91,16 +91,16 @@ const PurposeProfileScreen = ({ navigation, route }) => {
             apiClient.post('interests/update-purposes', { purposes: purposeNames })
                 .then((res) => {
                     if (res && res.data && res.data.success) {
-                        if(res.data.data && res.data.data.length < purposeNames.length) {
-                            const newPurposes = res.data.data.map((item) => ({name: item.purpose.name}))
-                            setTags(newPurposes)
-                            // Toast.show({text2: `Oops! That doesn't look like an English word. Please try again.`, type: 'error'})
-                            showAlert('', `Oops! That doesn't look like an English word. Please try again.`, [{text: 'Ok'}])
-                            setLoading(false)
-                            return
-                        } else {
-                            Toast.show({ text1: 'Your purposes has been updated!', type: 'success' })
-                        }
+                        // if(res.data.data && res.data.data.length < purposeNames.length) {
+                        //     const newPurposes = res.data.data.map((item) => ({name: item.purpose.name}))
+                        //     setTags(newPurposes)
+                        //     // Toast.show({text2: `Oops! That doesn't look like an English word. Please try again.`, type: 'error'})
+                        //     showAlert('', `Oops! That doesn't look like an English word. Please try again.`, [{text: 'Ok'}])
+                        //     setLoading(false)
+                        //     return
+                        // } else {
+                        //     Toast.show({ text1: 'Your purposes has been updated!', type: 'success' })
+                        // }
 
                         apiClient.get('interests/profile-tag')
                             .then((res) => {

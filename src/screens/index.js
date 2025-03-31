@@ -106,6 +106,15 @@ import UnverifiedMatchesScreen from "./match/UnverifiedMatchesScreen";
 import VideoIntroductionScreen from "./onboarding/VideoIntroductionScreen";
 import OnboardingVideoResultScreen from "./onboarding/OnboardingVideoResultScreen";
 import VideoListEditScreen from "./onboarding/VideoListEditScreen";
+import JourneySelectionScreen from "./journeys/JourneySelectionScreen";
+import StruggleSelectionScreen from "./journeys/StruggleSelectionScreen";
+import CommunitySuggestionScreen from "./journeys/CommunitySuggestionScreen";
+import GeneralJPFScreen from "./journeys/GeneralJPFScreen";
+import SpecificJPFScreen from "./journeys/SpecificJPFScreen";
+import JourneyVideoTutorialScreen from "./journeys/JourneyVideoTutorialScreen";
+import IntroductionVideoScreen from "./journeys/IntroductionVideoScreen";
+import JourneyVideoScreen from "./journeys/JourneyVideoScreen";
+import JourneyMatchingScreen from "./journeys/JourneyMatchingScreen";
 
 SendbirdCalls.setListener({
   onRinging: async (callProps) => {
@@ -621,6 +630,16 @@ const AppStack = ({ navgation }) => {
       <Stack.Screen name="VideoIntroductionScreen" component={VideoIntroductionScreen} />
       <Stack.Screen name="OnboardingVideoResultScreen" component={OnboardingVideoResultScreen} />
       <Stack.Screen name="VideoListEditScreen" component={VideoListEditScreen} />
+
+      <Stack.Screen name="JourneySelectionScreen" component={JourneySelectionScreen} />
+      <Stack.Screen name="StruggleSelectionScreen" component={StruggleSelectionScreen} />
+      <Stack.Screen name="CommunitySuggestionScreen" component={CommunitySuggestionScreen} />
+      <Stack.Screen name="GeneralJPFScreen" component={GeneralJPFScreen} />
+      <Stack.Screen name="SpecificJPFScreen" component={SpecificJPFScreen} />
+      <Stack.Screen name="JourneyVideoTutorialScreen" component={JourneyVideoTutorialScreen} />
+      <Stack.Screen name="IntroductionVideoScreen" component={IntroductionVideoScreen} />
+      <Stack.Screen name="JourneyVideoScreen" component={JourneyVideoScreen} />
+      <Stack.Screen name="JourneyMatchingScreen" component={JourneyMatchingScreen} />
     </Stack.Navigator>
   );
 };
