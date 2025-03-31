@@ -50,11 +50,11 @@ const styles = StyleSheet.create({
 const AvatarUpdateScreen = ({ navigation, route }) => {
     const { fromReview } = route && route.params ? route.params : {}
     const insets = useSafeAreaInsets()
-    const [image, setImage] = useState(null)
-    const reference = storage().ref(imageImage)
-    const [imageUrl, setImageUrl] = useState(null)
-    const [loading, setLoading] = useState(false)
     const [currentUser, setUser] = useAtom(userAtom)
+    const [image, setImage] = useState(currentUser?.avatar ? {uri: currentUser?.avatar} : null)
+    const reference = storage().ref(imageImage)
+    const [imageUrl, setImageUrl] = useState(currentUser?.avatar ?? null)
+    const [loading, setLoading] = useState(false)
 
     useEffect(() => {
         analytics().logScreenView({
@@ -64,7 +64,7 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
     }, [])
 
     useEffect(() => {
-        if (imageUrl !== null) {
+        if (imageUrl !== currentUser?.avatar) {
             onContinue()
         }
     }, [imageUrl])

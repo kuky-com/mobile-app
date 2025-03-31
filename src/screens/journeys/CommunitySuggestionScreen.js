@@ -33,6 +33,12 @@ const CommunitySuggestionScreen = ({ navigation }) => {
     }, [])
 
     const onContinue = () => {
+        // if(currentUser?.avatar) {
+        //     NavigationService.reset('IntroductionVideoScreen')
+        // } else {
+        //     NavigationService.reset('AvatarUpdateScreen')
+        // }
+
         NavigationService.reset('AvatarUpdateScreen')
     }
 

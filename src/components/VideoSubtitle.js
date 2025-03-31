@@ -4,7 +4,7 @@ import Text from "./Text";
 
 // Function to fetch and parse VTT file
 const fetchVTT = async (url) => {
-  const response = await fetch(url);
+  const response = await fetch(url, { cache: 'no-cache' });
   const text = await response.text();
   const subtitles = parseVTT(text);
   return subtitles;
@@ -72,7 +72,7 @@ const VideoSubtitle = ({ videoRef, vttUrl }) => {
   };
 
   return (
-    <View style={[styles.subtitleContainer, {opacity: currentSubtitle && currentSubtitle.length > 0 ? 1 : 0}]}>
+    <View style={[styles.subtitleContainer, { opacity: currentSubtitle && currentSubtitle.length > 0 ? 1 : 0 }]}>
       <Text style={styles.subtitleText}>{renderHighlightedText(currentSubtitle)}</Text>
     </View>
   );
