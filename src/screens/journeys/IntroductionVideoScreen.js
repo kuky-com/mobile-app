@@ -5,6 +5,7 @@ import { Image } from "expo-image";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Dimensions,
   Linking,
   Platform,
@@ -92,6 +93,7 @@ const IntroductionVideoScreen = ({ navigation, route }) => {
   const [startPosition, setStartPosition] = useState(0);
   const [endPosition, setEndPosition] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [askPermissionOnce, setAskPermissionOnce] = useState(false)
 
   const showAlert = useAlertWithIcon()
   const showNormalAlert = useAlert()
@@ -134,33 +136,33 @@ const IntroductionVideoScreen = ({ navigation, route }) => {
 
   useEffect(() => {
     Voice.onSpeechPartialResults = (e) => {
-        console.log({ e })
-        processTranscript(e.value[0])
+      console.log({ e })
+      processTranscript(e.value[0])
     }
 
     return () => {
-        Voice.destroy().then(Voice.removeAllListeners).catch(e => {
-            console.log("UNABLE TO DESTROY");
-            console.log(e.error);
-        });
+      Voice.destroy().then(Voice.removeAllListeners).catch(e => {
+        console.log("UNABLE TO DESTROY");
+        console.log(e.error);
+      });
     }
-}, [])
+  }, [])
 
-useEffect(() => {
+  useEffect(() => {
     if (permission &&
-        permission.granted &&
-        audioPermission &&
-        audioPermission.granted) {
-        if (Platform.OS === 'ios') {
-            request(PERMISSIONS.IOS.SPEECH_RECOGNITION).then((status) => {
-                console.log({ status })
-            })
-                .catch((error) => {
-                    console.log({ error })
-                })
-        }
+      permission.granted &&
+      audioPermission &&
+      audioPermission.granted) {
+      if (Platform.OS === 'ios') {
+        request(PERMISSIONS.IOS.SPEECH_RECOGNITION).then((status) => {
+          console.log({ status })
+        })
+          .catch((error) => {
+            console.log({ error })
+          })
+      }
     }
-}, [permission, audioPermission])
+  }, [permission, audioPermission])
   useEffect(() => {
     setupTranscript()
   }, [])
@@ -404,13 +406,22 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
     ], [
       {
         text: 'Skip Video Uploading', onPress: () => {
-          NavigationService.reset('GeneralJPFScreen')
+          if (currentUser?.askJPFGeneral) {
+            NavigationService.reset('GeneralJPFScreen')
+          } else if (currentUser?.askJPFSpecific) {
+            NavigationService.reset('SpecificJPFScreen')
+          } else if (!currentUser?.video_purpose) {
+            NavigationService.reset('JourneyVideoScreen')
+          } else {
+            NavigationService.reset('Dashboard')
+          }
         }
       }
     ])
   }
 
   const updateProfile = (video, audio) => {
+    console.log({ video_intro: video, audio_intro: audio })
     apiClient.post('users/update', { video_intro: video, audio_intro: audio })
       .then((res) => {
         setProcessing(false)
@@ -418,7 +429,15 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
           setUser(res.data.data)
           console.log({ user: res.data.data })
 
-          NavigationService.reset('GeneralJPFScreen')
+          if (currentUser?.askJPFGeneral) {
+            NavigationService.reset('GeneralJPFScreen')
+          } else if (currentUser?.askJPFSpecific) {
+            NavigationService.reset('SpecificJPFScreen')
+          } else if (!currentUser?.video_purpose) {
+            NavigationService.reset('JourneyVideoScreen')
+          } else {
+            NavigationService.reset('Dashboard')
+          }
 
         } else {
           Toast.show({ text1: res.data.message, type: 'error' })
@@ -509,17 +528,35 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
     }
   }
 
-  const retryPermission = async () => {
+  const retryPermission = async (isContinue) => {
     try {
       const res = await requestPermission();
-      if (!res.canAskAgain && !res.granted) {
-        Linking.openSettings();
+      console.log({ res })
+      
+      if (!res.canAskAgain && !res.granted && askPermissionOnce) {
+        Alert.alert(
+          'Permission Required',
+          'Please enable camera permission from settings',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => Linking.openSettings() },
+          ]
+        );
       }
 
       const audioRes = await requestAudioPermission();
-      if (!audioRes.canAskAgain && !audioRes.granted) {
-        Linking.openSettings();
+      if (!audioRes.canAskAgain && !audioRes.granted && askPermissionOnce) {
+        Alert.alert(
+          'Permission Required',
+          'Please enable microphone permission from settings',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => Linking.openSettings() },
+          ]
+        );
       }
+
+      setAskPermissionOnce(true)
 
       if (res.granted && videoRef && videoRef.current) {
         videoRef.current.resumePreview();
@@ -539,7 +576,11 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
 
 
   const onSkip = () => {
-    NavigationService.reset('Dashboard')
+    if (fromOnboarding) {
+      NavigationService.reset('JourneyMatchingScreen')
+    } else {
+      NavigationService.reset('Dashboard')
+    }
   }
 
   return (
@@ -575,9 +616,9 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
           <Text
             style={{ fontSize: 14, lineHeight: 21, fontWeight: "500", color: "black", textAlign: 'center' }}
           >{`You have ${MAX_DURATION} seconds`}</Text>
-          {/* <View style={{ position: 'absolute', top: 0, left: 0, width: "100%", alignItems: "flex-end", paddingHorizontal: 32, paddingTop: insets.top }}>
+          <View style={{ position: 'absolute', top: 0, left: 0, width: "100%", alignItems: "flex-end", paddingHorizontal: 32, paddingTop: insets.top }}>
             <Text style={{ fontSize: 13, color: '#725ED4', fontWeight: 'bold' }} onPress={onSkip}>Skip</Text>
-          </View> */}
+          </View>
         </View>
         <View
           style={{
@@ -1015,16 +1056,16 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
               you.
             </Text>
             <ButtonWithLoading
-              text="Grant Camera Access"
+              text="Allow"
               style={{ marginTop: 40 }}
               onPress={retryPermission}
             />
             <TouchableOpacity
-              onPress={retryPermission}
+              onPress={onSkip}
               style={{ paddingHorizontal: 15, paddingVertical: 8, marginTop: 8 }}
             >
               <Text style={{ fontSize: 14, fontWeight: "500", color: "white" }}>
-                Retry Permission
+                Skip for now
               </Text>
             </TouchableOpacity>
           </View>

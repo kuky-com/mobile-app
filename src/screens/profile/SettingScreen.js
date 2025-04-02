@@ -128,51 +128,55 @@ const SettingScreen = ({ navigation }) => {
       payload: {
         onCancel: () => { },
         onConfirm: async () => {
-          const options = [
-            { text: "I met someone", color: "#333333" },
-            { text: "I need a break", color: "#333333" },
-            { text: "Other", color: "#333333" },
-            { text: "Cancel", style: "cancel" },
-          ];
+          setTimeout(async () => {
+            const options = [
+              { text: "I met someone", color: "#333333" },
+              { text: "I need a break", color: "#333333" },
+              { text: "Other", color: "#333333" },
+              { text: "Cancel", style: "cancel" },
+            ];
+            
+            await SheetManager.show("cmd-action-sheets", {
+              payload: {
+                actions: options,
+                header: "DELETE ACCOUNT",
+                title: "Are you sure you want to delete your account?",
+                onPress(index) {
+                  if (index < options.length - 1) {
+                    setLoading(true);
+                    apiClient
+                      .post("users/delete-account", { reason: options[index].text })
+                      .then(async (res) => {
+                        setLoading(false);
 
-          await SheetManager.show("cmd-action-sheets", {
-            payload: {
-              actions: options,
-              header: "DELETE ACCOUNT",
-              title: "Are you sure you want to delete your account?",
-              onPress(index) {
-                if (index < options.length - 1) {
-                  setLoading(true);
-                  apiClient
-                    .post("users/delete-account", { reason: options[index].text })
-                    .then(async (res) => {
-                      setLoading(false);
-                      if (res && res.data && res.data.success) {
-                        Toast.show({ text1: res.data.message, type: "success" });
-                        await AsyncStorage.removeItem("ACCESS_TOKEN");
-                        await AsyncStorage.removeItem("SENDBIRD_TOKEN");
-                        await AsyncStorage.removeItem("USER_ID");
-                        if (SendbirdCalls.currentUser) {
-                          SendbirdCalls.deauthenticate();
+                        console.log({data: res.data})
+                        if (res && res.data && res.data.success) {
+                          Toast.show({ text1: res.data.message, type: "success" });
+                          await AsyncStorage.removeItem("ACCESS_TOKEN");
+                          await AsyncStorage.removeItem("SENDBIRD_TOKEN");
+                          await AsyncStorage.removeItem("USER_ID");
+                          if (SendbirdCalls.currentUser) {
+                            SendbirdCalls.deauthenticate();
+                          }
+                          setToken(null);
+                          setUser(null);
+                          NavigationService.reset("LetDiscoverScreen");
+                        } else {
+                          Toast.show({
+                            text1: res?.data?.message ?? "Block action failed!",
+                            type: "error",
+                          });
                         }
-                        setToken(null);
-                        setUser(null);
-                        NavigationService.reset("LetDiscoverScreen");
-                      } else {
-                        Toast.show({
-                          text1: res?.data?.message ?? "Block action failed!",
-                          type: "error",
-                        });
-                      }
-                    })
-                    .catch((error) => {
-                      setLoading(false);
-                      Toast.show({ text1: error, type: "error" });
-                    });
-                }
+                      })
+                      .catch((error) => {
+                        setLoading(false);
+                        Toast.show({ text1: error, type: "error" });
+                      });
+                  }
+                },
               },
-            },
-          });
+            });
+          }, 500);
         },
         cancelText: "Cancel",
         confirmText: "Delete Account",
@@ -188,51 +192,53 @@ const SettingScreen = ({ navigation }) => {
       payload: {
         onCancel: () => { },
         onConfirm: async () => {
-          const options = [
-            { text: "I met someone", color: "#333333" },
-            { text: "I need a break", color: "#333333" },
-            { text: "Other", color: "#333333" },
-            { text: "Cancel", style: "cancel" },
-          ];
-
-          await SheetManager.show("cmd-action-sheets", {
-            payload: {
-              actions: options,
-              header: "DEACTIVATE ACCOUNT",
-              title: "Why do you want to deactivate your account?",
-              onPress(index) {
-                if (index < options.length - 1) {
-                  setLoading(true);
-                  apiClient
-                    .post("users/deactive-account", { reason: options[index].text })
-                    .then(async (res) => {
-                      setLoading(false);
-                      if (res && res.data && res.data.success) {
-                        Toast.show({ text1: res.data.message, type: "success" });
-                        await AsyncStorage.removeItem("ACCESS_TOKEN");
-                        await AsyncStorage.removeItem("SENDBIRD_TOKEN");
-                        await AsyncStorage.removeItem("USER_ID");
-                        if (SendbirdCalls.currentUser) {
-                          SendbirdCalls.deauthenticate();
+          setTimeout(async () => {
+            const options = [
+              { text: "I met someone", color: "#333333" },
+              { text: "I need a break", color: "#333333" },
+              { text: "Other", color: "#333333" },
+              { text: "Cancel", style: "cancel" },
+            ];
+  
+            await SheetManager.show("cmd-action-sheets", {
+              payload: {
+                actions: options,
+                header: "DEACTIVATE ACCOUNT",
+                title: "Why do you want to deactivate your account?",
+                onPress(index) {
+                  if (index < options.length - 1) {
+                    setLoading(true);
+                    apiClient
+                      .post("users/deactive-account", { reason: options[index].text })
+                      .then(async (res) => {
+                        setLoading(false);
+                        if (res && res.data && res.data.success) {
+                          Toast.show({ text1: res.data.message, type: "success" });
+                          await AsyncStorage.removeItem("ACCESS_TOKEN");
+                          await AsyncStorage.removeItem("SENDBIRD_TOKEN");
+                          await AsyncStorage.removeItem("USER_ID");
+                          if (SendbirdCalls.currentUser) {
+                            SendbirdCalls.deauthenticate();
+                          }
+                          setToken(null);
+                          setUser(null);
+                          NavigationService.reset("LetDiscoverScreen");
+                        } else {
+                          Toast.show({
+                            text1: res?.data?.message ?? "Block action failed!",
+                            type: "error",
+                          });
                         }
-                        setToken(null);
-                        setUser(null);
-                        NavigationService.reset("LetDiscoverScreen");
-                      } else {
-                        Toast.show({
-                          text1: res?.data?.message ?? "Block action failed!",
-                          type: "error",
-                        });
-                      }
-                    })
-                    .catch((error) => {
-                      setLoading(false);
-                      Toast.show({ text1: error, type: "error" });
-                    });
-                }
+                      })
+                      .catch((error) => {
+                        setLoading(false);
+                        Toast.show({ text1: error, type: "error" });
+                      });
+                  }
+                },
               },
-            },
-          });
+            });
+          }, 500);
         },
         cancelText: "Cancel",
         confirmText: "Deactivate my account",

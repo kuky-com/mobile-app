@@ -48,10 +48,10 @@ const styles = StyleSheet.create({
 })
 
 const AvatarUpdateScreen = ({ navigation, route }) => {
-    const { fromReview } = route && route.params ? route.params : {}
+    const { fromReview, fromUpdate } = route && route.params ? route.params : {}
     const insets = useSafeAreaInsets()
     const [currentUser, setUser] = useAtom(userAtom)
-    const [image, setImage] = useState(currentUser?.avatar ? {uri: currentUser?.avatar} : null)
+    const [image, setImage] = useState(currentUser?.avatar ? { uri: currentUser?.avatar } : null)
     const reference = storage().ref(imageImage)
     const [imageUrl, setImageUrl] = useState(currentUser?.avatar ?? null)
     const [loading, setLoading] = useState(false)
@@ -97,13 +97,20 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
                         console.log({ user: res.data.data })
                         // NavigationService.reset('PurposeUpdateScreen', { onboarding: true })
 
-                        if(fromReview) {
+                        if (fromReview || fromUpdate) {
                             navigation.goBack()
                         } else {
                             // NavigationService.reset(getAuthenScreen(res.data.data))
-                            NavigationService.reset('IntroductionVideoScreen')
+
+                            if (!currentUser?.video_intro) {
+                                NavigationService.reset('IntroductionVideoTutorialScreen', { fromOnboarding: true })
+                            } else if (!currentUser?.video_purpose) {
+                                NavigationService.reset('JourneyVideoTutorialScreen', { fromOnboarding: true })
+                            } else {
+                                NavigationService.reset('Dashboard')
+                            }
                         }
-                        
+
                         // Toast.show({ text1: res.data.message, type: 'success' })
 
                         // navigation.goBack()
@@ -122,7 +129,13 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
     }
 
     const onSkip = () => {
-        NavigationService.reset('IntroductionVideoScreen')
+        if (!currentUser?.video_intro) {
+            NavigationService.reset('IntroductionVideoTutorialScreen', { fromOnboarding: true })
+        } else if (!currentUser?.video_purpose) {
+            NavigationService.reset('JourneyVideoTutorialScreen', { fromOnboarding: true })
+        } else {
+            NavigationService.reset('Dashboard')
+        }
         // navigation.goBack()
     }
 

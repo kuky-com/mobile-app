@@ -74,7 +74,7 @@ const GeneralJPFScreen = ({ navigation, route }) => {
                 setQuestions(res.data.data)
 
                 res.data.data.forEach(question => {
-                    if(question.question_type === 'one_to_ten') {
+                    if (question.question_type === 'one_to_ten') {
                         answers[question.id] = 5
                     }
                 });
@@ -103,12 +103,12 @@ const GeneralJPFScreen = ({ navigation, route }) => {
             const keys = Object.keys(answers)
             const data = keys.map((item) => {
                 const filterQ = questions.filter((q) => q.id.toString() === item.toString())
-                if(filterQ && filterQ.length > 0) {
+                if (filterQ && filterQ.length > 0) {
                     const question = filterQ[0]
-                    if(question.question_type === 'one_to_ten') {
-                        return ({question_id: item, answer_text: answers[item].toString()})
+                    if (question.question_type === 'one_to_ten') {
+                        return ({ question_id: item, answer_text: answers[item].toString() })
                     } else {
-                        return ({question_id: item, answer_id: answers[item]})
+                        return ({ question_id: item, answer_id: answers[item] })
                     }
                 }
             })
@@ -119,7 +119,12 @@ const GeneralJPFScreen = ({ navigation, route }) => {
                     if (res && res.data && res.data.success) {
                         setUser(res.data.data)
 
-                        NavigationService.reset('SpecificJPFScreen')
+                        if (currentUser?.askJPFSpecific) {
+                            return 'SpecificJPFScreen'
+                        } {
+                            return 'JourneyVideoTutorialScreen'
+                        }
+
                     } else {
                         Toast.show({ text1: res.data.message, type: 'error' })
                     }

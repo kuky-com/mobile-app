@@ -38,6 +38,7 @@ import { Rating } from "@/components/Rating";
 import { getAuthenScreen } from "../../utils/utils";
 import { FontAwesome6 } from "@expo/vector-icons";
 import analytics from '@react-native-firebase/analytics'
+import SwipeCard from "../../components/SwipeCard";
 
 const styles = StyleSheet.create({
     container: {
@@ -97,7 +98,7 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
             apiClient.get(`matches/sample-profiles`)
                 .then((res) => {
                     setLoading(false);
-                    
+
                     if (res && res.data && res.data.success) {
                         const profiles = res.data.data
                         console.log({ sampleProfiles: profiles })
@@ -123,6 +124,7 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
 
     const likeAction = () => {
         analytics().logEvent('next_sample_profile')
+        if(currentProfileIndex >= sampleProfiles.length) return
 
         handleNextProfile()
         // try {
@@ -153,6 +155,7 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
 
     const rejectAction = () => {
         analytics().logEvent('previous_sample_profile')
+        if(currentProfileIndex <= 0) return
 
         handlePreviousProfile()
         // try {
@@ -261,7 +264,7 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                         paddingBottom: insets.bottom + 16,
                     }}
                 >
-                    <View
+                    <SwipeCard
                         style={{
                             width: "100%",
                             height: Math.min(
@@ -272,6 +275,9 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                             borderColor: "white",
                             borderRadius: 15,
                         }}
+
+                        onSwipeLeft={rejectAction}
+                        onSwipeRight={likeAction}
                     >
                         {currentProfile?.video_intro && (
                             <CustomVideo
@@ -330,42 +336,42 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                                 style={styles.nameBackground}
                             />
                         }
+
+                        {(playing || pendingVideo) && <View style={{ position: 'absolute', left: 16, right: 16, top: 20, flexDirection: 'row', alignItems: 'center', justifyContent: "space-between" }}>
+                            <TouchableOpacity
+                                onPress={pauseVideo}
+                                style={{
+                                    width: 50,
+                                    height: 50,
+                                    borderRadius: 25,
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                }}
+                            >
+                                <Image
+                                    source={images.pause_icon}
+                                    style={{
+                                        width: 50,
+                                        height: 50,
+                                        borderRadius: 25,
+                                    }}
+                                    contentFit="contain"
+                                />
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={onChangeMuteOption} style={{ width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.mainColor }}>
+                                <FontAwesome6 name={isMute ? 'volume-xmark' : 'volume-high'} size={18} color='white' />
+                            </TouchableOpacity>
+                        </View>
+                        }
                         <View
                             style={{
                                 flex: 1,
                                 width: "100%",
                                 alignItems: "center",
                                 justifyContent: "space-between",
+                                zIndex: (playing || pendingVideo) ? -1 : 1
                             }}
                         >
-
-                            {(playing || pendingVideo) && <View style={{ width: "100%", flexDirection: 'row', alignItems: 'center', justifyContent: "space-between", padding: 16 }}>
-
-                                <TouchableOpacity
-                                    onPress={pauseVideo}
-                                    style={{
-                                        width: 50,
-                                        height: 50,
-                                        borderRadius: 25,
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                    }}
-                                >
-                                    <Image
-                                        source={images.pause_icon}
-                                        style={{
-                                            width: 50,
-                                            height: 50,
-                                            borderRadius: 25,
-                                        }}
-                                        contentFit="contain"
-                                    />
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={onChangeMuteOption} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.mainColor }}>
-                                    <FontAwesome6 name={isMute ? 'volume-xmark' : 'volume-high'} size={15} color='white' />
-                                </TouchableOpacity>
-                            </View>
-                            }
                             {!(playing || pendingVideo) && <View style={{ padding: 16, width: '100%', alignItems: 'space-between' }}>
                                 <View style={styles.tagContainer}>
                                     <Text
@@ -507,7 +513,7 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                                 </View>
                             </View>
                         </View>
-                    </View>
+                    </SwipeCard>
                     <View
                         style={{
                             flexDirection: "row",

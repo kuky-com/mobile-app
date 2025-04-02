@@ -82,8 +82,8 @@ const SpecificJPFScreen = ({ navigation, route }) => {
 
     useEffect(() => {
         analytics().logScreenView({
-            screen_name: 'GeneralJPFScreen',
-            screen_class: 'GeneralJPFScreen',
+            screen_name: 'SpecificJPFScreen',
+            screen_class: 'SpecificJPFScreen',
         });
 
         getCategoryList()

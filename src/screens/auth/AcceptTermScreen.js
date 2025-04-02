@@ -287,7 +287,7 @@ const AcceptTermScreen = ({ navigation }) => {
             textAlign: "center",
           }}
         >
-          {`Version ${getVersion()} - ${NODE_ENV.toUpperCase()} - Build ${getBuildNumber()} - ${Platform.OS.toUpperCase()} - © 2024 Kuky`}
+          {`Version ${getVersion()} - ${NODE_ENV.toUpperCase()} - Build ${getBuildNumber()} - ${Platform.OS.toUpperCase()} - © 2025 Kuky`}
         </Text>
       </View>
 

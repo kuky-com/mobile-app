@@ -1018,12 +1018,11 @@ const MessageScreen = ({ navigation, route }) => {
       { text: "Hate speech or symbols", color: "#333333" },
       { text: "Bullying or harassment", color: "#333333" },
       { text: "Spam", color: "#333333" },
-      { text: "Cancel", style: "cancel-text" },
     ];
 
     await SheetManager.show("cmd-action-sheets", {
       payload: {
-        actions: options,
+        actions: [...options, { text: "Cancel", style: "cancel-text" }],
         title: "Why do you want to report this match?",
         onPress(index) {
           if (index < options.length) {

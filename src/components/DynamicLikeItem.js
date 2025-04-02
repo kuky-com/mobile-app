@@ -21,7 +21,11 @@ const DynamicLikeItem = ({ itemWidth, item, onPress }) => {
             />
             <View style={styles.tagContainer}>
                 <View style={styles.tagView}>
-                    <Text style={styles.tagText}>{item?.journey?.name}</Text>
+                    {
+                        item?.journey ? <Text style={styles.tagText}>{item?.journey?.name}</Text>
+                        :
+                        <Text style={styles.tagText}>{item?.tag?.name}</Text>
+                    }
                 </View>
             </View>
 

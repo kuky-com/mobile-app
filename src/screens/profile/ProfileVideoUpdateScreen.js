@@ -875,7 +875,7 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
               We use your camera to help you create a video that lets us find the best matches for you.
             </Text>
             <ButtonWithLoading
-              text="Grant Camera Access"
+              text="Continue"
               style={{ marginTop: 40 }}
               onPress={retryPermission}
             />

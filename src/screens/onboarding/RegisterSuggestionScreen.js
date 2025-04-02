@@ -85,7 +85,7 @@ const RegisterSuggestionScreen = ({ navigation, route }) => {
                         <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center', width: '100%' }}>
                             <Image source={images.suggestion_register3} style={{ width: 40, height: 40 }} contentFit='contain' />
                             <View style={{ flex: 1 }}>
-                                <Text style={{ lineHeight: 30, fontSize: 16, fontWeight: 'bold', color: 'black' }}>{`Let Our AI Work Its Magic`}</Text>
+                                <Text style={{ lineHeight: 30, fontSize: 16, fontWeight: 'bold', color: 'black' }}>{`Let Us Work Its Magic`}</Text>
                                 <Text style={{ lineHeight: 30, fontSize: 13, fontWeight: '500', color: 'black' }}>{`We’ll find the best connections for you based on your profile and story.`}</Text>
                             </View>
                         </View>

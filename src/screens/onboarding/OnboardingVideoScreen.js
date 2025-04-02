@@ -1023,7 +1023,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
               you.
             </Text>
             <ButtonWithLoading
-              text="Grant Camera Access"
+              text="Continue"
               style={{ marginTop: 40 }}
               onPress={retryPermission}
             />

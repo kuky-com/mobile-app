@@ -10,6 +10,7 @@ import { OneSignal } from 'react-native-onesignal'
 import colors from '../../utils/colors'
 import { useAtomValue } from 'jotai'
 import { userAtom } from '../../actions/global'
+import { getAuthenScreen } from '../../utils/utils'
 
 const styles = StyleSheet.create({
     container: {
@@ -39,7 +40,7 @@ const CommunitySuggestionScreen = ({ navigation }) => {
         //     NavigationService.reset('AvatarUpdateScreen')
         // }
 
-        NavigationService.reset('AvatarUpdateScreen')
+        NavigationService.reset(getAuthenScreen(currentUser))
     }
 
     const onReset = () => {

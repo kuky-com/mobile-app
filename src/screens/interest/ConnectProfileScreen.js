@@ -40,6 +40,7 @@ import { FontAwesome6 } from "@expo/vector-icons";
 import { isStringInteger } from "../../utils/utils";
 import analytics from '@react-native-firebase/analytics'
 import OnlineStatus from "../../components/OnlineStatus";
+import SwipeCard from "../../components/SwipeCard";
 
 const styles = StyleSheet.create({
   container: {
@@ -84,7 +85,7 @@ const styles = StyleSheet.create({
 
 const ConnectProfileScreen = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
-  const { profile, showAcceptReject = true } = route.params;
+  const { profile, showAcceptReject = true, journey_id } = route.params;
   const [loading, setLoading] = useState(false);
   const [currentProfile, setCurrentProfile] = useState(profile);
   const [matchInfo, setMatchInfo] = useState(null);
@@ -95,6 +96,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
   const [playing, setPlaying] = useState(false);
   const [showShare, setShowShare] = useState(null);
   const [pendingVideo, setPendingVideo] = useState(false);
+  const [nextProfile, setNextProfile] = useState(null)
 
   const [isMute, setIsMute] = useState(false)
 
@@ -166,7 +168,22 @@ const ConnectProfileScreen = ({ navigation, route }) => {
     }
   };
 
-  console.log({ currentProfile: currentProfile.id, currentUser: currentUser.id })
+  useEffect(() => {
+    if (currentProfile) {
+      apiClient
+        .get(journey_id ? `matches/next-match?journey_id=${journey_id}&current_profile_id=${currentProfile?.id}` :
+          `matches/next-match?current_profile_id=${currentProfile?.id}`
+        )
+        .then((res) => {
+          console.log({nextProfile: res.data.data})
+          setNextProfile(res.data.data)
+        })
+        .catch((error) => {
+          console.log({ error });
+          setLoading(false);
+        });
+    }
+  }, [currentProfile])
 
   useEffect(() => {
     if (isStringInteger(currentProfile.id) && currentProfile.id !== currentUser.id) {
@@ -299,9 +316,18 @@ const ConnectProfileScreen = ({ navigation, route }) => {
         autoHide: true,
         topOffset: 0,
       });
-      setTimeout(() => {
-        navigation.goBack();
-      }, 2000);
+
+      if (nextProfile && nextProfile.user) {
+
+        setCurrentProfile(nextProfile.user);
+        setMatchInfo(nextProfile.match);
+        setNextProfile(null)
+      } else {
+        setTimeout(() => {
+          navigation.goBack();
+        }, 2000);
+      }
+
     } catch (error) {
       setLoading(false);
     }
@@ -351,24 +377,78 @@ const ConnectProfileScreen = ({ navigation, route }) => {
         { text: "Share Profile", image: images.share_profile }
       ] : [
         { text: "Share Profile", image: images.share_profile },
-        { text: "Block Users", image: images.delete_icon },
+        { text: "Block User", image: images.delete_icon },
+        { text: "Report User", image: images.report_flag },
       ]
 
       await SheetManager.show("action-sheets", {
         payload: {
           actions: options,
           onPress(index) {
-            if (index === 0) {
-              onGetSharedLink()
-            } else if (index === 1) {
-              onBlock();
-            }
+            setTimeout(() => {
+              if (index === 0) {
+                onGetSharedLink()
+              } else if (index === 1) {
+                onBlock();
+              } else if (index === 2) {
+                onReport();
+              }
+            }, 500);
           },
         },
       });
     } catch (error) {
       setLoading(false);
     }
+  };
+
+  const onReport = async () => {
+    analytics().logEvent('report_button_clicked')
+
+    const options = [
+      { text: "Inappropriate", color: "#333333" },
+      { text: "Nudity or sexual activity", color: "#333333" },
+      { text: "Violence or threat of violence", color: "#333333" },
+      { text: "Hate speech or symbols", color: "#333333" },
+      { text: "Bullying or harassment", color: "#333333" },
+      { text: "Spam", color: "#333333" },
+    ];
+
+    await SheetManager.show("cmd-action-sheets", {
+      payload: {
+        actions: [...options, { text: "Cancel", style: "cancel-text" }],
+        title: "Why do you want to report this match?",
+        onPress(index) {
+          if (index < options.length) {
+            apiClient
+              .post("users/report-user", {
+                reported_id: currentProfile.id,
+                reason: options[index].text,
+              })
+              .then(async (res) => {
+                if (res && res.data && res.data.success) {
+                  await SheetManager.show("confirm-action-sheets", {
+                    payload: {
+                      header: "Thanks for reporting",
+                      message:
+                        "Your report is private.\nYour report is being investigated and we will take action ASAP",
+                      cancelText: "Okay",
+                    },
+                  });
+                } else {
+                  Toast.show({
+                    text1: res?.data?.message ?? "Report action failed!",
+                    type: "error",
+                  });
+                }
+              })
+              .catch((error) => {
+                Toast.show({ text1: error, type: "error" });
+              });
+          }
+        },
+      },
+    });
   };
 
   const onGetSharedLink = async () => {
@@ -496,7 +576,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
               }}>{commonPurposes.message}</Text>
             </View>
           } */}
-          <View
+          <SwipeCard
             style={{
               width: "100%",
               height: Math.min(
@@ -508,6 +588,8 @@ const ConnectProfileScreen = ({ navigation, route }) => {
               borderColor: "white",
               borderRadius: 15,
             }}
+            onSwipeLeft={rejectAction}
+            onSwipeRight={likeAction}
           >
             {/* <Image source={{ uri: currentProfile?.avatar }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 10 }} contentFit='cover' /> */}
             {currentProfile?.video_intro && (
@@ -565,6 +647,36 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                 style={styles.nameBackground}
               />
             }
+            <View style={{ position: 'absolute', zIndex: 30, left: 16, right: 16, top: 20, flexDirection: 'row', alignItems: "center", justifyContent: 'space-between' }}>
+              {(playing || pendingVideo) && (
+                <TouchableOpacity
+                  onPress={pauseVideo}
+                  style={{
+                    width: 50,
+                    height: 50,
+                    borderRadius: 25,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Image
+                    source={images.pause_icon}
+                    style={{
+                      width: 50,
+                      height: 50,
+                      borderRadius: 25,
+                    }}
+                    contentFit="contain"
+                  />
+                </TouchableOpacity>
+              )}
+              {
+                (playing || pendingVideo) &&
+                <TouchableOpacity onPress={onChangeMuteOption} style={{ width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.mainColor }}>
+                  <FontAwesome6 name={isMute ? 'volume-xmark' : 'volume-high'} size={20} color='white' />
+                </TouchableOpacity>
+              }
+            </View>
 
             <View
               style={{
@@ -572,37 +684,10 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                 width: "100%",
                 alignItems: "center",
                 justifyContent: "space-between",
+                zIndex: (playing || pendingVideo) ? -1 : 1
               }}
             >
               <View style={{ flexDirection: 'row', width: "100%", alignItems: "center", justifyContent: 'space-between', padding: 16 }}>
-                {(playing || pendingVideo) && (
-                  <TouchableOpacity
-                    onPress={pauseVideo}
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 20,
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Image
-                      source={images.pause_icon}
-                      style={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: 20,
-                      }}
-                      contentFit="contain"
-                    />
-                  </TouchableOpacity>
-                )}
-                {
-                  (playing || pendingVideo) &&
-                  <TouchableOpacity onPress={onChangeMuteOption} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.mainColor }}>
-                    <FontAwesome6 name={isMute ? 'volume-xmark' : 'volume-high'} size={20} color='white' />
-                  </TouchableOpacity>
-                }
                 {!(playing || pendingVideo) && currentProfile?.user_note &&
                   <View style={{ position: 'absolute', top: 5, left: 5, right: 10, }}>
                     <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: '#7B65E8ee' }} />
@@ -764,7 +849,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                 }
               </View>
             </View>
-          </View>
+          </SwipeCard>
           <View
             style={{
               flexDirection: "row",

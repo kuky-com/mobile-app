@@ -287,6 +287,7 @@ const SampleProfileScreen = ({ navigation, route }) => {
                 width: "100%",
                 alignItems: "center",
                 justifyContent: "space-between",
+                zIndex: (playing || pendingVideo) ? -1 : 1
               }}
             >
               {(playing || pendingVideo) && <View style={{ flexDirection: 'row', width: "100%", alignItems: 'center', justifyContent: "space-between", padding: 16 }}>

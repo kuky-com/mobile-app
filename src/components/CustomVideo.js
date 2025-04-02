@@ -11,6 +11,8 @@ const CustomVideo = React.forwardRef((props, ref) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const progress = useRef(new Animated.Value(0)).current;
 
+  const loadingRef = useRef(false)
+
   const sources = useMemo(() => {
     const src = [];
     (props?.sources || []).forEach((source) => {
@@ -26,12 +28,20 @@ const CustomVideo = React.forwardRef((props, ref) => {
   };
 
   const onPlaybackStatusUpdate = (status) => {
-    if (props && props.onPlaybackStatusUpdate) {
-      props.onPlaybackStatusUpdate(status);
-    }
+    if(loadingRef.current === true) {
+      props.onPlaybackStatusUpdate({...status, isPlaying: true, didJustFinish: currentIndex > 0 ? false : status.didJustFinish});
 
-    setLoading(!status.isLoaded || status.isBuffering || (status.shouldPlay && !status.isPlaying));
-    setIsPlaying(status.isPlaying);
+      setLoading(true);
+      setIsPlaying(true);
+    } else {
+      if (props && props.onPlaybackStatusUpdate) {
+        props.onPlaybackStatusUpdate(status);
+      }
+  
+      setLoading(!status.isLoaded || status.isBuffering || (status.shouldPlay && !status.isPlaying));
+      setIsPlaying(status.isPlaying);
+    }
+    
 
     if (status.didJustFinish && !status.isLooping) {
       if (sources && currentIndex < sources.length - 1) {
@@ -48,6 +58,7 @@ const CustomVideo = React.forwardRef((props, ref) => {
   };
 
   const loadNewSource = useCallback(async () => {
+    loadingRef.current = true
     try {
       if (ref && ref.current) {
         await ref.current.unloadAsync();
@@ -79,6 +90,7 @@ const CustomVideo = React.forwardRef((props, ref) => {
     } catch (error) {
       console.log({ loadAsyncError: error });
     }
+    loadingRef.current = false
   }, [props?.profile, currentIndex]);
 
   useEffect(() => {

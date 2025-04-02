@@ -33,7 +33,8 @@ const ExploreScreen = ({ navigation }) => {
     const [canLoadMore, setCanLoadMore] = useState(true)
 
     const [journeys, setJourneys] = useState([])
-    const [selectedJourney, setSelectedJourney] = useState(currentUser?.journey ? currentUser?.journey : null)
+    // const [selectedJourney, setSelectedJourney] = useState(currentUser?.journey ? currentUser?.journey : null)
+    const [selectedJourney, setSelectedJourney] = useState()
 
     const [itemWidth, setItemWidth] = useState(ITEM_WIDTH)
 
@@ -48,16 +49,22 @@ const ExploreScreen = ({ navigation }) => {
         })
     }, [])
 
-    useEffect(() => {
-        onRefresh()
-    }, [])
-
     const loadJourneys = () => {
         apiClient.get(`journeys/active-journeys`)
             .then((res) => {
                 console.log({ res: res.data })
                 if (res && res.data && res.data.success) {
                     setJourneys(res.data.data)
+                    // let isActiveJourney = false
+                    // res.data.data.forEach(element => {
+                    //     if(currentUser?.journey && element.id === currentUser?.journey?.id) {
+                    //         isActiveJourney = true
+                    //     }
+                    // });
+
+                    // if(!isActiveJourney && selectedJourney && currentUser?.journey && selectedJourney.id === currentUser?.journey?.id) {
+                    //     setSelectedJourney(null)
+                    // }
                 }
             })
             .catch((error) => {
@@ -68,18 +75,19 @@ const ExploreScreen = ({ navigation }) => {
     const changeJourney = async () => {
 
         const options = journeys.map((item) => ({ text: item.name, value: item }))
-        options.unshift({text: 'All journeys', value: null})
+        options.unshift({ text: 'All journeys', value: null })
 
         await SheetManager.show('action-sheets', {
             payload: {
                 actions: options,
                 onPress(index) {
-
                     setSelectedJourney(options[index].value)
                 },
             },
         });
     }
+
+    console.log({selectedJourney})
 
     useEffect(() => {
         let eventListener = DeviceEventEmitter.addListener(constants.REFRESH_SUGGESTIONS, event => {
@@ -145,17 +153,29 @@ const ExploreScreen = ({ navigation }) => {
             }
 
         }
-    }, [page, selectedJourney])
+    }, [page])
 
-    const onRefresh = () => {
+    const loadMatches = () => {
         setPage(0)
         setTimeout(() => {
             setPage(1)
             setCanLoadMore(true)
             setLoadingMore(false)
         }, 500);
+    }
+
+    const onRefresh = () => {
+        loadMatches()
         loadJourneys()
     }
+
+    useEffect(() => {
+        loadJourneys()
+    }, [])
+
+    useEffect(() => {
+        loadMatches()
+    }, [selectedJourney])
 
     // const onLoadNotSuggestion = () => {
     //     apiClient.get('matches/less-matches')
@@ -284,7 +304,7 @@ const ExploreScreen = ({ navigation }) => {
             />
             {
                 (!currentUser?.birthday || !currentUser?.gender || !currentUser?.pronouns || !currentUser?.location || ((currentUser?.likeCount ?? 0) === 0)) &&
-                <View style={{width: '100%', paddingHorizontal: 16, paddingVertical: 8}}>
+                <View style={{ width: '100%', paddingHorizontal: 16, paddingVertical: 8 }}>
                     <TouchableOpacity onPress={completeProfile} style={{ borderRadius: 15, backgroundColor: '#725ED4', paddingHorizontal: 16, paddingVertical: 12, flexDirection: "row", }}>
                         <View style={{ flex: 1, gap: 5 }}>
                             <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'white' }}>Complete your profile!</Text>
@@ -323,8 +343,18 @@ const ExploreScreen = ({ navigation }) => {
                 refreshing={false}
                 ListEmptyComponent={() => {
                     return (
-                        <View style={{ width: '100%', minHeight: 250, alignItems: 'center', justifyContent: 'center' }}>
-                            <Text style={{ fontSize: 14, color: '#777777', fontWeight: '600', textAlign: 'center' }}>{'There is no suggestion now\n\nPlease try to change your journeys to see more suggestions!'}</Text>
+                        <View style={{ width: '100%', minHeight: 250, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+                            <Text style={{ fontSize: 14, color: '#777777', fontWeight: '600', textAlign: 'center' }}>{'Would you like to see people on other journeys?'}</Text>
+                            <TouchableOpacity onPress={changeJourney} style={{
+                                shadowColor: '#000',
+                                shadowOffset: { width: 0, height: 2 },
+                                shadowOpacity: 0.3,
+                                shadowRadius: 3,
+                                borderRadius: 5, paddingHorizontal: 16, height: 30, alignItems: 'center', backgroundColor: colors.mainColor,
+                                justifyContent: 'center'
+                            }}>
+                                <Text style={{ fontSize: 15, fontWeight: '600', color: 'white' }}>Explore Now</Text>
+                            </TouchableOpacity>
                         </View>
                     )
                 }}

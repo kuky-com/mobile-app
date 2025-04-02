@@ -115,6 +115,11 @@ import JourneyVideoTutorialScreen from "./journeys/JourneyVideoTutorialScreen";
 import IntroductionVideoScreen from "./journeys/IntroductionVideoScreen";
 import JourneyVideoScreen from "./journeys/JourneyVideoScreen";
 import JourneyMatchingScreen from "./journeys/JourneyMatchingScreen";
+import IntroductionVideoTutorialScreen from "./journeys/IntroductionVideoTutorialScreen";
+import { linkingUrlAtom, tokenAtom } from "../actions/global";
+import { getAuthenScreen } from "../utils/utils";
+import Toast from "react-native-toast-message";
+import WelcomeBackScreen from "./journeys/WelcomeBackScreen";
 
 SendbirdCalls.setListener({
   onRinging: async (callProps) => {
@@ -200,11 +205,16 @@ const TabNavigator = () => {
 };
 
 const AppStack = ({ navgation }) => {
-  const setDeviceId = useSetAtom(deviceIdAtom);
+  const [deviceId, setDeviceId] = useAtom(deviceIdAtom);
   const [currentUser, setUser] = useAtom(userAtom);
+  const setToken = useSetAtom(tokenAtom);
   const showUpdateAlert = useAppUpdateAlert();
   const appState = useRef(AppState.currentState);
-
+  const url = Linking.useURL();
+  const urlHandleRef = useRef(null);
+  const pushToken = useAtomValue(pushTokenAtom);
+  const [usedUrl, setUsedUrl] = useAtom(linkingUrlAtom)
+  
   //config onesignal
   useEffect(() => {
     OneSignal.initialize(ONESIGNAL_APP_ID);
@@ -338,7 +348,7 @@ const AppStack = ({ navgation }) => {
         })
         .catch((error) => {
           console.log({ error });
-        });
+        })
     }
   };
 
@@ -437,6 +447,87 @@ const AppStack = ({ navgation }) => {
     }, 5000);
   }, []);
 
+  console.log({url})
+
+  useEffect(() => {
+    try {
+      if (url) {
+        if (urlHandleRef && urlHandleRef.current) {
+          clearTimeout(urlHandleRef.current);
+          urlHandleRef.current = null;
+        }
+
+        urlHandleRef.current = setTimeout(async () => {
+          const route = Linking.parse(url);
+
+          let session_code = null
+          if (route.scheme === 'https') {
+            if (route?.path && route?.path.includes("session")) {
+              session_code = route?.path.split('/')[1];
+            }
+          } else {
+            if (route?.hostname === "session") {
+              session_code = route?.path
+            }
+          }
+
+          if(session_code && session_code !== usedUrl) {
+            Alert.alert('Sign In', 'Are you want to sign in with new account from web?', [
+              { text: 'Cancel' },
+              { text: 'Continue', onPress: () => loginNewAccount(session_code) }
+            ])
+          }
+        }, 1000);
+      }
+    } catch (error) { }
+  }, [url]);
+
+  const loginNewAccount = (session_code) => {
+    apiClient
+      .post("auth/use-onetime-auth", {
+        session_code: session_code,
+        device_id: deviceId,
+        platform: Platform.OS,
+      })
+      .then((res) => {
+        console.log({ res })
+        if (res && res.data && res.data.success) {
+          setUsedUrl(session_code)
+          setUser(res.data.data.user);
+          setToken(res.data.data.token);
+          AsyncStorage.setItem("ACCESS_TOKEN", res.data.data.token);
+          AsyncStorage.setItem("USER_ID", res.data.data.user.id.toString());
+          AsyncStorage.setItem("SENDBIRD_TOKEN", res.data.data.sendbirdToken);
+          authenticate();
+          setTimeout(() => {
+            checkPushToken();
+          }, 200);
+
+          OneSignal.Notifications.requestPermission(true);
+          NavigationService.reset('WelcomeBackScreen');
+        } else {
+          Toast.show({ text1: res?.data?.message, type: "error" });
+        }
+      })
+      .catch((error) => {
+        console.log({ error });
+        Toast.show({ text1: error, type: "error" });
+      });
+  }
+
+  const checkPushToken = () => {
+    if (pushToken) {
+      apiClient
+        .post("users/update-token", { session_token: pushToken })
+        .then((res) => {
+          console.log({ res });
+        })
+        .catch((error) => {
+          console.log({ error });
+        });
+    }
+  };
+
   // config app review
   useEffect(() => {
     try {
@@ -526,10 +617,10 @@ const AppStack = ({ navgation }) => {
         .catch(() => { });
     };
 
-    Audio.setAudioModeAsync({ 
+    Audio.setAudioModeAsync({
       playsInSilentModeIOS: true,
       allowsRecordingIOS: true,
-     })
+    })
 
     getDeviceId();
   }, []);
@@ -640,6 +731,8 @@ const AppStack = ({ navgation }) => {
       <Stack.Screen name="IntroductionVideoScreen" component={IntroductionVideoScreen} />
       <Stack.Screen name="JourneyVideoScreen" component={JourneyVideoScreen} />
       <Stack.Screen name="JourneyMatchingScreen" component={JourneyMatchingScreen} />
+      <Stack.Screen name="IntroductionVideoTutorialScreen" component={IntroductionVideoTutorialScreen} />
+      <Stack.Screen name="WelcomeBackScreen" component={WelcomeBackScreen} />
     </Stack.Navigator>
   );
 };

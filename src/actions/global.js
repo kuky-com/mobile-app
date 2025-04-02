@@ -16,6 +16,8 @@ export const totalMessageUnreadAtom = atom(0)
 
 export const sampleProfileViewAtom = atom(0)
 
+export const linkingUrlAtom = atom(null)
+
 export const storage = createJSONStorage(() => AsyncStorage);
 
 export const tokenAtom = atomWithStorage(

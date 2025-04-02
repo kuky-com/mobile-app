@@ -43,9 +43,9 @@ export const getAuthenScreen = (currentUser, fromRecording = false) => {
     } else if (!currentUser?.journey_id) {
         return 'StruggleSelectionScreen'
     } else if (!currentUser?.avatar) {
-        return 'CommunitySuggestionScreen'
+        return 'AvatarUpdateScreen'
     } else if (!currentUser?.video_intro) {
-        return 'IntroductionVideoScreen'
+        return 'IntroductionVideoTutorialScreen'
     } else if (currentUser?.askJPFGeneral) {
         return 'GeneralJPFScreen'
     } else if (currentUser?.askJPFSpecific) {

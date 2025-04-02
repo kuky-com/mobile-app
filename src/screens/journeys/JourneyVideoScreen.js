@@ -5,6 +5,7 @@ import { Image } from "expo-image";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
+    Alert,
     Dimensions,
     Linking,
     Platform,
@@ -92,6 +93,7 @@ const JourneyVideoScreen = ({ navigation, route }) => {
     const [startPosition, setStartPosition] = useState(0);
     const [endPosition, setEndPosition] = useState(0);
     const [playing, setPlaying] = useState(false);
+    const [askPermissionOnce, setAskPermissionOnce] = useState(false)
 
     const showAlert = useAlertWithIcon()
     const showNormalAlert = useAlert()
@@ -540,26 +542,44 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
         }
     }
 
-    const retryPermission = async () => {
+    const retryPermission = async (isContinue) => {
         try {
-            const res = await requestPermission();
-            if (!res.canAskAgain && !res.granted) {
-                Linking.openSettings();
-            }
-
-            const audioRes = await requestAudioPermission();
-            if (!audioRes.canAskAgain && !audioRes.granted) {
-                Linking.openSettings();
-            }
-
-            if (res.granted && videoRef && videoRef.current) {
-                videoRef.current.resumePreview();
-            }
-            console.log({ res });
+          const res = await requestPermission();
+          console.log({ res })
+          
+          if (!res.canAskAgain && !res.granted && askPermissionOnce) {
+            Alert.alert(
+              'Permission Required',
+              'Please enable camera permission from settings',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Open Settings', onPress: () => Linking.openSettings() },
+              ]
+            );
+          }
+    
+          const audioRes = await requestAudioPermission();
+          if (!audioRes.canAskAgain && !audioRes.granted && askPermissionOnce) {
+            Alert.alert(
+              'Permission Required',
+              'Please enable microphone permission from settings',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Open Settings', onPress: () => Linking.openSettings() },
+              ]
+            );
+          }
+    
+          setAskPermissionOnce(true)
+    
+          if (res.granted && videoRef && videoRef.current) {
+            videoRef.current.resumePreview();
+          }
+          console.log({ res });
         } catch (error) {
-            console.log({ error });
+          console.log({ error });
         }
-    };
+      };
 
     const handleChangePlaybackStatus = (status) => {
         setPlaying(status.isPlaying);
@@ -606,7 +626,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                 >
                     <Text
                         style={{ fontSize: 20, lineHeight: 30, fontWeight: "bold", color: "black", textAlign: 'center' }}
-                    >{`How Do You Feel About Moving Forward?`}</Text>
+                    >{`${question?.question ?? 'How Do You Feel About Moving Forward?'}`}</Text>
                     <Text
                         style={{ fontSize: 14, lineHeight: 21, fontWeight: "500", color: "black", textAlign: 'center' }}
                     >{`You have ${MAX_DURATION} seconds`}</Text>
@@ -1050,16 +1070,16 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                             you.
                         </Text>
                         <ButtonWithLoading
-                            text="Grant Camera Access"
+                            text="Allow"
                             style={{ marginTop: 40 }}
                             onPress={retryPermission}
                         />
                         <TouchableOpacity
-                            onPress={retryPermission}
+                            onPress={onSkip}
                             style={{ paddingHorizontal: 15, paddingVertical: 8, marginTop: 8 }}
                         >
                             <Text style={{ fontSize: 14, fontWeight: "500", color: "white" }}>
-                                Retry Permission
+                                Skip for now
                             </Text>
                         </TouchableOpacity>
                     </View>
