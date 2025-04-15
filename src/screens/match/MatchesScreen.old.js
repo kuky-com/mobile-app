@@ -81,7 +81,7 @@ const MatchesScreen = ({ navigation }) => {
 
   const loadSubscriptionInfo = async () => {
       try {
-        if (currentUser?.is_premium_user) {
+        if (currentUser?.is_premium_user  || currentUser?.is_moderators) {
           return;
         }
   

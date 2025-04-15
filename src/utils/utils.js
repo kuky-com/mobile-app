@@ -118,6 +118,20 @@ export const formatCallSeconds = (milliseconds) => {
     return parts.join(', ');
 };
 
+export const parseFormattedCallSeconds = (formattedString) => {
+    const timeUnits = {
+        hour: 3600 * 1000,
+        minute: 60 * 1000,
+        second: 1000,
+    };
+
+    return formattedString.split(', ').reduce((totalMilliseconds, part) => {
+        const [value, unit] = part.split(' ');
+        const singularUnit = unit.replace(/s$/, ''); // Remove plural 's' if present
+        return totalMilliseconds + (parseInt(value, 10) * (timeUnits[singularUnit] || 0));
+    }, 0);
+};
+
 export function isStringInteger(value) {
     return (Number.isInteger(value) || (typeof value === 'string' && Number.isInteger(Number(value))));
 }

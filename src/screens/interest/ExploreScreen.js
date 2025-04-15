@@ -294,6 +294,8 @@ const ExploreScreen = ({ navigation }) => {
         missingInfos.push('location')
     }
 
+    console.log({user_id: currentUser?.id})
+
     return (
         <View style={styles.container}>
             <Header

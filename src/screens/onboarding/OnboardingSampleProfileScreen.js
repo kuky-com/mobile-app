@@ -369,7 +369,6 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                                 width: "100%",
                                 alignItems: "center",
                                 justifyContent: "space-between",
-                                zIndex: (playing || pendingVideo) ? -1 : 1
                             }}
                         >
                             {!(playing || pendingVideo) && <View style={{ padding: 16, width: '100%', alignItems: 'space-between' }}>
@@ -406,6 +405,47 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                                 }
 
                                 <View
+                                    style={{
+                                        marginTop: 32,
+                                        width: "100%",
+                                        flexDirection: "row",
+                                        alignItems: "flex-end",
+                                        justifyContent: "center",
+                                        paddingHorizontal: 9,
+                                    }}
+                                >
+                                    {currentProfile?.video_intro && !playing && !pendingVideo && (
+                                        <View style={{ alignItems: "center", gap: 10 }}>
+                                            {!playing && !pendingVideo && (
+                                                <TouchableOpacity
+                                                    onPress={playVideo}
+                                                    style={{
+                                                        alignItems: "center",
+                                                        justifyContent: "center",
+                                                    }}
+                                                >
+                                                    <Image
+                                                        source={images.play_icon}
+                                                        style={{ width: 80, height: 80 }}
+                                                        contentFit="contain"
+                                                    />
+                                                </TouchableOpacity>
+                                            )}
+                                            <Text
+                                                style={{
+                                                    color: "#949494",
+                                                    fontSize: 12,
+                                                    fontWeight: "bold",
+                                                }}
+                                            >
+                                                {(playing || pendingVideo) ? 'Pause video' : 'Watch video'}
+                                            </Text>
+                                        </View>
+                                    )}
+                                </View>
+                            </View>
+
+                            <View
                                     style={{
                                         marginTop: 32,
                                         width: "100%",
@@ -451,34 +491,6 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                                             }
                                         </View>
                                     }
-                                    {currentProfile?.video_intro && !playing && !pendingVideo && (
-                                        <View style={{ alignItems: "center", gap: 10 }}>
-                                            {!playing && !pendingVideo && (
-                                                <TouchableOpacity
-                                                    onPress={playVideo}
-                                                    style={{
-                                                        alignItems: "center",
-                                                        justifyContent: "center",
-                                                    }}
-                                                >
-                                                    <Image
-                                                        source={images.play_icon}
-                                                        style={{ width: 80, height: 80 }}
-                                                        contentFit="contain"
-                                                    />
-                                                </TouchableOpacity>
-                                            )}
-                                            <Text
-                                                style={{
-                                                    color: "#949494",
-                                                    fontSize: 12,
-                                                    fontWeight: "bold",
-                                                }}
-                                            >
-                                                {(playing || pendingVideo) ? 'Pause video' : 'Watch video'}
-                                            </Text>
-                                        </View>
-                                    )}
                                     {
                                         currentProfile &&
                                         <View style={{ alignItems: "center", gap: 15, width: 45, paddingBottom: (playing || pendingVideo) ? 120 : 0 }}>
@@ -511,7 +523,6 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                                         </View>
                                     }
                                 </View>
-                            </View>
                         </View>
                     </SwipeCard>
                     <View

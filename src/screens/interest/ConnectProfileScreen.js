@@ -241,9 +241,10 @@ const ConnectProfileScreen = ({ navigation, route }) => {
       apiClient
         .post("matches/accept", { friend_id: profile.id })
         .then((res) => {
-          console.log({ res });
+          console.log({ resData: res.data });
           setLoading(false);
           DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS);
+          
           if (
             res &&
             res.data &&

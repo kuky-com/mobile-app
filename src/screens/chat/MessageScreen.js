@@ -63,6 +63,7 @@ import MessageImagePicker from "./components/MessageImagePicker";
 import colors from "../../utils/colors";
 import { useAlertWithIcon } from "../../components/AlertIconProvider";
 import * as Progress from "react-native-progress";
+import MessageUrlPreview from "../../components/MessageUrlPreview";
 
 const styles = StyleSheet.create({
   container: {
@@ -267,7 +268,7 @@ const MessageScreen = ({ navigation, route }) => {
   const loadSubscriptionInfo = async () => {
     try {
       console.log({ currentConversation })
-      if (currentUser?.is_premium_user) {
+      if (currentUser?.is_premium_user || currentUser?.is_moderators) {
         return;
       }
 
@@ -403,25 +404,25 @@ const MessageScreen = ({ navigation, route }) => {
     };
   }, []);
 
-  useEffect(() => {
-    if (!currentUser?.profile_approved) {
-      showAlert(
-        "Your account is almost ready!",
-        "While we complete the approval, feel free to browse and get familiar with other profiles. You’ll be connecting soon!",
-        [
-          {
-            text: "Keep Exploring",
-            onPress: () => {
-              navigation.goBack();
-            },
-          },
-        ],
-        () => {
-          navigation.goBack();
-        },
-      );
-    }
-  }, [currentUser]);
+  // useEffect(() => {
+  //   if (!currentUser?.profile_approved) {
+  //     showAlert(
+  //       "Your account is almost ready!",
+  //       "While we complete the approval, feel free to browse and get familiar with other profiles. You’ll be connecting soon!",
+  //       [
+  //         {
+  //           text: "Keep Exploring",
+  //           onPress: () => {
+  //             navigation.goBack();
+  //           },
+  //         },
+  //       ],
+  //       () => {
+  //         navigation.goBack();
+  //       },
+  //     );
+  //   }
+  // }, [currentUser]);
 
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
@@ -593,6 +594,7 @@ const MessageScreen = ({ navigation, route }) => {
     const { currentMessage, previousMessage } = props
     // if (currentMessage.type === 'missed_voice_call' || currentMessage.type === 'missed_video_call' || currentMessage.type === 'voice_call' || currentMessage.type === 'video_call') {
     let contentView = null
+    let extraStyle = {}
 
     if (currentMessage.isTyping) {
       contentView = (<TypingBubble />)
@@ -669,25 +671,43 @@ const MessageScreen = ({ navigation, route }) => {
     } else if (currentMessage.type === 'option') {
       contentView = (
         <Pressable onPress={() => currentMessage.onSelected && currentMessage.onSelected()} style={{ gap: 1, alignItems: 'flex-end', paddingVertical: 5, paddingHorizontal: 8 }}>
-          <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
-          <Text style={{ fontSize: 16, fontWeight: 'bold', color: currentMessage?.user?._id !== currentUser?.id ? '#333333' : '#333333', lineHeight: 20 }}>{currentMessage.text}</Text>
-            <View style={{width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: '#7B65E8', alignItems: 'center', justifyContent: 'center'}}>
-              {currentMessage.selected && <View style={{width: 16, height: 16, borderRadius: 8, backgroundColor: '#7B65E8'}} />}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={{ fontSize: 16, fontWeight: 'bold', color: currentMessage?.user?._id !== currentUser?.id ? '#333333' : '#333333', lineHeight: 20 }}>{currentMessage.text}</Text>
+            <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: '#7B65E8', alignItems: 'center', justifyContent: 'center' }}>
+              {currentMessage.selected && <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: '#7B65E8' }} />}
             </View>
           </View>
-        </Pressable >
-      )
+        </Pressable>
+      );
     } else {
-      contentView = (
-        <View style={{ gap: 1, alignItems: 'flex-end' }}>
-          <Hyperlink
-            onPress={(url) => Linking.openURL(url)}
-            linkStyle={{ color: "#2980b9" }}>
-            <Text selectable style={{ fontSize: 13, color: currentMessage?.user?._id !== currentUser?.id ? '#f0f0f0' : 'black', lineHeight: 20 }}>{currentMessage?.text}</Text>
-          </Hyperlink>
-          <Text style={{ color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
-        </View>
-      )
+      const isValidUrl = (url) => {
+        try {
+          new URL(url);
+          return true;
+        } catch (e) {
+          return false;
+        }
+      };
+
+      if (isValidUrl(currentMessage?.text)) {
+        contentView = <MessageUrlPreview currentMessage={currentMessage} currentUser={currentUser} />
+        extraStyle = {maxWidth: '60%'}
+      } else {
+        contentView = (
+          <View style={{ gap: 1, alignItems: 'flex-end' }}>
+            <Hyperlink
+              onPress={(url) => Linking.openURL(url)}
+              linkStyle={{ color: "#2980b9" }}>
+              <Text selectable style={{ fontSize: 13, color: currentMessage?.user?._id !== currentUser?.id ? '#f0f0f0' : 'black', lineHeight: 20 }}>
+                {currentMessage?.text}
+              </Text>
+            </Hyperlink>
+            <Text style={{ color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>
+              {dayjs(currentMessage.createdAt).format('hh:mmA')}
+            </Text>
+          </View>
+        );
+      }
     }
 
     const isNewDay =
@@ -698,12 +718,13 @@ const MessageScreen = ({ navigation, route }) => {
     return (
       <View>
         {isNewDay && <Day {...props} />}
-        <View style={{
+        <View style={[{
           width: '100%', paddingHorizontal: 8,
           flexDirection: 'row', alignItems: 'center',
           justifyContent: currentMessage?.user?._id === currentUser?.id ? 'flex-end' : 'flex-start',
+          alignSelf: currentMessage?.user?._id === currentUser?.id ? 'flex-end' : 'flex-start',
           gap: 8, paddingBottom: 2, paddingTop: 2
-        }}>
+        }, extraStyle]}>
           <View style={{ width: 45 }}>
             {
               ((currentMessage.showUserAvatar || currentMessage.isTyping) && currentMessage?.user?._id !== currentUser?.id) && renderAvatar(props)
@@ -734,9 +755,17 @@ const MessageScreen = ({ navigation, route }) => {
 
   const renderInputToolbar = (props) => {
     return (
-      <View style={{ paddingBottom: insets.bottom, paddingTop: 12, paddingHorizontal: 16, gap: 3, backgroundColor: '#E3E1ED' }}>
+      <View style={{
+        paddingBottom: keyboardHeight > 0 ? (12 + insets.bottom) : insets.bottom,
+        paddingTop: 12,
+        paddingHorizontal: 16,
+        gap: 3,
+        backgroundColor: '#E3E1ED'
+      }}>
         <View style={{
-          flexDirection: 'row', alignItems: 'center', gap: 3
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 3
         }}>
           <TouchableOpacity onPress={sendAttachment} style={{ padding: 8 }}>
             <FontAwesome6 name='paperclip' size={20} color={imagePickerVisible ? colors.mainColor : '#333333'} />
@@ -1245,7 +1274,7 @@ const MessageScreen = ({ navigation, route }) => {
     }
   ]
 
-  if(messageUnlockState === 'later') {
+  if (messageUnlockState === 'later') {
     unlockMessages = [
       {
         text: 'Yes, show me the plans',
@@ -1282,7 +1311,7 @@ const MessageScreen = ({ navigation, route }) => {
         _id: 1,
       },
     ]
-  } else if(messageUnlockState === 'more') {
+  } else if (messageUnlockState === 'more') {
     unlockMessages = [
       {
         text: `Glad you asked! 🚀 Upgrading unlocks more connections, allowing you to build a bigger, more meaningful network. `,
@@ -1380,7 +1409,7 @@ const MessageScreen = ({ navigation, route }) => {
               borderRadius: 18,
             }} />
             <View style={styles.onlineStatusBg}>
-              <OnlineStatus isRecentOnline={true} status={'online'} radius={12} />
+              <OnlineStatus isRecentOnline={true} status={currentConversation?.profile?.online_status} radius={12} />
             </View>
           </TouchableOpacity>
           <Text onPress={() => navigation.navigate("BotProfileScreen")} style={{ flex: 1, fontSize: 14, color: "white", fontWeight: "bold" }}>Kuky</Text>
@@ -1493,7 +1522,7 @@ const MessageScreen = ({ navigation, route }) => {
         messages={messages}
         onSend={(messages) => onSend(messages)}
         renderInputToolbar={renderInputToolbar}
-        minInputToolbarHeight={66}
+        // minInputToolbarHeight={66}
         renderComposer={renderComposer}
         renderSend={renderSend}
         renderAvatar={renderAvatar}

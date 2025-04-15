@@ -214,7 +214,9 @@ const AppStack = ({ navgation }) => {
   const urlHandleRef = useRef(null);
   const pushToken = useAtomValue(pushTokenAtom);
   const [usedUrl, setUsedUrl] = useAtom(linkingUrlAtom)
-  
+  const sessionUpdateInterval = useRef()
+  const currentSessionRef = useRef()
+
   //config onesignal
   useEffect(() => {
     OneSignal.initialize(ONESIGNAL_APP_ID);
@@ -337,7 +339,6 @@ const AppStack = ({ navgation }) => {
 
   const loadProfile = async () => {
     const token = await AsyncStorage.getItem("ACCESS_TOKEN");
-    const deviceId = await AsyncStorage.getItem("DEVICE_ID");
 
     if (token && deviceId) {
       apiClient("users/user-info")
@@ -352,6 +353,42 @@ const AppStack = ({ navgation }) => {
     }
   };
 
+  const createSession = async () => {
+    const res = await apiClient.post(`users/sessions`, {
+      device_id: deviceId,
+      platform: Platform.OS,
+      start_time: dayjs().format()
+    })
+
+    if (res && res.data) {
+      currentSessionRef.current = res.data.data.session_id
+    } else {
+      currentSessionRef.current = null
+    }
+  };
+
+
+  const startSessionUpdater = () => {
+    if (sessionUpdateInterval.current) {
+      stopSessionUpdater()
+    }
+
+    sessionUpdateInterval.current = setInterval(async () => {
+      console.log({currentSessionRef: currentSessionRef.current})
+      if (currentSessionRef.current) {
+        await apiClient.put(`users/sessions/${currentSessionRef.current}`, {
+          end_time: dayjs().format()
+        })
+      }
+    }, 2 * 60 * 1000)
+  };
+
+  const stopSessionUpdater = () => {
+    if (sessionUpdateInterval.current) {
+      clearInterval(sessionUpdateInterval.current);
+    }
+  }
+
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextAppState) => {
       if (
@@ -363,12 +400,33 @@ const AppStack = ({ navgation }) => {
       }
 
       appState.current = nextAppState;
+
+      if (currentUser) {
+        if (nextAppState === 'active') {
+          createSession()
+          startSessionUpdater()
+        } else if (nextAppState.match(/inactive|background/)) {
+          stopSessionUpdater()
+          if (currentSessionRef.current) {
+            apiClient.put(`users/sessions/${currentSessionRef.current}`, {
+              end_time: dayjs().format()
+            })
+          }
+        }
+      }
     });
 
     return () => {
       subscription.remove();
     };
-  }, []);
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (currentUser) {
+      createSession()
+      startSessionUpdater()
+    }
+  }, [currentUser])
 
   useEffect(() => {
     const getVersion = () => {
@@ -386,11 +444,11 @@ const AppStack = ({ navgation }) => {
             const appVersion = DeviceInfo.getVersion();
 
             if (appVersion < version) {
-              if (res.data.data.is_required) {
+              if (Platform.select({ ios: res.data.data.is_required, android: res.data.data.is_required_android })) {
                 showUpdateAlert(
                   `Version ${version}`,
                   res.data.data.description,
-                  res.data.data.is_required,
+                  Platform.select({ ios: res.data.data.is_required, android: res.data.data.is_required_android }),
                   [
                     {
                       text: "Update Now",
@@ -411,7 +469,7 @@ const AppStack = ({ navgation }) => {
                   showUpdateAlert(
                     `Version ${version}`,
                     res.data.data.description,
-                    res.data.data.is_required,
+                    Platform.select({ ios: res.data.data.is_required, android: res.data.data.is_required_android }),
                     [
                       {
                         text: "Update Now",
@@ -447,7 +505,7 @@ const AppStack = ({ navgation }) => {
     }, 5000);
   }, []);
 
-  console.log({url})
+  console.log({ url })
 
   useEffect(() => {
     try {
@@ -471,7 +529,7 @@ const AppStack = ({ navgation }) => {
             }
           }
 
-          if(session_code && session_code !== usedUrl) {
+          if (session_code && session_code !== usedUrl) {
             Alert.alert('Sign In', 'Are you want to sign in with new account from web?', [
               { text: 'Cancel' },
               { text: 'Continue', onPress: () => loginNewAccount(session_code) }

@@ -92,8 +92,8 @@ android {
         applicationId 'com.kuky.android'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 26
-        versionName "1.6.0"
+        versionCode 29
+        versionName "2.2.0"
     }
     signingConfigs {
         debug {

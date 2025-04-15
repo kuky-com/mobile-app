@@ -17,6 +17,10 @@ function navigate(name, params) {
   }
 }
 
+function getCurrentRoute() {
+  return navigationRef.current?.getCurrentRoute();
+}
+
 function push(...args) {
   navigationRef.current?.dispatch(StackActions.push(...args));
 }
@@ -46,6 +50,7 @@ const nav = {
   goBack,
   replace,
   resetRaw,
+  getCurrentRoute
 };
 
 function resetRaw(routes) {
