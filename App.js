@@ -31,7 +31,7 @@ import duration from 'dayjs/plugin/duration'
 Amplify.configure(amplifyconfig);
 SendbirdCalls.initialize("9BE43E57-7AA4-4D1A-A59A-A567330F0095");
 
-Smartlook.instance.preferences.setProjectKey("6bebfbc50c0aedc486a2766bc51c24d0d2b4a13f");
+Smartlook.instance.preferences.setProjectKey("f7dda0c021d21ed4e3c9266e58fcdec844c87bfa");
 Smartlook.instance.start();
 
 const prefix = Linking.createURL("/");

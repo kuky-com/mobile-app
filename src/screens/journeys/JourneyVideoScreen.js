@@ -6,10 +6,12 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
+    DeviceEventEmitter,
     Dimensions,
     Linking,
     Platform,
     StyleSheet,
+    Switch,
     TouchableOpacity,
     View,
 } from "react-native";
@@ -42,6 +44,8 @@ import { uploadData, getUrl, } from 'aws-amplify/storage'
 import { getAuthenScreen, getVideoResizeDimensions } from "../../utils/utils";
 import Voice from '@react-native-voice/voice'
 import { PERMISSIONS, request } from "react-native-permissions";
+import Purchases from "react-native-purchases";
+import constants from "../../utils/constants";
 
 const styles = StyleSheet.create({
     container: {
@@ -105,10 +109,40 @@ const JourneyVideoScreen = ({ navigation, route }) => {
     const [transcription, setTranscription] = useState("");
     const [displayedBlock, setDisplayedBlock] = useState('');
     const [highlightWords, setHighlightWords] = useState([]);
+    const [isBlur, setBlur] = useState(false)
+    const [canBlur, setCanBlur] = useState(false)
 
     let latestRequest = null;
 
     const [question, setQuestion] = useState(null)
+
+    const loadSubscriptionInfo = async () => {
+        try {
+            const customerInfo = await Purchases.getCustomerInfo();
+            // console.log({ customerInfo: JSON.stringify(customerInfo) })
+
+            if (
+                customerInfo &&
+                customerInfo.entitlements &&
+                customerInfo.entitlements.active &&
+                customerInfo.entitlements.active["blur_face"]
+            ) {
+                setCanBlur(true)
+            }
+        } catch (error) {
+            console.log({ error });
+        }
+    };
+
+    useEffect(() => {
+        loadSubscriptionInfo()
+
+        const listener = DeviceEventEmitter.addListener(constants.REFRESH_PROFILE, loadSubscriptionInfo)
+
+        return () => {
+            listener.remove()
+        }
+    }, [])
 
     const getQuestion = async () => {
         try {
@@ -440,12 +474,18 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
     }
 
     const updateProfile = (video, audio) => {
-        apiClient.post('users/update', { video_purpose: video, audio_purpose: audio })
+        apiClient.post('users/update', { video_purpose: video, audio_purpose: audio, is_video_purpose_blur: isBlur })
             .then((res) => {
                 setProcessing(false)
                 if (res && res.data && res.data.success) {
                     setUser(res.data.data)
                     console.log({ user: res.data.data })
+
+                    if (isBlur) {
+                        setTimeout(() => {
+                            DeviceEventEmitter.emit(constants.REFRESH_PROFILE);
+                        }, 60000);
+                    }
 
                     if (fromOnboarding) {
                         NavigationService.reset('JourneyMatchingScreen')
@@ -544,42 +584,42 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
 
     const retryPermission = async (isContinue) => {
         try {
-          const res = await requestPermission();
-          console.log({ res })
-          
-          if (!res.canAskAgain && !res.granted && askPermissionOnce) {
-            Alert.alert(
-              'Permission Required',
-              'Please enable camera permission from settings',
-              [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'Open Settings', onPress: () => Linking.openSettings() },
-              ]
-            );
-          }
-    
-          const audioRes = await requestAudioPermission();
-          if (!audioRes.canAskAgain && !audioRes.granted && askPermissionOnce) {
-            Alert.alert(
-              'Permission Required',
-              'Please enable microphone permission from settings',
-              [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'Open Settings', onPress: () => Linking.openSettings() },
-              ]
-            );
-          }
-    
-          setAskPermissionOnce(true)
-    
-          if (res.granted && videoRef && videoRef.current) {
-            videoRef.current.resumePreview();
-          }
-          console.log({ res });
+            const res = await requestPermission();
+            console.log({ res })
+
+            if (!res.canAskAgain && !res.granted && askPermissionOnce) {
+                Alert.alert(
+                    'Permission Required',
+                    'Please enable camera permission from settings',
+                    [
+                        { text: 'Cancel', style: 'cancel' },
+                        { text: 'Open Settings', onPress: () => Linking.openSettings() },
+                    ]
+                );
+            }
+
+            const audioRes = await requestAudioPermission();
+            if (!audioRes.canAskAgain && !audioRes.granted && askPermissionOnce) {
+                Alert.alert(
+                    'Permission Required',
+                    'Please enable microphone permission from settings',
+                    [
+                        { text: 'Cancel', style: 'cancel' },
+                        { text: 'Open Settings', onPress: () => Linking.openSettings() },
+                    ]
+                );
+            }
+
+            setAskPermissionOnce(true)
+
+            if (res.granted && videoRef && videoRef.current) {
+                videoRef.current.resumePreview();
+            }
+            console.log({ res });
         } catch (error) {
-          console.log({ error });
+            console.log({ error });
         }
-      };
+    };
 
     const handleChangePlaybackStatus = (status) => {
         setPlaying(status.isPlaying);
@@ -594,6 +634,19 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
             NavigationService.reset('JourneyMatchingScreen')
         } else {
             NavigationService.reset('Dashboard')
+        }
+    }
+
+    const onSetBlur = (value) => {
+        if (value) {
+            if (canBlur) {
+                setBlur(true)
+            } else {
+                navigation.push('BlurVideoScreen')
+            }
+
+        } else {
+            setBlur(false)
         }
     }
 
@@ -637,7 +690,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                 <View
                     style={{
                         width: "100%",
-                        height: Dimensions.get("screen").height - insets.bottom - insets.top - 380,
+                        height: Dimensions.get("screen").height - insets.bottom - insets.top - 390,
                         alignItems: "center",
                         justifyContent: "center",
                         flexDirection: "row",
@@ -647,7 +700,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                     <View
                         style={{
                             width: Dimensions.get("screen").width - 64,
-                            height: Dimensions.get("screen").height - insets.bottom - insets.top - 380,
+                            height: Dimensions.get("screen").height - insets.bottom - insets.top - 390,
                         }}
                     >
                         <View
@@ -904,7 +957,11 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                         gap: 16,
                     }}
                 >
-                    <View style={{ width: '100%', alignItems: 'flex-start', justifyContent: 'flex-start', height: 100, }}>
+                    <View style={{ marginVertical: -8, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 8, width: '100%', paddingHorizontal: 24 }}>
+                        <Text style={{ fontSize: 10, fontWeight: '500', color: 'black' }}>{'Face blur:'}</Text>
+                        <Switch value={isBlur} onValueChange={onSetBlur} />
+                    </View>
+                    <View style={{ width: '100%', alignItems: 'flex-start', justifyContent: 'flex-start', height: 90, }}>
                         <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, }}>
                             <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#333333', alignItems: 'center', justifyContent: 'center' }}>
                                 <Image source={images.happy_cloud} style={{ width: 20, height: 20 }} contentFit="contain" />

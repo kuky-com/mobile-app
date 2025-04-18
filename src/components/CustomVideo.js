@@ -28,8 +28,9 @@ const CustomVideo = React.forwardRef((props, ref) => {
   };
 
   const onPlaybackStatusUpdate = (status) => {
-    if(loadingRef.current === true) {
-      props.onPlaybackStatusUpdate({...status, isPlaying: true, didJustFinish: currentIndex > 0 ? false : status.didJustFinish});
+    if (loadingRef.current === true) {
+      if (props && props.onPlaybackStatusUpdate)
+        props.onPlaybackStatusUpdate({ ...status, isPlaying: true, didJustFinish: currentIndex > 0 ? false : status.didJustFinish });
 
       setLoading(true);
       setIsPlaying(true);
@@ -37,11 +38,11 @@ const CustomVideo = React.forwardRef((props, ref) => {
       if (props && props.onPlaybackStatusUpdate) {
         props.onPlaybackStatusUpdate(status);
       }
-  
+
       setLoading(!status.isLoaded || status.isBuffering || (status.shouldPlay && !status.isPlaying));
       setIsPlaying(status.isPlaying);
     }
-    
+
 
     if (status.didJustFinish && !status.isLooping) {
       if (sources && currentIndex < sources.length - 1) {

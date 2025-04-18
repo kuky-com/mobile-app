@@ -8779,10 +8779,10 @@ react-native-skeleton-placeholder@^5.2.4:
   resolved "https://registry.yarnpkg.com/react-native-skeleton-placeholder/-/react-native-skeleton-placeholder-5.2.4.tgz#a654fa083ff274a39c763e086f8a850c556d4c95"
   integrity sha512-OZntVq1hU1UX33FltxK2ezT2v9vHIhV8YnEbnMWUCvxT0N9OsgD1qxiHm6qb9YRJVgq2o5z3S7dNPsPnDF/jNg==
 
-react-native-smartlook-analytics@^2.1.19:
-  version "2.1.19"
-  resolved "https://registry.yarnpkg.com/react-native-smartlook-analytics/-/react-native-smartlook-analytics-2.1.19.tgz#6ce1f16b8b608d5810fee635893fb83bcd46ebee"
-  integrity sha512-6qRwMJW8WAeznqs7VGJfmshgEYkMEU2aLzgnP+FxdF5lpCZ4eCHuSCYjdidkteKn3n6wqKxAIuIfYO9VogRupA==
+react-native-smartlook-analytics@^2.1.21:
+  version "2.1.21"
+  resolved "https://registry.yarnpkg.com/react-native-smartlook-analytics/-/react-native-smartlook-analytics-2.1.21.tgz#695634b78684e8b52554f3d96661f187eeb11b9c"
+  integrity sha512-61DG9Vx5O7NdzOOjQuLhvCcVAGmZopUHC7ctipJcgaALaNpk++hionRgjkVqqEcCx6NWRuy5WSAy4Cb3ku3Rkg==
 
 react-native-star-rating-widget@^1.9.1:
   version "1.9.1"

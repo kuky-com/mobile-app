@@ -6,10 +6,12 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  DeviceEventEmitter,
   Dimensions,
   Linking,
   Platform,
   StyleSheet,
+  Switch,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -42,6 +44,9 @@ import { uploadData, getUrl, } from 'aws-amplify/storage'
 import { getAuthenScreen, getVideoResizeDimensions } from "../../utils/utils";
 import Voice from '@react-native-voice/voice'
 import { PERMISSIONS, request } from "react-native-permissions";
+import SwitchWithText from "../../components/SwitchWithText";
+import Purchases from "react-native-purchases";
+import constants from "../../utils/constants";
 
 const styles = StyleSheet.create({
   container: {
@@ -94,6 +99,8 @@ const IntroductionVideoScreen = ({ navigation, route }) => {
   const [endPosition, setEndPosition] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [askPermissionOnce, setAskPermissionOnce] = useState(false)
+  const [isBlur, setBlur] = useState(false)
+  const [canBlur, setCanBlur] = useState(false)
 
   const showAlert = useAlertWithIcon()
   const showNormalAlert = useAlert()
@@ -107,6 +114,34 @@ const IntroductionVideoScreen = ({ navigation, route }) => {
   const [highlightWords, setHighlightWords] = useState([]);
 
   let latestRequest = null;
+
+  const loadSubscriptionInfo = async () => {
+    try {
+      const customerInfo = await Purchases.getCustomerInfo();
+      // console.log({ customerInfo: JSON.stringify(customerInfo) })
+
+      if (
+        customerInfo &&
+        customerInfo.entitlements &&
+        customerInfo.entitlements.active &&
+        customerInfo.entitlements.active["blur_face"]
+      ) {
+        setCanBlur(true)
+      }
+    } catch (error) {
+      console.log({ error });
+    }
+  };
+
+  useEffect(() => {
+    loadSubscriptionInfo()
+
+    const listener = DeviceEventEmitter.addListener(constants.REFRESH_PROFILE, loadSubscriptionInfo)
+
+    return () => {
+      listener.remove()
+    }
+  }, [])
 
   const setupTranscript = async () => {
     await Audio.setAudioModeAsync({
@@ -422,12 +457,18 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
 
   const updateProfile = (video, audio) => {
     console.log({ video_intro: video, audio_intro: audio })
-    apiClient.post('users/update', { video_intro: video, audio_intro: audio })
+    apiClient.post('users/update', { video_intro: video, audio_intro: audio, is_video_intro_blur: isBlur })
       .then((res) => {
         setProcessing(false)
         if (res && res.data && res.data.success) {
           setUser(res.data.data)
           console.log({ user: res.data.data })
+
+          if(isBlur) {
+            setTimeout(() => {
+              DeviceEventEmitter.emit(constants.REFRESH_PROFILE);
+            }, 60000);
+          }
 
           if (currentUser?.askJPFGeneral) {
             NavigationService.reset('GeneralJPFScreen')
@@ -532,7 +573,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
     try {
       const res = await requestPermission();
       console.log({ res })
-      
+
       if (!res.canAskAgain && !res.granted && askPermissionOnce) {
         Alert.alert(
           'Permission Required',
@@ -583,6 +624,19 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
     }
   }
 
+  const onSetBlur = (value) => {
+    if (value) {
+      if(canBlur) {
+        setBlur(true)
+      } else {
+        navigation.push('BlurVideoScreen')
+      }
+      
+    } else {
+      setBlur(false)
+    }
+  }
+
   return (
     <View style={{ flex: 1, width: "100%" }}>
       {!videoUrl &&
@@ -623,7 +677,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
         <View
           style={{
             width: "100%",
-            height: Dimensions.get("screen").height - insets.bottom - insets.top - 350,
+            height: Dimensions.get("screen").height - insets.bottom - insets.top - 360,
             alignItems: "center",
             justifyContent: "center",
             flexDirection: "row",
@@ -633,7 +687,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
           <View
             style={{
               width: Dimensions.get("screen").width - 64,
-              height: Dimensions.get("screen").height - insets.bottom - insets.top - 350,
+              height: Dimensions.get("screen").height - insets.bottom - insets.top - 360,
             }}
           >
             <View
@@ -890,7 +944,11 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
             gap: 16,
           }}
         >
-          <View style={{ width: '100%', alignItems: 'flex-start', justifyContent: 'flex-start', height: 100, }}>
+          <View style={{ marginVertical: -8, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 8, width: '100%', paddingHorizontal: 24 }}>
+            <Text style={{ fontSize: 10, fontWeight: '500', color: 'black' }}>{'Face blur:'}</Text>
+            <Switch value={isBlur} onValueChange={onSetBlur} />
+          </View>
+          <View style={{ width: '100%', alignItems: 'flex-start', justifyContent: 'flex-start', height: 90, }}>
             <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, }}>
               <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#333333', alignItems: 'center', justifyContent: 'center' }}>
                 <Image source={images.happy_cloud} style={{ width: 20, height: 20 }} contentFit="contain" />

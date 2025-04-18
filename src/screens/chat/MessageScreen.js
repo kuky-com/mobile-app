@@ -280,7 +280,10 @@ const MessageScreen = ({ navigation, route }) => {
           customerInfo &&
           customerInfo.entitlements &&
           customerInfo.entitlements.active &&
-          customerInfo.entitlements.active["pro"]
+          (
+            customerInfo.entitlements.active["pro"] ||
+            customerInfo.entitlements.active["pro_3month"]
+          )
         )
       ) {
         setIsPremium(false)

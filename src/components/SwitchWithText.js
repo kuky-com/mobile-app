@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { View, TouchableOpacity, Animated, StyleSheet } from 'react-native';
 import Text from './Text';
 
-export default function SwitchWithText({enable = true, setEnable = () => {}}) {
+export default function SwitchWithText({onText = 'Public', offText = 'Private', enable = true, setEnable = () => {}}) {
   const animation = useRef(new Animated.Value(0)).current;
 
   const toggleSwitch = () => {
@@ -50,7 +50,7 @@ export default function SwitchWithText({enable = true, setEnable = () => {}}) {
           />
           <View style={[styles.textContainer]}>
             <Text style={[styles.switchText, {textAlign: enable ? 'right' : 'left'}]}>
-              {enable ? 'Public' : 'Private'}
+              {enable ? onText : offText}
             </Text>
           </View>
         </View>

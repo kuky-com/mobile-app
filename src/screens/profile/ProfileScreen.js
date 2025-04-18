@@ -251,7 +251,7 @@ const ProfileScreen = ({ navigation }) => {
     const onUpdateJourney = () => {
         navigation.push('JourneySelectionScreen', {isUpdate: true})
     }
-
+    
     return (
         <View style={styles.container}>
             <StatusBar translucent style='dark' />

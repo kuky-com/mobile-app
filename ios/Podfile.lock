@@ -2933,8 +2933,27 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-smartlook-analytics (2.1.19):
+  - react-native-smartlook-analytics (2.1.21):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.10.14.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-video (6.10.2):
     - DoubleConversion
     - glog
@@ -4035,7 +4054,7 @@ SPEC CHECKSUMS:
   react-native-render-html: 984dfe2294163d04bf5fe25d7c9f122e60e05ebe
   react-native-safe-area-context: 142fade490cbebbe428640b8cbdb09daf17e8191
   react-native-slider: 8925e9856a27e84c0ce105b1d4f4ada65defec6c
-  react-native-smartlook-analytics: 4aa35ae2a6dad94c6d4271a4f9689ef4f8642bc7
+  react-native-smartlook-analytics: 6dba881a8f0481c91a660b00d92597924092f798
   react-native-video: 5296c222923ddc86124d6a5dea514c859ebad77e
   react-native-voice: f5e8eec2278451d0017eb6a30a6ccc726aca34e0
   React-nativeconfig: 415626a63057638759bcc75e0a96e2e07771a479

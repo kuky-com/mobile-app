@@ -120,6 +120,7 @@ import { linkingUrlAtom, tokenAtom } from "../actions/global";
 import { getAuthenScreen } from "../utils/utils";
 import Toast from "react-native-toast-message";
 import WelcomeBackScreen from "./journeys/WelcomeBackScreen";
+import BlurVideoScreen from "./journeys/BlurVideoScreen";
 
 SendbirdCalls.setListener({
   onRinging: async (callProps) => {
@@ -374,7 +375,6 @@ const AppStack = ({ navgation }) => {
     }
 
     sessionUpdateInterval.current = setInterval(async () => {
-      console.log({currentSessionRef: currentSessionRef.current})
       if (currentSessionRef.current) {
         await apiClient.put(`users/sessions/${currentSessionRef.current}`, {
           end_time: dayjs().format()
@@ -791,6 +791,7 @@ const AppStack = ({ navgation }) => {
       <Stack.Screen name="JourneyMatchingScreen" component={JourneyMatchingScreen} />
       <Stack.Screen name="IntroductionVideoTutorialScreen" component={IntroductionVideoTutorialScreen} />
       <Stack.Screen name="WelcomeBackScreen" component={WelcomeBackScreen} />
+      <Stack.Screen name="BlurVideoScreen" component={BlurVideoScreen} />
     </Stack.Navigator>
   );
 };

@@ -96,9 +96,16 @@ const MySubscriptionScreen = ({ navigation }) => {
         customerInfo &&
         customerInfo.entitlements &&
         customerInfo.entitlements.active &&
-        customerInfo.entitlements.active["pro"]
+        (
+          customerInfo.entitlements.active["pro"] ||
+          customerInfo.entitlements.active["pro_3month"]
+        )
       ) {
-        setActivePlan(customerInfo.entitlements.active["pro"].productIdentifier);
+        if (customerInfo.entitlements.active["pro"]) {
+          setActivePlan(customerInfo.entitlements.active["pro"].productIdentifier);
+        } else {
+          setActivePlan(customerInfo.entitlements.active["pro_3month"].productIdentifier);
+        }
       } else {
         setActivePlan(null);
       }
@@ -190,7 +197,7 @@ const MySubscriptionScreen = ({ navigation }) => {
           style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}
         ></View>
       </View>
-      <View style={{ flex: 1, width: '100%', backgroundColor: "white", marginTop: -40, paddingTop: 40,  }}>
+      <View style={{ flex: 1, width: '100%', backgroundColor: "white", marginTop: -40, paddingTop: 40, }}>
         <View
           style={{ flex: 1, width: '100%', paddingHorizontal: 16, paddingVertical: 16, paddingTop: 24, gap: 32, alignItems: 'center' }}
         >

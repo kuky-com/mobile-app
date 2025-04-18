@@ -114,7 +114,10 @@ const PremiumRequestScreen = ({ navigation, route }) => {
           customerInfo &&
           customerInfo.entitlements &&
           customerInfo.entitlements.active &&
-          customerInfo.entitlements.active["pro"]
+          (
+            customerInfo.entitlements.active["pro"] ||
+            customerInfo.entitlements.active["pro_3month"]
+          )
         ) {
           if (conversation) {
             NavigationService.replace("MessageScreen", { conversation });
