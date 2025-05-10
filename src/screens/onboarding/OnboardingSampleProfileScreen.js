@@ -297,11 +297,13 @@ const OnboardingSampleProfileScreen = ({ navigation }) => {
                                 sources={[
                                     currentProfile?.video_intro,
                                     currentProfile?.video_purpose,
-                                ]}
-                                subtitles={[
+                                    currentProfile?.video_interests,
+                                  ]}
+                                  subtitles={[
                                     currentProfile?.subtitle_intro,
                                     currentProfile?.subtitle_purpose,
-                                ]}
+                                    currentProfile?.subtitle_interests,
+                                  ]}
                                 onPlaybackStatusUpdate={(status) => {
                                     setPlaying(status.isPlaying || status.isBuffering || status.shouldPlay);
                                     if (status.didJustFinish || status.isPlaying) {

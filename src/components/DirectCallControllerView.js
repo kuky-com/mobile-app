@@ -123,6 +123,7 @@ const DirectCallControllerView = ({ status, call, ios_audioDevice }) => {
                   { borderRadius: 10000 },
                 ]}
                 onPress={() => {
+                  console.log({isMute: call.isLocalAudioEnabled})
                   if (call.isLocalAudioEnabled) {
                     call.muteMicrophone();
                   } else {

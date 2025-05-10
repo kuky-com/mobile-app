@@ -38,6 +38,7 @@ import { Rating } from "@/components/Rating";
 import ShareModal from "../../components/ShareModal";
 import { FontAwesome6 } from "@expo/vector-icons";
 import analytics from '@react-native-firebase/analytics'
+import VideoManager from "../../components/VideoManager";
 
 const styles = StyleSheet.create({
   container: {
@@ -168,7 +169,9 @@ const SampleProfileScreen = ({ navigation, route }) => {
     if (videoRef && videoRef.current) {
       setPendingVideo(true);
       try {
-        await videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: 50 });
+        await VideoManager.stopCurrent();
+        videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: 50 })
+        VideoManager.setCurrent(videoRef.current);
       } catch (error) {
         console.log({ error });
         setPendingVideo(false);
@@ -240,10 +243,12 @@ const SampleProfileScreen = ({ navigation, route }) => {
                 sources={[
                   currentProfile?.video_intro,
                   currentProfile?.video_purpose,
+                  currentProfile?.video_interests,
                 ]}
                 subtitles={[
                   currentProfile?.subtitle_intro,
                   currentProfile?.subtitle_purpose,
+                  currentProfile?.subtitle_interests,
                 ]}
                 resizeMode={ResizeMode.COVER}
                 onPlaybackStatusUpdate={(status) => {

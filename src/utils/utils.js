@@ -118,6 +118,23 @@ export const formatCallSeconds = (milliseconds) => {
     return parts.join(', ');
 };
 
+export const formatSeconds = (secondsNumber) => {
+    const durationObj = dayjs.duration(secondsNumber, 'seconds');
+
+    const hours = Math.floor(durationObj.asHours()); // Use asHours() to handle durations > 24 hours
+    const minutes = durationObj.minutes();
+    const seconds = durationObj.seconds();
+
+    const parts = [];
+    if (hours) parts.push(`${hours} h`);
+    if (minutes) parts.push(`${minutes} m`);
+    if (seconds || (!hours && !minutes)) {
+        parts.push(`${seconds} s`);
+    }
+
+    return parts.join(', ');
+};
+
 export const parseFormattedCallSeconds = (formattedString) => {
     const timeUnits = {
         hour: 3600 * 1000,

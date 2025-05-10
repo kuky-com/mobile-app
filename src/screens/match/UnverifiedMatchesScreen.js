@@ -121,6 +121,8 @@ const UnverifiedMatchesScreen = ({ navigation }) => {
                 )
             ) {
                 setIsPremium(false)
+            } else {
+                setIsPremium(true)
             }
         } catch (error) {
             console.log({ error });
@@ -137,7 +139,7 @@ const UnverifiedMatchesScreen = ({ navigation }) => {
                 console.log({ matches: res.data });
                 if (res && res.data && res.data.success) {
 
-                    setMatches(res.data.data.matches ?? []);
+                    setMatches(res.data.data ?? []);
                 } else {
                     setMatches([]);
                 }

@@ -11,6 +11,7 @@ import {
   Dimensions,
   Keyboard,
   Linking,
+  Platform,
   Pressable,
   StyleSheet,
   TouchableOpacity,
@@ -245,6 +246,8 @@ const MessageScreen = ({ navigation, route }) => {
   }, [])
 
   useEffect(() => {
+    setKeyboardHeight(0)
+
     const keyboardDidShowListener = Keyboard.addListener(
       "keyboardDidShow",
       event => {
@@ -287,6 +290,8 @@ const MessageScreen = ({ navigation, route }) => {
         )
       ) {
         setIsPremium(false)
+      } else {
+        setIsPremium(true)
       }
     } catch (error) {
       console.log({ error });
@@ -432,8 +437,9 @@ const MessageScreen = ({ navigation, route }) => {
     {
       useNativeDriver: false,
       listener: (event) => {
-        const offsetY = event.nativeEvent.contentOffset.y;
-        setIsHeaderVisible(offsetY <= 0); // Show header when at top
+        Keyboard.dismiss()
+        // const offsetY = event.nativeEvent.contentOffset.y;
+        // setIsHeaderVisible(offsetY <= -50); // Show header when at top
       }
     }
   );
@@ -606,7 +612,7 @@ const MessageScreen = ({ navigation, route }) => {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Image source={currentMessage?.user?._id === currentUser?.id ? images.out_voice_call : images.missed_voice_call}
             style={{ width: 30, height: 30 }} contentFit="contain" />
-          <TouchableOpacity onPress={() => calling(true)} style={{ gap: 1 }}>
+          <TouchableOpacity onPress={() => calling(false)} style={{ gap: 1 }}>
             <Text style={{ fontSize: 13, fontWeight: 'bold', lineHeight: 20, color: currentMessage?.user?._id !== currentUser?.id ? '#f0f0f0' : 'black' }}>{currentMessage?.user?._id === currentUser?.id ? 'Voice call' : 'Missed voice call'}</Text>
             <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
               <Text style={{ fontSize: 13, color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#4c4c4c', lineHeight: 20 }}>{currentMessage?.user?._id === currentUser?.id ? 'No answer' : 'tap to call back'}</Text>
@@ -759,7 +765,7 @@ const MessageScreen = ({ navigation, route }) => {
   const renderInputToolbar = (props) => {
     return (
       <View style={{
-        paddingBottom: keyboardHeight > 0 ? (12 + insets.bottom) : insets.bottom,
+        paddingBottom: keyboardHeight > 0 || Platform.OS === 'android' ? (12 + insets.bottom) : insets.bottom,
         paddingTop: 12,
         paddingHorizontal: 16,
         gap: 3,
@@ -790,7 +796,18 @@ const MessageScreen = ({ navigation, route }) => {
 
   const renderComposer = (props) => {
     if (currentConversation.status === "sent" || currentConversation.status === "accepted") {
-      return <Composer {...props} textInputStyle={styles.inputText} placeholder="Type here ..." />;
+      return (
+        <Composer
+          {...props}
+          textInputStyle={[
+        styles.inputText,
+        {
+          textAlignVertical: props.text && props.text.includes("\n") ? "top" : "center",
+        },
+          ]}
+          placeholder="Type here ..."
+        />
+      );
     } else {
       return null;
     }

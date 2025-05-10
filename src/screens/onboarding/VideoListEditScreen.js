@@ -27,6 +27,7 @@ import NavigationService from '@/utils/NavigationService'
 import CustomVideo from "../../components/CustomVideo";
 import { ResizeMode } from "expo-av";
 import { FontAwesome6 } from "@expo/vector-icons";
+import VideoManager from "../../components/VideoManager";
 
 const styles = StyleSheet.create({
     container: {
@@ -42,7 +43,7 @@ const VideoListEditScreen = ({ navigation, route }) => {
 
     const videoIntroRef = useRef(null);
     const videoJourneyyRef = useRef(null);
-
+    const videoInterestsRef = useRef(null);
 
     useEffect(() => {
         analytics().logScreenView({
@@ -51,15 +52,28 @@ const VideoListEditScreen = ({ navigation, route }) => {
         })
     }, [])
 
-    const playVideo = (type) => {
+    const playVideo = async (type) => {
         pauseVideo()
 
         if (videoIntroRef && videoIntroRef.current && type === 'intro') {
+
+            await VideoManager.stopCurrent();
             videoIntroRef.current.setStatusAsync({ shouldPlay: true, positionMillis: 50 })
+            VideoManager.setCurrent(videoIntroRef.current);
         }
 
         if (videoJourneyyRef && videoJourneyyRef.current && type === 'purpose') {
+
+            await VideoManager.stopCurrent();
             videoJourneyyRef.current.setStatusAsync({ shouldPlay: true, positionMillis: 50 })
+            VideoManager.setCurrent(videoJourneyyRef.current);
+        }
+
+        if (videoInterestsRef && videoInterestsRef.current && type === 'interests') {
+
+            await VideoManager.stopCurrent();
+            videoInterestsRef.current.setStatusAsync({ shouldPlay: true, positionMillis: 50 })
+            VideoManager.setCurrent(videoInterestsRef.current);
         }
     }
 
@@ -71,13 +85,19 @@ const VideoListEditScreen = ({ navigation, route }) => {
         if (videoJourneyyRef && videoJourneyyRef.current) {
             videoJourneyyRef.current.setStatusAsync({ shouldPlay: false })
         }
+
+        if (videoInterestsRef && videoInterestsRef.current) {
+            videoInterestsRef.current.setStatusAsync({ shouldPlay: false })
+        }
     }
 
     const onSelect = (type) => {
         if (type === 'intro') {
             NavigationService.reset('IntroductionVideoScreen')
-        } else {
+        } else if (type === 'purpose') {
             NavigationService.reset('JourneyVideoScreen')
+        } else {
+            NavigationService.reset('InterestVideoScreen')
         }
     }
 
@@ -87,7 +107,7 @@ const VideoListEditScreen = ({ navigation, route }) => {
 
             <ScrollView style={{ width: '100%', flex: 1, paddingTop: 32 }}>
                 <View style={{ width: '100%', flex: 1, paddingHorizontal: 24, paddingVertical: 24, borderRadius: 16 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', gap: 16 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', gap: 16 }}>
                         <View>
                             <CustomVideo
                                 style={{ borderWidth: 2, borderColor: '#CDB8E2', justifyContent: 'flex-end', width: 150, height: 200, borderRadius: 10, overflow: 'hidden' }}
@@ -106,7 +126,7 @@ const VideoListEditScreen = ({ navigation, route }) => {
                             <TouchableOpacity onPress={() => playVideo('intro')} style={{ borderWidth: 1, borderColor: 'white', width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
                                 <Image source={images.play_icon} style={{ width: 40, height: 40 }} />
                             </TouchableOpacity>
-                            <Text style={{ fontSize: 14, fontWeight: 'bold', lineHeight: 22, color: 'white' }}>1 / 2</Text>
+                            <Text style={{ fontSize: 14, fontWeight: 'bold', lineHeight: 22, color: 'white' }}>1 / 3</Text>
                             <Text style={{ fontSize: 14, fontWeight: 'bold', lineHeight: 22, color: 'white' }}>Tell us a little about yourself</Text>
                             <TouchableOpacity onPress={() => onSelect('intro')} style={{
                                 height: 26, borderRadius: 13, backgroundColor: currentUser?.video_intro ? '#333333' : '#D62219', width: 120,
@@ -138,13 +158,42 @@ const VideoListEditScreen = ({ navigation, route }) => {
                             <TouchableOpacity onPress={() => playVideo('purpose')} style={{ borderWidth: 1, borderColor: 'white', width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
                                 <Image source={images.play_icon} style={{ width: 40, height: 40 }} />
                             </TouchableOpacity>
-                            <Text style={{ fontSize: 14, fontWeight: 'bold', lineHeight: 22, color: 'white' }}>2 / 2</Text>
+                            <Text style={{ fontSize: 14, fontWeight: 'bold', lineHeight: 22, color: 'white' }}>2 / 3</Text>
                             <Text style={{ fontSize: 14, fontWeight: 'bold', lineHeight: 22, color: 'white' }}>Journey video</Text>
                             <TouchableOpacity onPress={() => onSelect('purpose')} style={{
                                 height: 26, borderRadius: 13, backgroundColor: currentUser?.video_purpose ? '#333333' : '#D62219', width: 120,
                                 alignItems: 'center', justifyContent: 'center'
                             }}>
                                 <Text style={{ color: 'white', fontSize: 13, fontWeight: 'bold' }}>{currentUser?.video_purpose ? 'Retake' : 'Record'}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    <View style={{ width: '100%', height: 2, backgroundColor: 'white', borderRadius: 1, marginVertical: 16 }} />
+
+                    <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', gap: 16 }}>
+                        <View>
+                            <CustomVideo
+                                style={{ borderWidth: 2, borderColor: '#CDB8E2', justifyContent: 'flex-end', width: 150, height: 200, borderRadius: 10, overflow: 'hidden' }}
+                                ref={videoInterestsRef}
+                                sources={[
+                                    currentUser?.video_interests,
+                                ]}
+                                resizeMode={ResizeMode.COVER}
+                            />
+                        </View>
+
+                        <View style={{ flex: 1, gap: 8 }}>
+                            <TouchableOpacity onPress={() => playVideo('interests')} style={{ borderWidth: 1, borderColor: 'white', width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
+                                <Image source={images.play_icon} style={{ width: 40, height: 40 }} />
+                            </TouchableOpacity>
+                            <Text style={{ fontSize: 14, fontWeight: 'bold', lineHeight: 22, color: 'white' }}>3 / 3</Text>
+                            <Text style={{ fontSize: 14, fontWeight: 'bold', lineHeight: 22, color: 'white' }}>Tell us something you really like/dislike!</Text>
+                            <TouchableOpacity onPress={() => onSelect('interests')} style={{
+                                height: 26, borderRadius: 13, backgroundColor: currentUser?.video_interests ? '#333333' : '#D62219', width: 120,
+                                alignItems: 'center', justifyContent: 'center'
+                            }}>
+                                <Text style={{ color: 'white', fontSize: 13, fontWeight: 'bold' }}>{currentUser?.video_interests ? 'Retake' : 'Record'}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

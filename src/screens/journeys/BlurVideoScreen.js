@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ButtonWithLoading from '../../components/ButtonWithLoading'
 import { getUnit } from '../../utils/utils'
 import constants from '../../utils/constants'
+import colors from '../../utils/colors'
 
 const productListDefault = Platform.select({
     ios: ["com.kuky.blur_face"],
@@ -130,6 +131,7 @@ const BlurVideoScreen = ({ navigation }) => {
                     style={{ backgroundColor: '#E8FF58' }}
                     textStyle={{ color: '#5E30C1', fontWeight: 'bold' }}
                     disabled={subscriptions.length === 0}
+                    loadingColor={colors.mainColor}
                 />
 
                 <TouchableOpacity

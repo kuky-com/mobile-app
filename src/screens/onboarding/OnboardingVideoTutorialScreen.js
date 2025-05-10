@@ -17,6 +17,7 @@ import { Video } from 'expo-av'
 import CustomVideo from '../../components/CustomVideo'
 import { FontAwesome6 } from '@expo/vector-icons'
 import { milliseconds, set } from 'date-fns'
+import VideoManager from '../../components/VideoManager'
 
 const styles = StyleSheet.create({
     container: {
@@ -64,12 +65,12 @@ const OnboardingVideoTutorialScreen = ({ navigation, route }) => {
     }
 
     const onSkip = () => {
-        if(fromOnboarding) {
+        if (fromOnboarding) {
             NavigationService.reset('AIMatchingScreen')
         } else {
             NavigationService.reset('Dashboard')
         }
-        
+
 
         // if (currentUser?.profile_tag) {
         //     NavigationService.reset('Dashboard')
@@ -96,7 +97,9 @@ const OnboardingVideoTutorialScreen = ({ navigation, route }) => {
                 }
             } else {
                 try {
-                    await videoRef.current.setStatusAsync({ shouldPlay: true });
+                    await VideoManager.stopCurrent();
+                    videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: 50 })
+                    VideoManager.setCurrent(videoRef.current);
                 } catch (error) {
                     console.log({ error });
                 }

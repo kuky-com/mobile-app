@@ -80,30 +80,32 @@ const MatchesScreen = ({ navigation }) => {
   }, [matches, unreadMessage]);
 
   const loadSubscriptionInfo = async () => {
-      try {
-        if (currentUser?.is_premium_user  || currentUser?.is_moderators) {
-          return;
-        }
-  
-        const customerInfo = await Purchases.getCustomerInfo();
-  
-        if (
-          !(
-            customerInfo &&
-            customerInfo.entitlements &&
-            customerInfo.entitlements.active &&
-            (
-              customerInfo.entitlements.active["pro"] ||
-              customerInfo.entitlements.active["pro_3month"]
-            )
-          )
-        ) {
-          setIsPremium(false)
-        }
-      } catch (error) {
-        console.log({ error });
+    try {
+      if (currentUser?.is_premium_user || currentUser?.is_moderators) {
+        return;
       }
-    };
+
+      const customerInfo = await Purchases.getCustomerInfo();
+
+      if (
+        !(
+          customerInfo &&
+          customerInfo.entitlements &&
+          customerInfo.entitlements.active &&
+          (
+            customerInfo.entitlements.active["pro"] ||
+            customerInfo.entitlements.active["pro_3month"]
+          )
+        )
+      ) {
+        setIsPremium(false)
+      } else {
+        setIsPremium(true)
+      }
+    } catch (error) {
+      console.log({ error });
+    }
+  };
 
   const onRefresh = () => {
     setFetching(true);

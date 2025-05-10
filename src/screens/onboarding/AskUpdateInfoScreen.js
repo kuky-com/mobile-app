@@ -50,7 +50,7 @@ const AskUpdateInfoScreen = ({ navigation, route }) => {
     }
 
     const openInterest = () => {
-        NavigationService.reset('MatchingInfoUpdateScreen')
+        NavigationService.reset('InterestVideoScreen')
     }
 
     let title = 'Your profile is waiting to be personalized!'

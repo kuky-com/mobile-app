@@ -72,9 +72,9 @@ const CommunitySuggestionScreen = ({ navigation }) => {
                         <Text style={{ fontSize: 18, fontWeight: 'bold', color: 'white' }}>Join this community</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity onPress={onReset} style={{ width: '100%', alignItems: 'center', justifyContent: 'center'}}>
+                    {/* <TouchableOpacity onPress={onReset} style={{ width: '100%', alignItems: 'center', justifyContent: 'center'}}>
                         <Text style={{fontSize: 14, fontWeight: 'bold', color: 'white', }}>Explore more options</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
 
                     <Text style={{fontSize: 12, fontWeight: 'bold', color: '#c2c2c2', width: '100%', textAlign: 'center', lineHeight: 20}}>{`Not sure yet?\nDon’t worry, you can switch communities later.`}</Text>
                 </View>

@@ -3077,10 +3077,10 @@
     component-type "^1.2.1"
     join-component "^1.1.0"
 
-"@sendbird/calls-react-native@^1.1.4":
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/@sendbird/calls-react-native/-/calls-react-native-1.1.4.tgz#0eebb09b73c892ea11e5ac959ebee212b573a1a0"
-  integrity sha512-ab0dwyqvuQ0SkxtBY+RhBszEq2LNk0j/hrFpZwgMRHRGmEQTZIsg7gBz5G9zep0/KgIShKMmYMSJ1qhxBKPXiw==
+"@sendbird/calls-react-native@^1.1.8":
+  version "1.1.8"
+  resolved "https://registry.yarnpkg.com/@sendbird/calls-react-native/-/calls-react-native-1.1.8.tgz#9d5eb811cf3c8adf1af11d24bb81d2f3793b3820"
+  integrity sha512-+sOC+cp3jw29MWJbzOSh7UvY0RREDM0DjPe4T9C5KESK8UnzKuOfCbDQA845n/5ZaJ4O/il830DdYwPyUYzm5Q==
 
 "@sinclair/typebox@^0.27.8":
   version "0.27.8"

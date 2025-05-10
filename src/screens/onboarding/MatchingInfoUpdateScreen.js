@@ -56,14 +56,12 @@ const MatchingInfoUpdateScreen = ({ navigation, route }) => {
     const { canClose } = route && route.params ? route.params : {}
     const [currentUser, setUser] = useAtom(userAtom)
     const insets = useSafeAreaInsets()
-    // const [purposes, setPurposes] = useState([])
     const [likes, setLikes] = useState([])
     const [dislikes, setDislikes] = useState([])
     const [loading, setLoading] = useState(false)
 
-    // const [allPurposes, setAllPurposes] = useState(DEFAULT_PURPOSES);
-    const [allLikes, setAllLikes] = useState(DEFAULT_LIKES);
-    const [allDislikes, setAllDislikes] = useState(DEFAULT_DISLIKES);
+    // const [allLikes, setAllLikes] = useState(DEFAULT_LIKES);
+    // const [allDislikes, setAllDislikes] = useState(DEFAULT_DISLIKES);
 
     useEffect(() => {
         analytics().logScreenView({
@@ -72,48 +70,37 @@ const MatchingInfoUpdateScreen = ({ navigation, route }) => {
         })
     }, [])
 
-    useEffect(() => {
-        apiClient
-            .get("interests/all-likes")
-            .then((res) => {
-                if (res && res.data && res.data.success) {
-                    setAllLikes(res.data.data)
-                }
-            })
-            .catch((error) => {
-                console.log({ error });
-            });
+    // useEffect(() => {
+    //     apiClient
+    //         .get("interests/all-likes")
+    //         .then((res) => {
+    //             if (res && res.data && res.data.success) {
+    //                 setAllLikes(res.data.data)
+    //             }
+    //         })
+    //         .catch((error) => {
+    //             console.log({ error });
+    //         });
 
-        apiClient
-            .get("interests/all-dislikes")
-            .then((res) => {
-                if (res && res.data && res.data.success) {
-                    setAllDislikes(res.data.data)
-                }
-            })
-            .catch((error) => {
-                console.log({ error });
-            });
-
-        // apiClient
-        //     .get("interests/all-purposes")
-        //     .then((res) => {
-        //         if (res && res.data && res.data.success) {
-        //             setAllPurposes(res.data.data)
-        //         }
-        //     })
-        //     .catch((error) => {
-        //         console.log({ error });
-        //     });
-    }, []);
+    //     apiClient
+    //         .get("interests/all-dislikes")
+    //         .then((res) => {
+    //             if (res && res.data && res.data.success) {
+    //                 setAllDislikes(res.data.data)
+    //             }
+    //         })
+    //         .catch((error) => {
+    //             console.log({ error });
+    //         });
+    // }, []);
 
     useEffect(() => {
         apiClient
             .get("interests/likes")
             .then((res) => {
                 if (res && res.data && res.data.success) {
-                    const options = res.data.data.map((item) => item.name)
-                    setLikes(options);
+                    // const options = res.data.data.map((item) => item.name)
+                    setLikes(res.data.data);
                 }
             })
             .catch((error) => {
@@ -124,151 +111,92 @@ const MatchingInfoUpdateScreen = ({ navigation, route }) => {
             .get("interests/dislikes")
             .then((res) => {
                 if (res && res.data && res.data.success) {
-                    const options = res.data.data.map((item) => item.name)
-                    setDislikes(options);
+                    // const options = res.data.data.map((item) => item.name)
+                    setDislikes(res.data.data);
                 }
             })
             .catch((error) => {
                 console.log({ error });
             });
-
-        // apiClient
-        //     .get("interests/purposes")
-        //     .then((res) => {
-        //         if (res && res.data && res.data.success) {
-        //             const options = res.data.data.map((item) => item.name)
-        //             setPurposes(options);
-        //         }
-        //     })
-        //     .catch((error) => {
-        //         console.log({ error });
-        //     });
     }, []);
 
     const onContinue = async () => {
-        // try {
-        //     setLoading(true)
-        //     apiClient.post('users/update', { publicPronouns: isPublic, pronouns })
+        NavigationService.reset('Dashboard')
+        // setLoading(true)
+        // const updateLikesRequest = await apiClient.post('interests/update-likes', { likes: likes })
+        // const updateDislikesRequest = await apiClient.post('interests/update-dislikes', { dislikes: dislikes })
+
+
+        // if (updateLikesRequest && updateLikesRequest.data && updateLikesRequest.data.success &&
+        //     updateDislikesRequest && updateDislikesRequest.data && updateDislikesRequest.data.success
+        // ) {
+        //     apiClient("users/user-info")
         //         .then((res) => {
-        //             console.log({ res })
-        //             setLoading(false)
         //             if (res && res.data && res.data.success) {
-        //                 setUser(res.data.data)
-        //                 NavigationService.reset('AIMatchingScreen')
-        //             } else {
-        //                 Toast.show({ text1: res.data.message, type: 'error' })
+        //                 setUser(res.data.data);
+        //                 setLoading(false)
+        //                 NavigationService.reset('Dashboard')
         //             }
         //         })
         //         .catch((error) => {
-        //             console.log({ error })
+        //             console.log({ error });
         //             setLoading(false)
-        //             Toast.show({ text1: error, type: 'error' })
-        //         })
-        // } catch (error) {
-        //     setLoading(false)
+        //         });
+        // } else {
+        //     Toast.show({ text1: 'Your request failed. Please try again!', type: 'error' })
         // }
-
-        setLoading(true)
-        // const updatePurposeRequest = await apiClient.post('interests/update-purposes', { purposes: purposes })
-        const updateLikesRequest = await apiClient.post('interests/update-likes', { likes: likes })
-        const updateDislikesRequest = await apiClient.post('interests/update-dislikes', { dislikes: dislikes })
-
-
-        if (updateLikesRequest && updateLikesRequest.data && updateLikesRequest.data.success &&
-            updateDislikesRequest && updateDislikesRequest.data && updateDislikesRequest.data.success
-        ) {
-            apiClient("users/user-info")
-                .then((res) => {
-                    if (res && res.data && res.data.success) {
-                        setUser(res.data.data);
-                        setLoading(false)
-                        NavigationService.reset('Dashboard')
-                    }
-                })
-                .catch((error) => {
-                    console.log({ error });
-                    setLoading(false)
-                });
-
-
-            // if(canClose) {
-            //     NavigationService.reset('JourneyMatchingScreen')
-            // } else {
-            //     NavigationService.reset('OnboardingVideoTutorialScreen', {fromOnboarding: true})
-            // }
-        } else {
-            Toast.show({ text1: 'Your request failed. Please try again!', type: 'error' })
-        }
     }
 
-    // const onSelectPurpose = async () => {
-    //     const options = allPurposes.map((item) => {
-    //         return {
-    //             id: item,
-    //             text: item,
-    //         };
-    //     });
-
-    //     purposes.forEach(purpose => {
-    //         if (!allPurposes.includes(purpose)) {
-    //             options.unshift({ id: purpose, text: purpose });
-    //         }
-    //     });
-
-    //     await SheetManager.show('selection-sheets', {
-    //         payload: {
-    //             actions: options,
-    //             selectedList: purposes ?? [],
-    //             onSelected: (list) => setPurposes(list),
-    //         },
-    //     });
-    // }
-
     const onSelectLike = async () => {
-        const options = allLikes.map((item) => {
-            return {
-                id: item,
-                text: item,
-            };
-        });
+        navigation.push('InterestUpdateScreen', { likes: likes, onUpdated: (newList) => setLikes(newList) })
+        // const options = allLikes.map((item) => {
+        //     return {
+        //         id: item,
+        //         text: item,
+        //     };
+        // });
 
-        likes.forEach(like => {
-            if (!allLikes.includes(like)) {
-                options.unshift({ id: like, text: like });
-            }
-        });
+        // likes.forEach(like => {
+        //     if (!allLikes.includes(like)) {
+        //         options.unshift({ id: like, text: like });
+        //     }
+        // });
 
-        await SheetManager.show('selection-sheets', {
-            payload: {
-                actions: options,
-                selectedList: likes ?? [],
-                onSelected: (list) => setLikes(list),
-            },
-        });
+        // await SheetManager.show('selection-sheets', {
+        //     payload: {
+        //         actions: options,
+        //         selectedList: likes ?? [],
+        //         onSelected: (list) => setLikes(list),
+        //     },
+        // });
     }
 
     const onSelectDislike = async () => {
-        const options = allDislikes.map((item) => {
-            return {
-                id: item,
-                text: item,
-            };
-        });
+        navigation.push('DislikeUpdateScreen', { dislikes: dislikes, onUpdated: (newList) => setDislikes(newList) })
+        // const options = allDislikes.map((item) => {
+        //     return {
+        //         id: item,
+        //         text: item,
+        //     };
+        // });
 
-        dislikes.forEach(dislike => {
-            if (!allDislikes.includes(dislike)) {
-                options.unshift({ id: dislike, text: dislike });
-            }
-        });
+        // dislikes.forEach(dislike => {
+        //     if (!allDislikes.includes(dislike)) {
+        //         options.unshift({ id: dislike, text: dislike });
+        //     }
+        // });
 
-        await SheetManager.show('selection-sheets', {
-            payload: {
-                actions: options,
-                selectedList: dislikes ?? [],
-                onSelected: (list) => setDislikes(list),
-            },
-        });
+        // await SheetManager.show('selection-sheets', {
+        //     payload: {
+        //         actions: options,
+        //         selectedList: dislikes ?? [],
+        //         onSelected: (list) => setDislikes(list),
+        //     },
+        // });
     }
+
+    const likeOptions = (likes ?? []).map((item) => item.name)
+    const dislikeOptions = (dislikes ?? []).map((item) => item.name)
 
     return (
         <View style={[styles.container, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 8 }]}>
@@ -278,20 +206,6 @@ const MatchingInfoUpdateScreen = ({ navigation, route }) => {
                 <Text style={{ fontSize: 24, lineHeight: 40, maxWidth: '80%', fontWeight: 'bold', color: 'black' }}>{`Let’s complete your profile!`}</Text>
                 <ScrollView style={{ flex: 1, width: '100%' }} showsVerticalScrollIndicator={false}>
                     <View style={{ flex: 1, width: '100%', paddingVertical: 16, gap: 32, alignItems: 'flex-start', justifyContent: 'flex-start' }}>
-                        {/* <View style={{ gap: 8, width: "100%" }}>
-                            <Text style={{ fontSize: 13, fontWeight: 'bold', color: 'black' }}>{'What’s your goal here?'}<Text style={{ color: 'red' }}>{' *'}</Text></Text>
-                            <TouchableOpacity onPress={onSelectPurpose} style={{
-                                borderRadius: 15, paddingVertical: 15, paddingHorizontal: 16, alignItems: 'center',
-                                flexDirection: 'row', borderWidth: 1, borderColor: '#726E70', gap: 5
-                            }}>
-                                <Text style={{
-                                    flex: 1, lineHeight: 18, fontSize: 13, color: purposes.length > 0 ? '#000000' : '#aaaaaa',
-                                    fontWeight: purposes.length > 0 ? 'bold' : '400'
-                                }}
-                                >{purposes.length > 0 ? purposes.join(', ') : 'Find support for anxiety'}</Text>
-                                <FontAwesome6 name='chevron-down' size={16} color='#333333' />
-                            </TouchableOpacity>
-                        </View> */}
                         <View style={{ gap: 8, width: "100%" }}>
                             <Text style={{ fontSize: 13, fontWeight: 'bold', color: 'black' }}>{'What are your hobbies and interests?'}<Text style={{ color: 'red' }}>{' *'}</Text></Text>
                             <TouchableOpacity onPress={onSelectLike} style={{
@@ -299,11 +213,11 @@ const MatchingInfoUpdateScreen = ({ navigation, route }) => {
                                 flexDirection: 'row', borderWidth: 1, borderColor: '#726E70', gap: 5
                             }}>
                                 <Text style={{
-                                    flex: 1, lineHeight: 18, fontSize: 13, color: likes.length > 0 ? '#000000' : '#aaaaaa',
-                                    likes: likes.length > 0 ? 'bold' : '400'
+                                    flex: 1, lineHeight: 18, fontSize: 13, color: likeOptions.length > 0 ? '#000000' : '#aaaaaa',
+                                    fontWeight: likeOptions.length > 0 ? 'bold' : '400'
                                 }}
-                                >{likes.length > 0 ? likes.join(', ') : 'Reading, hiking, painting'}</Text>
-                                <FontAwesome6 name='chevron-down' size={16} color='#333333' />
+                                >{likeOptions.length > 0 ? likeOptions.join(', ') : 'Reading, hiking, painting'}</Text>
+                                <FontAwesome6 name='pencil' size={16} color='#333333' />
                             </TouchableOpacity>
                         </View>
                         <View style={{ gap: 8, width: "100%" }}>
@@ -313,11 +227,11 @@ const MatchingInfoUpdateScreen = ({ navigation, route }) => {
                                 flexDirection: 'row', borderWidth: 1, borderColor: '#726E70', gap: 5
                             }}>
                                 <Text style={{
-                                    flex: 1, lineHeight: 18, fontSize: 13, color: dislikes.length > 0 ? '#000000' : '#aaaaaa',
-                                    dislikes: dislikes.length > 0 ? 'bold' : '400'
+                                    flex: 1, lineHeight: 18, fontSize: 13, color: dislikeOptions.length > 0 ? '#000000' : '#aaaaaa',
+                                    fontWeight: dislikeOptions.length > 0 ? 'bold' : '400'
                                 }}
-                                >{dislikes.length > 0 ? dislikes.join(', ') : 'Crowded places, loud noises'}</Text>
-                                <FontAwesome6 name='chevron-down' size={16} color='#333333' />
+                                >{dislikeOptions.length > 0 ? dislikeOptions.join(', ') : 'Crowded places, loud noises'}</Text>
+                                <FontAwesome6 name='pencil' size={16} color='#333333' />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -336,23 +250,10 @@ const MatchingInfoUpdateScreen = ({ navigation, route }) => {
                 </TouchableOpacity>
             }
             <ButtonWithLoading
-                text={'Save & Continue'}
+                text={'Continue'}
                 onPress={onContinue}
-                disabled={likes.length === 0}
                 loading={loading}
             />
-            <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
-                <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 3 }}
-                    onPress={() => NavigationService.push('SkipOnboardingScreen')}>
-                    <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#7a7a7a' }}>Skip for now</Text>
-                </TouchableOpacity>
-            </View>
-            {/* <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
-                <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 8 }}
-                    onPress={() => NavigationService.reset('OnboardingVideoTutorialScreen')}>
-                    <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#333333' }}>Record a video instead</Text>
-                </TouchableOpacity>
-            </View> */}
         </View>
     )
 }

@@ -40,6 +40,7 @@ import apiClient, { NODE_ENV } from "../../utils/apiClient";
 import { uploadData, getUrl, } from 'aws-amplify/storage'
 import { getAuthenScreen, getVideoResizeDimensions } from "../../utils/utils";
 import Voice from '@react-native-voice/voice'
+import VideoManager from "../../components/VideoManager";
 
 const styles = StyleSheet.create({
   container: {
@@ -327,10 +328,13 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
     }
   };
 
-  const onPlay = () => {
+  const onPlay = async () => {
     try {
       if (videoRef && videoRef.current) {
-        videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: startPosition * 1000 });
+
+        await VideoManager.stopCurrent();
+                    videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: startPosition * 1000 })
+                    VideoManager.setCurrent(videoRef.current);
       }
     } catch (error) { }
   };

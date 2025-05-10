@@ -5,7 +5,7 @@ import { useFonts } from "expo-font";
 import Text from "@/components/Text";
 import MainApp from "@/screens";
 import { NavigationContainer } from "@react-navigation/native";
-import Toast from "react-native-toast-message";
+import Toast, { BaseToast } from "react-native-toast-message";
 import images from "@/utils/images";
 import { Image } from "expo-image";
 import { isReadyRef, navigationRef } from "@/utils/NavigationService";
@@ -33,6 +33,7 @@ SendbirdCalls.initialize("9BE43E57-7AA4-4D1A-A59A-A567330F0095");
 
 Smartlook.instance.preferences.setProjectKey("f7dda0c021d21ed4e3c9266e58fcdec844c87bfa");
 Smartlook.instance.start();
+Smartlook.instance.sensitivity.disableDefaultClassSensitivity()
 
 const prefix = Linking.createURL("/");
 
@@ -44,11 +45,14 @@ import { AlertIconProvider } from "./src/components/AlertIconProvider";
 import DeviceInfo from "react-native-device-info";
 import { NODE_ENV } from "./src/utils/apiClient";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { FontAwesome6 } from "@expo/vector-icons";
+import localeData from 'dayjs/plugin/localeData';
 
 dayjs.extend(advancedFormat);
 dayjs.extend(relativeTime);
 dayjs.extend(customParseFormat);
 dayjs.extend(duration)
+dayjs.extend(localeData);
 
 const queryClient = new QueryClient();
 
@@ -70,6 +74,26 @@ if (NODE_ENV === 'development') {
     /> */
 }
 const toastConfig = {
+  error: (props) => (
+    <View style={{ width: '100%', paddingTop: 16, paddingHorizontal: 20 }}>
+      <View style={{ paddingHorizontal: 20, gap: 8, paddingVertical: 20, borderWidth: 1, borderColor: "white", backgroundColor: '#725ED4', flexDirection: 'row', borderRadius: 15, alignItems: 'center' }}>
+        <View style={{ width: 16, borderRadius: 8, height: 16, alignItems: 'center', justifyContent: "center", backgroundColor: '#FF8B8B' }}>
+          <FontAwesome6 name='xmark' size={12} color='white' />
+        </View>
+        <Text style={{ flex: 1, fontSize: 12, lineHeight: 18, color: 'white', fontWeight: 'bold' }}>{props.text1 ?? ''}</Text>
+      </View>
+    </View>
+  ),
+  success: (props) => (
+    <View style={{ width: '100%', paddingTop: 16, paddingHorizontal: 20 }}>
+      <View style={{ paddingHorizontal: 20, gap: 8, paddingVertical: 20, borderWidth: 1, borderColor: "white", backgroundColor: '#725ED4', flexDirection: 'row', borderRadius: 15, alignItems: 'center' }}>
+        <View style={{ width: 16, borderRadius: 8, height: 16, alignItems: 'center', justifyContent: "center", backgroundColor: '#75C675' }}>
+          <FontAwesome6 name='check' size={12} color='white' />
+        </View>
+        <Text style={{ flex: 1, fontSize: 12, lineHeight: 18, color: 'white', fontWeight: 'bold' }}>{props.text1 ?? ''}</Text>
+      </View>
+    </View>
+  ),
   sent: ({ text1, props, text2 }) => (
     <View
       style={{

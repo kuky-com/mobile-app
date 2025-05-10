@@ -40,6 +40,7 @@ const MatchesScreen = ({ navigation }) => {
   const currentUser = useAtomValue(userAtom);
   const insets = useSafeAreaInsets();
   const [matches, setMatches] = useState([]);
+  const [unverifyMatches, setUnverifyMatches] = useState([]);
   const [isFetching, setFetching] = useState(false);
   const unreadMessage = useAtomValue(totalMessageCounterAtom);
   const setUnreadCounter = useSetAtom(totalMessageUnreadAtom);
@@ -70,7 +71,7 @@ const MatchesScreen = ({ navigation }) => {
         appState.current.match(/inactive|background/) &&
         nextAppState === "active"
       ) {
-        loadSubscriptionInfo();
+        onRefresh();
       }
 
       appState.current = nextAppState;
@@ -114,6 +115,7 @@ const MatchesScreen = ({ navigation }) => {
       }
 
       const customerInfo = await Purchases.getCustomerInfo();
+      console.log({ customerInfo: JSON.stringify(customerInfo) });
 
       if (
         !(
@@ -127,6 +129,8 @@ const MatchesScreen = ({ navigation }) => {
         )
       ) {
         setIsPremium(false)
+      } else {
+        setIsPremium(true);
       }
     } catch (error) {
       console.log({ error });
@@ -144,6 +148,7 @@ const MatchesScreen = ({ navigation }) => {
         if (res && res.data && res.data.success) {
 
           setMatches(res.data.data.matches ?? []);
+          setUnverifyMatches(res.data.data.unverifyMatches ?? []);
           setFreeTotal(res.data.data.freeTotal ?? 0);
           setFreeCount(res.data.data.freeCount ?? 0);
         } else {
@@ -318,9 +323,31 @@ const MatchesScreen = ({ navigation }) => {
     )
   }
 
+  const renderFooter = () => {
+    if (unverifyMatches && unverifyMatches.length > 0) {
+      return (
+        <View style={{ paddingBottom: 8, gap: 8, backgounrColor: 'transparent' }}>
+          <View style={{ paddingTop: 16, paddingBottom: 8, gap: 8, backgounrcColor: 'transparent' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', }}>
+              <Text style={{ fontSize: 20, fontWeight: "700", color: "black", flex: 1 }}>{`Recent Matches`}</Text>
+            </View>
+
+            {
+              unverifyMatches.map((item) => {
+                return renderItem({ item });
+              })
+            }
+          </View>
+        </View>
+      )
+    } else {
+      return null
+    }
+  }
+
   const onMore = async () => {
     const options = [
-      { text: 'Unverified Matches' }
+      { text: `Unverified Matches (${unverifyMatches.length})` }
     ]
 
     await SheetManager.show('action-sheets', {
@@ -338,7 +365,7 @@ const MatchesScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Header showLogo rightIcon={images.more_icon} rightIconColor='black' rightAction={onMore} />
+      <Header rightCounter={unverifyMatches.length} showLogo rightIcon={images.more_icon} rightIconColor='black' rightAction={onMore} />
       <View style={{ paddingTop: 16, paddingBottom: 8, gap: 8, paddingHorizontal: 16, backgounrcColor: 'transparent' }}>
         <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 10, borderRadius: 5, paddingVertical: 5, alignItems: 'center', backgroundColor: '#E1E1E1' }}>
           <FontAwesome6 name='magnifying-glass' size={16} color='#8C8C8C' />
@@ -363,6 +390,7 @@ const MatchesScreen = ({ navigation }) => {
           refreshing={isFetching}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={renderHeader}
+        // ListFooterComponent={renderFooter}
         />
       </View>
     </View>

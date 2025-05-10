@@ -37,7 +37,7 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 403) {
       try {
-        Toast.show({ text1: 'Your session has been expired!', type: 'info' });
+        Toast.show({ text1: 'Your session has been expired!', type: 'error' });
         const currentRoute = NavigationService.getCurrentRoute();
         if (currentRoute !== 'SignInScreen') {
           NavigationService.reset('SignInScreen');

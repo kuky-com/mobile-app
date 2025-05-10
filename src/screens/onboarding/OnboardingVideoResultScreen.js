@@ -47,6 +47,7 @@ import axios from "axios";
 import { capitalize } from "../../utils/utils";
 import apiClient from "../../utils/apiClient";
 import Toast from "react-native-toast-message";
+import VideoManager from "../../components/VideoManager";
 
 const styles = StyleSheet.create({
     container: {
@@ -78,9 +79,11 @@ const OnboardingVideoResultScreen = ({ navigation, route }) => {
         }
     }, [interestsData, purposeData])
 
-    const playVideo = () => {
+    const playVideo = async () => {
         if (videoRef && videoRef.current) {
+            await VideoManager.stopCurrent();
             videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: 50 })
+            VideoManager.setCurrent(videoRef.current);
         }
     }
 

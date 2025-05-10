@@ -21,6 +21,8 @@ const CustomVideo = React.forwardRef((props, ref) => {
     return src;
   }, [props.sources]);
 
+  console.log({sources})
+
   const onReadyForDisplay = async () => {
     if (props && props.onReadyForDisplay) {
       props.onReadyForDisplay();

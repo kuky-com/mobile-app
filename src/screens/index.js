@@ -121,6 +121,7 @@ import { getAuthenScreen } from "../utils/utils";
 import Toast from "react-native-toast-message";
 import WelcomeBackScreen from "./journeys/WelcomeBackScreen";
 import BlurVideoScreen from "./journeys/BlurVideoScreen";
+import InterestVideoScreen from "./journeys/InterestVideoScreen";
 
 SendbirdCalls.setListener({
   onRinging: async (callProps) => {
@@ -295,6 +296,16 @@ const AppStack = ({ navgation }) => {
         NavigationService.push("ConnectProfileScreen", {
           profile: { id: notiData.suggestUserId },
         });
+      } else if (notiData.type === 'profile_upgrade') {
+        NavigationService.resetRaw([
+          {
+            name: "Dashboard",
+            state: {
+              index: 2,
+              routes: [{ name: "ExploreScreen" }, { name: "MatchesScreen" }, { name: "ProfileScreen" }],
+            },
+          },
+        ]);
       } else {
         NavigationService.resetRaw([{ name: "Dashboard" }, { name: "NotificationScreen" }]);
       }
@@ -369,28 +380,34 @@ const AppStack = ({ navgation }) => {
   };
 
 
-  const startSessionUpdater = () => {
-    if (sessionUpdateInterval.current) {
-      stopSessionUpdater()
-    }
+  // const startSessionUpdater = () => {
+  //   if (sessionUpdateInterval.current) {
+  //     stopSessionUpdater()
+  //   }
 
-    sessionUpdateInterval.current = setInterval(async () => {
-      if (currentSessionRef.current) {
-        await apiClient.put(`users/sessions/${currentSessionRef.current}`, {
-          end_time: dayjs().format()
-        })
-      }
-    }, 2 * 60 * 1000)
-  };
+  //   sessionUpdateInterval.current = setInterval(async () => {
+  //     if (currentSessionRef.current) {
+  //       await apiClient.put(`users/sessions/${currentSessionRef.current}`, {
+  //         end_time: dayjs().format()
+  //       })
+  //     }
+  //   }, 2 * 60 * 1000)
+  // };
 
-  const stopSessionUpdater = () => {
-    if (sessionUpdateInterval.current) {
-      clearInterval(sessionUpdateInterval.current);
+  const stopSessionUpdater = async () => {
+    // if (sessionUpdateInterval.current) {
+    //   clearInterval(sessionUpdateInterval.current);
+    // }
+
+    if (currentSessionRef.current) {
+      await apiClient.put(`users/sessions/${currentSessionRef.current}`, {
+        end_time: dayjs().format()
+      })
     }
   }
 
   useEffect(() => {
-    const subscription = AppState.addEventListener("change", (nextAppState) => {
+    const subscription = AppState.addEventListener("change", async (nextAppState) => {
       if (
         appState.current &&
         appState.current.match(/inactive|background/) &&
@@ -403,15 +420,17 @@ const AppStack = ({ navgation }) => {
 
       if (currentUser) {
         if (nextAppState === 'active') {
-          createSession()
-          startSessionUpdater()
+          await createSession()
+          // startSessionUpdater()
         } else if (nextAppState.match(/inactive|background/)) {
           stopSessionUpdater()
-          if (currentSessionRef.current) {
-            apiClient.put(`users/sessions/${currentSessionRef.current}`, {
-              end_time: dayjs().format()
-            })
-          }
+          // if (currentSessionRef.current) {
+          //   apiClient.put(`users/sessions/${currentSessionRef.current}`, {
+          //     end_time: dayjs().format()
+          //   })
+          // }
+
+          currentSessionRef.current = null
         }
       }
     });
@@ -424,7 +443,7 @@ const AppStack = ({ navgation }) => {
   useEffect(() => {
     if (currentUser) {
       createSession()
-      startSessionUpdater()
+      // startSessionUpdater()
     }
   }, [currentUser])
 
@@ -792,6 +811,7 @@ const AppStack = ({ navgation }) => {
       <Stack.Screen name="IntroductionVideoTutorialScreen" component={IntroductionVideoTutorialScreen} />
       <Stack.Screen name="WelcomeBackScreen" component={WelcomeBackScreen} />
       <Stack.Screen name="BlurVideoScreen" component={BlurVideoScreen} />
+      <Stack.Screen name="InterestVideoScreen" component={InterestVideoScreen} />
     </Stack.Navigator>
   );
 };

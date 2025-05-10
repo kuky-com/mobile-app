@@ -27,7 +27,7 @@ const ShareModal = ({ visible = false, onClose, full_name = '', shareLink = '' }
 
     const onCopy = async () => {
         await Clipboard.setStringAsync(shareLink);
-        // Toast.show({text1: 'Link copied', type: 'success'})
+        Toast.show({text1: 'Link copied', type: 'success'})
         setCopied(true)
     }
 

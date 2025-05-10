@@ -28,7 +28,7 @@ import analytics from '@react-native-firebase/analytics'
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#725ED4",
+    backgroundColor: "white",
     paddingHorizontal: 16,
     alignItems: "center",
     justifyContent: "center",
@@ -45,6 +45,25 @@ const DislikeUpdateScreen = ({ navigation, route }) => {
   const [currentUser, setCurrentUser] = useAtom(userAtom);
   const [loading, setLoading] = useState(false);
   const showAlert = useAlert();
+  const [allDislikes, setAllDislikes] = useState()
+
+  const loadAllDislikes = () => {
+    apiClient
+      .get("interests/all-dislikes")
+      .then((res) => {
+        if (res && res.data && res.data.success) {
+          console.log({ data: res.data })
+          setAllDislikes(res.data.data)
+        }
+      })
+      .catch((error) => {
+        console.log({ error });
+      });
+  }
+
+  useEffect(() => {
+    loadAllDislikes()
+  }, [])
 
   useEffect(() => {
     analytics().logScreenView({
@@ -68,11 +87,18 @@ const DislikeUpdateScreen = ({ navigation, route }) => {
       }
     } else {
       Toast.show({
-        text1: "Your interest should be at least 2 characters long. Please try again!",
+        text1: "Your dislike should be at least 2 characters long. Please try again!",
         type: "error",
       });
     }
   };
+
+  const addTag = (tag) => {
+    if (!tags.includes(tag)) {
+      setTags((old) => [...old, { name: tag }]);
+      setKeyword("");
+    }
+  }
 
   const onRemove = (index) => {
     const newTags = [...tags];
@@ -99,7 +125,7 @@ const DislikeUpdateScreen = ({ navigation, route }) => {
           setLoading(false);
           return;
         } else {
-          Toast.show({ text1: "Your interest information has been updated!", type: "success" });
+          Toast.show({ text1: "Your dislikes information has been updated!", type: "success" });
         }
 
         apiClient
@@ -133,15 +159,9 @@ const DislikeUpdateScreen = ({ navigation, route }) => {
 
   return (
     <View
-      style={[styles.container, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 16 }]}
+      style={[styles.container, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 3 }]}
     >
       <StatusBar translucent style="dark" />
-      {/* {
-                false &&
-                <TouchableOpacity onPress={() => navigation.goBack()} style={{ position: 'absolute', left: 16, top: insets.top + 16, width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
-                    <Image source={images.back_icon_no_border} style={{ width: 25, height: 25 }} contentFit='contain' />
-                </TouchableOpacity>
-            } */}
       <KeyboardAwareScrollView style={{ flex: 1, width: "100%" }}>
         <View
           style={{ flex: 1, width: Platform.isPad ? 600 : "100%", alignSelf: "center", gap: 24 }}
@@ -160,22 +180,21 @@ const DislikeUpdateScreen = ({ navigation, route }) => {
           </View>
           <Text
             style={{
-              color: "#F5F5F5",
-              fontSize: 18,
+              color: "#333333",
+              fontSize: 16,
               textAlign: "center",
-              lineHeight: 25,
-              paddingHorizontal: 20,
+              lineHeight: 22,
+              paddingHorizontal: 16,
             }}
           >
-            Add dislikes to avoid matching with people who share them, helping us find better
-            matches for you.
+            Add dislikes to avoid matching with people who share them, helping us find better matches for you.
           </Text>
           <View
             style={{
               width: "100%",
               gap: 8,
               flexDirection: "row",
-              backgroundColor: "white",
+              borderColor: '#333333', borderWidth: 1,
               height: 60,
               borderRadius: 30,
               alignItems: "center",
@@ -199,17 +218,21 @@ const DislikeUpdateScreen = ({ navigation, route }) => {
               maxLength={50}
               ref={inputRef}
             />
-            <TouchableOpacity
-              onPress={onAddNewTag}
-              style={{ width: 30, height: 30, alignItems: "center", justifyContent: "center" }}
-            >
-              <Image
-                source={images.plus_icon}
-                style={{ width: 20, height: 20, tintColor: "#725ED4" }}
-                contentFit="contain"
-              />
-            </TouchableOpacity>
+            {
+              keyword.length > 0 &&
+              <TouchableOpacity
+                onPress={onAddNewTag}
+                style={{ width: 30, height: 30, alignItems: "center", justifyContent: "center" }}
+              >
+                <Image
+                  source={images.plus_icon}
+                  style={{ width: 20, height: 20, tintColor: "#725ED4" }}
+                  contentFit="contain"
+                />
+              </TouchableOpacity>
+            }
           </View>
+          <Text style={{ fontSize: 18, color: 'black', fontWeight: 'bold' }}>Your dislikes</Text>
           <View
             style={{
               flex: 1,
@@ -217,7 +240,7 @@ const DislikeUpdateScreen = ({ navigation, route }) => {
               justifyContent: "flex-start",
               alignItems: "flex-start",
               flexWrap: "wrap",
-              gap: 16,
+              gap: 8,
               flexDirection: "row",
             }}
           >
@@ -226,9 +249,9 @@ const DislikeUpdateScreen = ({ navigation, route }) => {
                 <View
                   key={`tags-${index}`}
                   style={{
-                    paddingHorizontal: 12,
-                    height: 34,
-                    borderRadius: 17,
+                    paddingHorizontal: 8,
+                    height: 30,
+                    borderRadius: 15,
                     alignItems: "center",
                     justifyContent: "center",
                     flexDirection: "row",
@@ -236,20 +259,20 @@ const DislikeUpdateScreen = ({ navigation, route }) => {
                     backgroundColor: "#FF8B8B",
                   }}
                 >
-                  <Image
+                  {/* <Image
                     source={images.category_icon}
                     style={{ width: 15, height: 15, tintColor: "black" }}
                     contentFit="contain"
-                  />
+                  /> */}
                   <Text style={{ fontSize: 14, color: "black", fontWeight: "bold" }}>
                     {item.name}
                   </Text>
                   <TouchableOpacity
                     onPress={() => onRemove(index)}
                     style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 12,
+                      width: 20,
+                      height: 20,
+                      borderRadius: 10,
                       alignItems: "center",
                       justifyContent: "center",
                       backgroundColor: "#E8FF58",
@@ -266,6 +289,23 @@ const DislikeUpdateScreen = ({ navigation, route }) => {
                 </View>
               );
             })}
+          </View>
+
+          <Text style={{ fontSize: 18, color: 'black', fontWeight: 'bold' }}>You might dislike ...</Text>
+          <View style={{ flexWrap: 'wrap', gap: 8, flexDirection: 'row' }}>
+            {
+              (allDislikes ?? []).map((item) => {
+                const filter = dislikes.filter((l) => l.name === item)
+
+                if (filter && filter.length > 0) return null
+
+                return (
+                  <TouchableOpacity key={item} onPress={() => addTag(item)} style={{ height: 28, borderRadius: 15, paddingHorizontal: 8, backgroundColor: '#CDB8E2', alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ fontSize: 12, color: 'black', fontWeight: '500' }}>{item}</Text>
+                  </TouchableOpacity>
+                )
+              })
+            }
           </View>
         </View>
       </KeyboardAwareScrollView>

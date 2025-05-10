@@ -129,7 +129,7 @@ const LocationUpdateScreen = ({ navigation, route }) => {
                             if (isUpdate) {
                                 navigation.goBack()
                             } else {
-                                NavigationService.reset('MatchingInfoUpdateScreen')
+                                NavigationService.reset('InterestVideoScreen')
                             }
                         } else {
                             Toast.show({ text1: res.data.message, type: 'error' })

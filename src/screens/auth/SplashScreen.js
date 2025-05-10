@@ -65,8 +65,8 @@ const SplashScreen = ({ navigation }) => {
             }, 3000);
 
             console.log({ pushToken });
+            registerToken();
             if (pushToken) {
-              registerToken();
               apiClient
                 .post("users/update-token", { session_token: pushToken })
                 .then((res) => { })
@@ -110,7 +110,7 @@ const SplashScreen = ({ navigation }) => {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {paddingTop: insets.top + 8}]}>
       <LottieView
         autoPlay
         style={{

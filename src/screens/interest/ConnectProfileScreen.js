@@ -41,6 +41,8 @@ import { isStringInteger } from "../../utils/utils";
 import analytics from '@react-native-firebase/analytics'
 import OnlineStatus from "../../components/OnlineStatus";
 import SwipeCard from "../../components/SwipeCard";
+import VideoManager from "../../components/VideoManager";
+import SimilarByPathItem from "../../components/SimilarByPathItem";
 
 const styles = StyleSheet.create({
   container: {
@@ -92,11 +94,13 @@ const ConnectProfileScreen = ({ navigation, route }) => {
   const currentUser = useAtomValue(userAtom);
   const showAlert = useAlert();
   // const [commonPurposes, setCommonPurposes] = useState(null);
-  const [commonInterests, setCommonInterests] = useState([]);
+  // const [commonInterests, setCommonInterests] = useState([]);
   const [playing, setPlaying] = useState(false);
   const [showShare, setShowShare] = useState(null);
   const [pendingVideo, setPendingVideo] = useState(false);
   const [nextProfile, setNextProfile] = useState(null)
+
+  const [similarUsers, setSimilarUser] = useState([])
 
   const [isMute, setIsMute] = useState(false)
 
@@ -140,6 +144,16 @@ const ConnectProfileScreen = ({ navigation, route }) => {
           setLoading(false);
         });
 
+      apiClient.get(`matches/similar-by-path?profile_id=${profile.id}`)
+        .then((res) => {
+          if (res && res.data && res.data.success) {
+            setSimilarUser(res.data.data ?? [])
+          }
+        })
+        .catch((error) => {
+          console.log({ error });
+        });
+
       if (isStringInteger(currentProfile.id) && currentProfile.id !== currentUser.id) {
         // apiClient
         //   .get(`users/${profile.id}/journey`)
@@ -152,16 +166,16 @@ const ConnectProfileScreen = ({ navigation, route }) => {
         //     console.log({ error });
         //   });
 
-        apiClient
-          .get(`users/${profile.id}/common-interests`)
-          .then((res) => {
-            if (res && res.data && res.data.success) {
-              setCommonInterests(res.data.data);
-            }
-          })
-          .catch((error) => {
-            console.log({ error });
-          });
+        // apiClient
+        //   .get(`users/${profile.id}/common-interests`)
+        //   .then((res) => {
+        //     if (res && res.data && res.data.success) {
+        //       setCommonInterests(res.data.data);
+        //     }
+        //   })
+        //   .catch((error) => {
+        //     console.log({ error });
+        //   });
       }
     } catch (error) {
       setLoading(false);
@@ -175,7 +189,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
           `matches/next-match?current_profile_id=${currentProfile?.id}`
         )
         .then((res) => {
-          console.log({nextProfile: res.data.data})
+          console.log({ nextProfile: res.data.data })
           setNextProfile(res.data.data)
         })
         .catch((error) => {
@@ -185,31 +199,31 @@ const ConnectProfileScreen = ({ navigation, route }) => {
     }
   }, [currentProfile])
 
-  useEffect(() => {
-    if (isStringInteger(currentProfile.id) && currentProfile.id !== currentUser.id) {
-      // apiClient
-      //   .get(`users/${profile.id}/journey`)
-      //   .then((res) => {
-      //     if (res && res.data && res.data.success) {
-      //       setCommonPurposes(res.data.data);
-      //     }
-      //   })
-      //   .catch((error) => {
-      //     console.log({ error });
-      //   });
+  // useEffect(() => {
+  //   if (isStringInteger(currentProfile.id) && currentProfile.id !== currentUser.id) {
+  //     // apiClient
+  //     //   .get(`users/${profile.id}/journey`)
+  //     //   .then((res) => {
+  //     //     if (res && res.data && res.data.success) {
+  //     //       setCommonPurposes(res.data.data);
+  //     //     }
+  //     //   })
+  //     //   .catch((error) => {
+  //     //     console.log({ error });
+  //     //   });
 
-      apiClient
-        .get(`users/${profile.id}/common-interests`)
-        .then((res) => {
-          if (res && res.data && res.data.success) {
-            setCommonInterests(res.data.data);
-          }
-        })
-        .catch((error) => {
-          console.log({ error });
-        });
-    }
-  }, [currentProfile])
+  //     apiClient
+  //       .get(`users/${profile.id}/common-interests`)
+  //       .then((res) => {
+  //         if (res && res.data && res.data.success) {
+  //           setCommonInterests(res.data.data);
+  //         }
+  //       })
+  //       .catch((error) => {
+  //         console.log({ error });
+  //       });
+  //   }
+  // }, [currentProfile])
 
   useEffect(() => {
     onRefresh();
@@ -244,7 +258,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
           console.log({ resData: res.data });
           setLoading(false);
           DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS);
-          
+
           if (
             res &&
             res.data &&
@@ -483,7 +497,9 @@ const ConnectProfileScreen = ({ navigation, route }) => {
     if (videoRef && videoRef.current) {
       setPendingVideo(true);
       try {
-        await videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: 50 });
+        await VideoManager.stopCurrent();
+        videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: 50 })
+        VideoManager.setCurrent(videoRef.current);
       } catch (error) {
         console.log({ error });
         setPendingVideo(false);
@@ -608,10 +624,12 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                 sources={[
                   currentProfile?.video_intro,
                   currentProfile?.video_purpose,
+                  currentProfile?.video_interests,
                 ]}
                 subtitles={[
                   currentProfile?.subtitle_intro,
                   currentProfile?.subtitle_purpose,
+                  currentProfile?.subtitle_interests,
                 ]}
                 resizeMode={ResizeMode.COVER}
                 onPlaybackStatusUpdate={(status) => {
@@ -697,7 +715,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                       backgroundColor: '#7B65E8ee', marginLeft: 10, marginTop: 2,
                       paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10,
                     }}>
-                      <Text style={{ color: '#E8FF58', width: '100%', textAlign: 'center', fontSize: 13, fontWeight: '600' }}>{currentProfile?.user_note}</Text>
+                      <Text style={{ color: '#E8FF58', width: '100%', textAlign: 'left', fontSize: 13, lineHeight: 18, fontWeight: '600' }}>{currentProfile?.user_note}</Text>
                     </View>
                   </View>
                 }
@@ -851,6 +869,14 @@ const ConnectProfileScreen = ({ navigation, route }) => {
               </View>
             </View>
           </SwipeCard>
+          {
+            profile?.summary && profile?.summary.length > 0 &&
+            <View style={{ gap: 12, flexDirection: 'row', alignItems: 'center', width: '100%', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10, backgroundColor: '#E9E5FF' }}>
+              <Text style={{
+                fontSize: 12, fontWeight: '500', flex: 1, lineHeight: 18
+              }}>{profile?.summary}</Text>
+            </View>
+          }
           <View
             style={{
               flexDirection: "row",
@@ -1019,7 +1045,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
             </TouchableOpacity>
           )}
 
-          {commonInterests.length > 0 &&
+          {/* {commonInterests.length > 0 &&
             (
               <View
                 style={{
@@ -1082,8 +1108,8 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                       </View>
                     </>
                   )
-                }
-                {
+                } */}
+          {/* {
                   commonInterests.filter((item) => item.type === 'dislike').length > 0 && (
                     <>
                       <Text style={{ fontSize: 14, color: "white", fontWeight: "bold" }}>
@@ -1128,9 +1154,9 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                       </View>
                     </>
                   )
-                }
+                } */}
 
-                <View
+          {/* <View
                   style={{
                     width: "100%",
                     height: 1,
@@ -1145,7 +1171,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                   <ButtonWithLoading style={{ width: Platform.isPad ? 500 : '100%' }} text="Connect" onPress={likeAction} loading={loading} />
                 )}
               </View>
-            )}
+            )} */}
 
 
           {
@@ -1398,6 +1424,28 @@ const ConnectProfileScreen = ({ navigation, route }) => {
               </Text>
             }
           </View>
+
+
+          <View style={{ width: '100%', marginTop: 16, borderRadius: 3, height: 40, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E9E5FF' }}>
+            <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>More People in this Community</Text>
+          </View>
+
+          {(similarUsers ?? []).length > 0 &&
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, columnGap: 16 }}>
+              {
+                (similarUsers ?? []).map((item) => {
+                  return (
+                    <SimilarByPathItem
+                      key={item.email}
+                      item={item}
+                      itemWidth={Dimensions.get('screen').width * 0.5 - 24}
+                      onPress={() => navigation.replace('ConnectProfileScreen', {profile: item})}
+                    />
+                  )
+                })
+              }
+            </View>
+          }
         </View>
       </ScrollView>
 

@@ -10,8 +10,6 @@ buildscript {
         googlePlayServicesAuthVersion = "20.7.0"
 
         ndkVersion = "26.1.10909125"
-
-        ffmpegKitPackage = "min-gpl"
     }
     repositories {
         google()
@@ -41,6 +39,10 @@ allprojects {
 
         google()
         mavenCentral()
+        flatDir {
+            dirs "$rootDir/libs"
+        }
+        
         maven { url 'https://www.jitpack.io' }
         maven {
             // expo-camera bundles a custom com.google.android:cameraview

@@ -127,8 +127,7 @@ const ProfileVideoProcessingScreen = ({ navigation, route }) => {
                         const currentTime = match[1]; // Extracted time in HH:MM:SS.SS
                         calculateProgress(currentTime);
                     }
-                }, (statistics) => {
-
+                }, () => {
                 })
 
 

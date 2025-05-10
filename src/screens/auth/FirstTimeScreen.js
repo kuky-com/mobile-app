@@ -58,8 +58,8 @@ const FirstTimeScreen = ({ navigation }) => {
 
             NavigationService.reset(getAuthenScreen(res.data.data));
 
+            registerToken();
             if (pushToken) {
-              registerToken();
               apiClient
                 .post("users/update-token", { session_token: pushToken })
                 .then((res) => {

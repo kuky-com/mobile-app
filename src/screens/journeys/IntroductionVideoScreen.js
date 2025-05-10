@@ -47,6 +47,8 @@ import { PERMISSIONS, request } from "react-native-permissions";
 import SwitchWithText from "../../components/SwitchWithText";
 import Purchases from "react-native-purchases";
 import constants from "../../utils/constants";
+import CustomSwitch from "../../components/CustomSwitch";
+import VideoManager from "../../components/VideoManager";
 
 const styles = StyleSheet.create({
   container: {
@@ -127,6 +129,7 @@ const IntroductionVideoScreen = ({ navigation, route }) => {
         customerInfo.entitlements.active["blur_face"]
       ) {
         setCanBlur(true)
+        setBlur(true)
       }
     } catch (error) {
       console.log({ error });
@@ -361,10 +364,12 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
     }
   };
 
-  const onPlay = () => {
+  const onPlay = async () => {
     try {
       if (videoRef && videoRef.current) {
-        videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: startPosition * 1000 });
+        await VideoManager.stopCurrent();
+        videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: startPosition * 1000 })
+        VideoManager.setCurrent(videoRef.current);
       }
     } catch (error) { }
   };
@@ -464,7 +469,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
           setUser(res.data.data)
           console.log({ user: res.data.data })
 
-          if(isBlur) {
+          if (isBlur) {
             setTimeout(() => {
               DeviceEventEmitter.emit(constants.REFRESH_PROFILE);
             }, 60000);
@@ -514,7 +519,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
       }).result
 
       const outputVideoUri = `${FileSystem.documentDirectory}video_trimmed.mp4`
-      const commandVideo = `-y -i ${videoUrl.uri} -ss ${startPosition} -to ${endPosition} -vf scale=-2:720 -pix_fmt yuv420p -c:v libx264 -preset veryfast -crf 26 -b:v 500k -maxrate 550k -bufsize 1100k -c:a aac -b:a 128k -ac 2 -movflags +faststart -f mp4 ${outputVideoUri}`;
+      const commandVideo = `-y -i ${videoUrl.uri} -ss ${startPosition} -to ${endPosition} -vf scale=-2:720 -pix_fmt yuv420p -c:v libx264 -preset veryfast -crf 23 -b:v 800k -maxrate 850k -bufsize 1700k -c:a aac -b:a 256k -ac 2 -ar 48000 -movflags +faststart -f mp4 ${outputVideoUri}`;
 
       await FFmpegKit.executeAsync(commandVideo, async (session) => {
         const returnCode = await session.getReturnCode();
@@ -626,12 +631,12 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
 
   const onSetBlur = (value) => {
     if (value) {
-      if(canBlur) {
+      if (canBlur) {
         setBlur(true)
       } else {
         navigation.push('BlurVideoScreen')
       }
-      
+
     } else {
       setBlur(false)
     }
@@ -656,7 +661,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
       <View style={{ flex: 1, width: "100%", alignItems: "center", justifyContent: "center" }}>
         <View
           style={{
-            paddingTop: insets.top + 32, paddingBottom: 16,
+            paddingTop: insets.top + 16, paddingBottom: 16,
             gap: 8,
             alignItems: "center",
             justifyContent: "center",
@@ -665,7 +670,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
           }}
         >
           <Text
-            style={{ fontSize: 20, lineHeight: 30, fontWeight: "bold", color: "black", textAlign: 'center' }}
+            style={{ fontSize: 20, lineHeight: 25, fontWeight: "bold", color: "black", textAlign: 'center' }}
           >{`Let’s Get to Know You!`}</Text>
           <Text
             style={{ fontSize: 14, lineHeight: 21, fontWeight: "500", color: "black", textAlign: 'center' }}
@@ -944,11 +949,14 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
             gap: 16,
           }}
         >
-          <View style={{ marginVertical: -8, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 8, width: '100%', paddingHorizontal: 24 }}>
-            <Text style={{ fontSize: 10, fontWeight: '500', color: 'black' }}>{'Face blur:'}</Text>
-            <Switch value={isBlur} onValueChange={onSetBlur} />
+          <View style={{ marginVertical: -8, flexDirection: 'row', gap: 10, alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingHorizontal: 24 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 8 }}>
+              <Text style={{ fontSize: 10, fontWeight: '500', color: 'black' }}>{'Face blur:'}</Text>
+              <CustomSwitch value={isBlur} onValueChange={onSetBlur} />
+            </View>
+            {isBlur && <Text style={{ flex: 1, textAlign: 'right', fontSize: 10, lineHeight: 14, fontWeight: '400', color: 'black' }}>{`Your face blur won't appear during recording but will be applied before sharing your profile.`}</Text>}
           </View>
-          <View style={{ width: '100%', alignItems: 'flex-start', justifyContent: 'flex-start', height: 90, }}>
+          <View style={{ width: '100%', alignItems: 'flex-start', justifyContent: 'flex-start', height: 85, }}>
             <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, }}>
               <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#333333', alignItems: 'center', justifyContent: 'center' }}>
                 <Image source={images.happy_cloud} style={{ width: 20, height: 20 }} contentFit="contain" />

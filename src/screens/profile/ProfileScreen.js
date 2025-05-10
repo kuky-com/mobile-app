@@ -10,7 +10,7 @@ import dayjs from 'dayjs'
 import { Image } from 'expo-image'
 import { StatusBar } from 'expo-status-bar'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { DeviceEventEmitter, Dimensions, Linking, Platform, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import Purchases from 'react-native-purchases'
@@ -22,9 +22,11 @@ import CustomVideo from '@/components/CustomVideo'
 import { FontAwesome6 } from '@expo/vector-icons'
 import ShareModal from '../../components/ShareModal'
 import analytics from '@react-native-firebase/analytics'
-import { capitalize, getStatusColor } from '../../utils/utils'
+import { capitalize, formatSeconds, getStatusColor } from '../../utils/utils'
 import { head } from 'axios'
 import OnlineStatus from '../../components/OnlineStatus'
+import MonthYearPickerSheet from '../../components/sheets/MonthYearSheets'
+import VideoManager from '../../components/VideoManager'
 
 const styles = StyleSheet.create({
     container: {
@@ -65,8 +67,32 @@ const ProfileScreen = ({ navigation }) => {
     const [currentUser, setCurrentUser] = useAtom(userAtom)
     const [showShare, setShowShare] = useState(null);
 
+    const [moderatorData, setModeratorData] = useState(null)
+
     const [playing, setPlaying] = useState(false)
     const videoRef = useRef(null)
+
+    const actionSheetRef = useRef();
+    const [reportDate, setReportDate] = React.useState(dayjs().format());
+
+    const handleOpenPicker = () => {
+        actionSheetRef.current?.show();
+    };
+
+    const handleSelect = ({ year, month }) => {
+        console.log({ year, month })
+        setReportDate(dayjs(`01-${String(month).padStart(2, '0')}-${year}`, 'DD-MM-YYYY').format())
+    };
+
+    // const openMonthYearSelector = async () => {
+    //     const result = await SheetManager.show('month-year-selector');
+    //     if (result?.payload) {
+    //       console.log('Selected:', result.payload); // { month, year }
+    //       const { month, year } = result.payload
+
+    //       setReportDate(dayjs(`01-${month}-${year}`, 'DD-MM-YYYY').format())
+    //     }
+    //   }
 
     useEffect(() => {
         analytics().logScreenView({
@@ -134,22 +160,44 @@ const ProfileScreen = ({ navigation }) => {
                 console.log({ error })
             })
 
+        refreshModeratorData()
         // getSubscriptionInfo()
     }
 
+    const refreshModeratorData = () => {
+        if (currentUser?.is_moderators) {
+            setModeratorData({})
+            apiClient.get(`users/stats?start_date=${dayjs(reportDate).startOf('month').format('DD/MM/YYYY')}&end_date=${dayjs(reportDate).endOf('month').format('DD/MM/YYYY')}`)
+                .then((res) => {
+                    if (res && res.data && res.data.success) {
+                        setModeratorData(res.data.data.data)
+                    }
+                })
+                .catch((error) => {
+                    console.log({ error })
+                })
+        }
+    }
+
+    useEffect(() => {
+        refreshModeratorData()
+    }, [reportDate])
+
     const onAddDislikes = () => {
         // navigation.push('DislikeUpdateScreen', { dislikes: dislikes, onUpdated: (newList) => setDislikes(newList) })
-        navigation.push('MatchingInfoUpdateScreen', { canClose: true })
+        // navigation.push('MatchingInfoUpdateScreen', { canClose: true })
+        navigation.push('InterestVideoScreen', { canClose: true })
     }
 
     const onAddLikes = () => {
         // navigation.push('InterestUpdateScreen', { likes: likes, onUpdated: (newList) => setLikes(newList) })
-        navigation.push('MatchingInfoUpdateScreen', { canClose: true })
+        // navigation.push('MatchingInfoUpdateScreen', { canClose: true })
+        navigation.push('InterestVideoScreen', { canClose: true })
     }
 
     const onEditPurposes = () => {
         // navigation.push('PurposeProfileScreen', { purposes: purposes, onUpdated: (newList) => setPurposes(newList) })
-        navigation.push('MatchingInfoUpdateScreen', { canClose: true })
+        navigation.push('InterestVideoScreen', { canClose: true })
     }
 
     const openNameEdit = () => {
@@ -171,9 +219,12 @@ const ProfileScreen = ({ navigation }) => {
                 console.log({ error })
             })
     }
-    const playVideo = () => {
+    const playVideo = async () => {
         if (videoRef && videoRef.current) {
+
+            await VideoManager.stopCurrent();
             videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: 50 })
+            VideoManager.setCurrent(videoRef.current);
         }
     }
 
@@ -249,9 +300,9 @@ const ProfileScreen = ({ navigation }) => {
     }
 
     const onUpdateJourney = () => {
-        navigation.push('JourneySelectionScreen', {isUpdate: true})
+        navigation.push('JourneySelectionScreen', { isUpdate: true })
     }
-    
+
     return (
         <View style={styles.container}>
             <StatusBar translucent style='dark' />
@@ -302,18 +353,37 @@ const ProfileScreen = ({ navigation }) => {
                         </TouchableOpacity>
                     </View>
                 </View>
-                <View style={{ height: 25, alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
-                    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                        <TouchableOpacity onPress={() => setMode('view')} style={{ borderBottomWidth: 1, borderBottomColor: mode === 'view' ? '#E8FF58' : 'transparent', height: 25, alignItems: 'center', width: 50, justifyContent: 'center' }}>
-                            <Text style={{ fontSize: 14, color: mode === 'view' ? '#E8FF58' : 'rgba(232, 255, 88, 0.5)' }}>View</Text>
+                {
+                    currentUser?.is_moderators && moderatorData &&
+                    <View style={{ width: '100%', alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row', gap: 5 }}>
+                        <TouchableOpacity onPress={() => setMode('view')} style={{ backgroundColor: mode === 'view' ? '#F1F1F3' : '#D3CEEA20', height: 30, borderRadius: 4, alignItems: 'center', flex: 1, justifyContent: 'center' }}>
+                            <Text style={{ fontSize: 14, color: mode === 'view' ? '#725ED4' : '#FFFFFF' }}>My Profile</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => setMode('moderator')} style={{ backgroundColor: mode === 'moderator' ? '#F1F1F3' : '#D3CEEA20', height: 30, borderRadius: 4, alignItems: 'center', flex: 1, justifyContent: 'center' }}>
+                            <Text style={{ fontSize: 14, color: mode === 'moderator' ? '#725ED4' : '#FFFFFF' }}>Moderator</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => setMode('edit')} style={{ backgroundColor: mode === 'edit' ? '#F1F1F3' : '#D3CEEA20', height: 30, borderRadius: 4, alignItems: 'center', flex: 1, justifyContent: 'center' }}>
+                            <Text style={{ fontSize: 14, color: mode === 'edit' ? '#725ED4' : '#FFFFFF' }}>Edit</Text>
                         </TouchableOpacity>
                     </View>
-                    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                        <TouchableOpacity onPress={() => setMode('edit')} style={{ borderBottomWidth: 1, borderBottomColor: mode === 'edit' ? '#E8FF58' : 'transparent', height: 25, alignItems: 'center', width: 50, justifyContent: 'center' }}>
-                            <Text style={{ fontSize: 14, color: mode === 'edit' ? '#E8FF58' : 'rgba(232, 255, 88, 0.5)' }}>Edit</Text>
-                        </TouchableOpacity>
+
+                }
+                {
+                    !(currentUser?.is_moderators && moderatorData) &&
+                    <View style={{ height: 25, alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
+                        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                            <TouchableOpacity onPress={() => setMode('view')} style={{ borderBottomWidth: 1, borderBottomColor: mode === 'view' ? '#E8FF58' : 'transparent', height: 25, alignItems: 'center', width: 50, justifyContent: 'center' }}>
+                                <Text style={{ fontSize: 14, color: mode === 'view' ? '#E8FF58' : 'rgba(232, 255, 88, 0.5)' }}>View</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                            <TouchableOpacity onPress={() => setMode('edit')} style={{ borderBottomWidth: 1, borderBottomColor: mode === 'edit' ? '#E8FF58' : 'transparent', height: 25, alignItems: 'center', width: 50, justifyContent: 'center' }}>
+                                <Text style={{ fontSize: 14, color: mode === 'edit' ? '#E8FF58' : 'rgba(232, 255, 88, 0.5)' }}>Edit</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
-                </View>
+                }
             </View>
             {
                 mode === 'edit' &&
@@ -341,10 +411,12 @@ const ProfileScreen = ({ navigation }) => {
                                             sources={[
                                                 currentUser?.video_intro,
                                                 currentUser?.video_purpose,
+                                                currentUser?.video_interests,
                                             ]}
                                             subtitles={[
                                                 currentUser?.subtitle_intro,
                                                 currentUser?.subtitle_purpose,
+                                                currentUser?.subtitle_interests,
                                             ]}
                                             resizeMode={ResizeMode.COVER}
                                             onPlaybackStatusUpdate={status => {
@@ -597,6 +669,114 @@ const ProfileScreen = ({ navigation }) => {
                     </ScrollView>
                 </View>
             }
+
+            {
+                mode === 'moderator' &&
+                <View style={{ flex: 1 }}>
+                    <ScrollView
+                        refreshControl={<RefreshControl
+                            refreshing={false}
+                            onRefresh={onRefresh} />}
+                        showsVerticalScrollIndicator={false} style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 16, paddingTop: 24 }}>
+                        <View style={{ flex: 1, width: Platform.isPad ? 600 : '100%', alignSelf: 'center', gap: 16, marginBottom: insets.bottom + 120 }}>
+                            <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                                <Text style={{ fontSize: 16, color: 'black', fontWeight: "bold" }}>{dayjs(reportDate).format('MMMM, YYYY')}</Text>
+
+                                <TouchableOpacity onPress={handleOpenPicker} style={{ borderRadius: 5, gap: 5, backgroundColor: '#725ED4', flexDirection: "row", paddingHorizontal: 12, paddingVertical: 6 }}>
+                                    <Text style={{ fontSize: 12, color: 'white' }}>View Stats by</Text>
+                                    <FontAwesome6 size={12} color='white' name='chevron-down' />
+                                </TouchableOpacity>
+                            </View>
+
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                <View style={{ backgroundColor: '#D0E2B8', borderRadius: 10, padding: 16, gap: 5, alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+                                    <Text style={{ fontSize: 11, fontWeight: '400', color: 'black' }} >Active</Text>
+                                    <Text style={{ fontSize: 20, fontWeight: "bold", color: 'black' }}>{currentUser?.is_active ? 'Active' : 'Inactive'}</Text>
+                                </View>
+                                <View style={{ backgroundColor: '#E2D7B8', borderRadius: 10, padding: 16, gap: 5, alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+                                    <Text style={{ fontSize: 11, fontWeight: '400', color: 'black' }} >Joined on</Text>
+                                    <Text style={{ fontSize: 20, fontWeight: "bold", color: 'black' }}>{dayjs(currentUser?.createdAt).format('MMM, DD')}</Text>
+                                </View>
+                                <View style={{ backgroundColor: '#CCECFA', borderRadius: 10, padding: 16, gap: 5, alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+                                    <Text style={{ fontSize: 11, fontWeight: '400', color: 'black' }} >Earnings</Text>
+                                    <Text style={{ fontSize: `$${moderatorData?.earning?.total ?? 0}`.length > 10 ? 18 : 20, fontWeight: "bold", color: 'black' }}>{`$${moderatorData?.earning?.total ?? 0}`}</Text>
+                                </View>
+                            </View>
+
+                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                                <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>Statistics</Text>
+                                {/* <Text style={{ fontSize: 12, fontWeight: '400', color: 'black' }}>{`${dayjs().startOf('month').format('MMM, DD')} - ${dayjs().format('MMM, DD')}`}</Text> */}
+                            </View>
+                            <View style={{ width: '100%', gap: 6 }}>
+                                <View style={{
+                                    backgroundColor: '#D3CEEA', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 12,
+                                    flexDirection: "row", alignItems: 'center', justifyContent: 'space-between'
+                                }}>
+                                    <Text style={{ fontSize: 12, fontWeight: "400", color: '#494949' }}>Messages Sent:</Text>
+                                    <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>{moderatorData.messages_count ?? 0}</Text>
+                                </View>
+
+                                <View style={{
+                                    backgroundColor: '#D3CEEA', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 12,
+                                    flexDirection: "row", alignItems: 'center', justifyContent: 'space-between'
+                                }}>
+                                    <Text style={{ fontSize: 12, fontWeight: "400", color: '#494949' }}>Matches Participated In:</Text>
+                                    <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>{moderatorData.matches_count ?? 0}</Text>
+                                </View>
+
+                                <View style={{
+                                    backgroundColor: '#D3CEEA', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 12,
+                                    flexDirection: "row", alignItems: 'center', justifyContent: 'space-between'
+                                }}>
+                                    <Text style={{ fontSize: 12, fontWeight: "400", color: '#494949' }}>Calls Attended:</Text>
+                                    <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>{moderatorData.total_call ?? 0}</Text>
+                                </View>
+
+                                <View style={{
+                                    backgroundColor: '#D3CEEA', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 12,
+                                    flexDirection: "row", alignItems: 'center', justifyContent: 'space-between'
+                                }}>
+                                    <Text style={{ fontSize: 12, fontWeight: "400", color: '#494949' }}>Avg. Call Duration:</Text>
+                                    <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>{formatSeconds(moderatorData.avg_call_duration ?? 0)}</Text>
+                                </View>
+
+                                <View style={{
+                                    backgroundColor: '#D3CEEA', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 12,
+                                    flexDirection: "row", alignItems: 'center', justifyContent: 'space-between'
+                                }}>
+                                    <Text style={{ fontSize: 12, fontWeight: "400", color: '#494949' }}>App Usage Time:</Text>
+                                    <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>{formatSeconds(moderatorData.total_session_time ?? 0)}</Text>
+                                </View>
+
+                                <View style={{
+                                    backgroundColor: '#D3CEEA', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 12,
+                                    flexDirection: "row", alignItems: 'center', justifyContent: 'space-between'
+                                }}>
+                                    <Text style={{ fontSize: 12, fontWeight: "400", color: '#494949' }}>Response Rate:</Text>
+                                    <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>{`${moderatorData.response_rate ?? 0}%`}</Text>
+                                </View>
+                            </View>
+
+                            {!!moderatorData.earning &&
+                                <>
+                                    <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>Statistics</Text>
+                                    <View style={{ padding: 16, borderRadius: 10, backgroundColor: '#DEDEDE50', gap: 8 }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', justifyContent: 'space-between' }}>
+                                            <Text>Bonuses: </Text>
+                                            <Text>{moderatorData.earning.bonuses}</Text>
+                                        </View>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', justifyContent: 'space-between' }}>
+                                            <Text>Next payout date: </Text>
+                                            <Text>{moderatorData.earning.next_payment_date}</Text>
+                                        </View>
+                                    </View>
+                                </>
+                            }
+                        </View>
+                    </ScrollView>
+                </View>
+            }
+
             {
                 mode === 'view' &&
                 <View style={{ flex: 1 }}>
@@ -651,11 +831,9 @@ const ProfileScreen = ({ navigation }) => {
                                 <FontAwesome6 name='chevron-right' color={colors.mainColor} size={16} />
                             </TouchableOpacity> */}
 
-                            <View style={{ borderWidth: 1, borderRadius: 10, borderColor: colors.mainColor, padding: 16, gap: 16 }}>
-                                <TouchableOpacity onPress={onShare} style={{ paddingHorizontal: 32, justifyContent: 'center', height: 40, alignItems: 'center', borderRadius: 20, backgroundColor: colors.mainColor }}>
+                            {/* <TouchableOpacity onPress={onShare} style={{ paddingHorizontal: 32, justifyContent: 'center', height: 40, alignItems: 'center', borderRadius: 20, backgroundColor: colors.mainColor }}>
                                     <Text style={{ fontSize: 16, color: 'white', fontWeight: 'bold' }}>Invite a friend</Text>
-                                </TouchableOpacity>
-                            </View>
+                                </TouchableOpacity> */}
 
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1 }}>
@@ -666,6 +844,15 @@ const ProfileScreen = ({ navigation }) => {
                                     <Text style={{ color: '#E8FF58', textAlign: 'center', fontSize: (currentUser?.journey?.name ?? '').length > 20 ? 12 : 14, fontWeight: 'bold' }}>{currentUser?.journey?.name}</Text>
                                 </View> */}
                             </View>
+                            {
+                                currentUser && ((currentUser?.is_avatar_blur && !currentUser?.avatar_blur) ||
+                                    (currentUser?.is_video_intro_blur && !currentUser?.video_intro_blur) ||
+                                    (currentUser?.is_video_purpose_blur && !currentUser?.video_purpose_blur) ||
+                                    (currentUser?.is_video_interests_blur && !currentUser?.video_interests_blur)) &&
+                                <View style={{ backgroundColor: '#FF8B8B', gap: 16, borderWidth: 1, borderColor: '#F5F5F5', borderRadius: 10, paddingHorizontal: 24, paddingVertical: 8 }}>
+                                    <Text style={{ fontSize: 12, color: 'black', fontWeight: '600', lineHeight: 16 }}>{'Your blurred avatar/video is now processing and will be available shortly.'}</Text>
+                                </View>
+                            }
                             <View style={{ justifyContent: 'flex-end', width: Math.min(Dimensions.get('screen').width - 32, 600), height: Math.min(Dimensions.get('screen').width + 60, 750), borderRadius: 20, overflow: 'hidden' }}>
                                 {!playing && <AvatarImage avatar={currentUser?.avatar} full_name={currentUser?.full_name} style={{ borderWidth: 2, borderColor: '#CDB8E2', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 20 }} />}
                                 {
@@ -714,6 +901,25 @@ const ProfileScreen = ({ navigation }) => {
                                     </View>
                                 }
                             </View>
+                            {
+                                (currentUser?.summary && currentUser?.summary.length > 0 && currentUser?.video_intro) ?
+                                    <View style={{ gap: 12, alignItems: 'center', width: '100%', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10, backgroundColor: '#E9E5FF' }}>
+                                        <Text style={{
+                                            fontSize: 12, fontWeight: '500', flex: 1, lineHeight: 18
+                                        }}>{currentUser?.summary}</Text>
+                                    </View>
+                                    :
+                                    <View style={{ gap: 12, alignItems: 'center', width: '100%', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10, backgroundColor: '#E9E5FF' }}>
+                                        <>
+                                            <Text style={{
+                                                fontSize: 12, fontWeight: '500', flex: 1, lineHeight: 18
+                                            }}>{'Recording your video to see your profile transcript'}</Text>
+                                            <TouchableOpacity onPress={() => navigation.push('IntroductionVideoScreen')} style={{ paddingHorizontal: 16, height: 30, borderRadius: 15, backgroundColor: '#333333', alignItems: 'center', justifyContent: 'center' }}>
+                                                <Text style={{ color: 'white', fontSize: 13, fontWeight: '500' }}>Tap to Introduce Yourself</Text>
+                                            </TouchableOpacity>
+                                        </>
+                                    </View>
+                            }
                             <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
                                 <View style={{ flexDirection: 'row', flex: 1, gap: 5, alignItems: 'center', justifyContent: 'flex-start' }}>
                                     <View style={{ width: 30, height: 30, borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#726F70', backgroundColor: 'white' }}>
@@ -837,6 +1043,8 @@ const ProfileScreen = ({ navigation }) => {
                 full_name={currentUser?.full_name}
                 shareLink={showShare ?? ""}
             />
+
+            <MonthYearPickerSheet ref={actionSheetRef} onSelect={handleSelect} />
         </View>
     )
 }

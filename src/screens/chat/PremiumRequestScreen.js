@@ -103,12 +103,11 @@ const PremiumRequestScreen = ({ navigation, route }) => {
         console.log({ planIndex });
 
         const result = await Purchases.purchaseStoreProduct(product);
-        console.log("pass here");
         setLoading(false);
 
         const { customerInfo } = result;
 
-        // console.log({ response: JSON.stringify(result) })
+        console.log({ customerInfo: JSON.stringify(result) })
 
         if (
           customerInfo &&
@@ -121,6 +120,8 @@ const PremiumRequestScreen = ({ navigation, route }) => {
         ) {
           if (conversation) {
             NavigationService.replace("MessageScreen", { conversation });
+          } else {
+            navigation.goBack()
           }
           DeviceEventEmitter.emit(constants.REFRESH_PROFILE);
         } else {
@@ -318,6 +319,7 @@ const PremiumRequestScreen = ({ navigation, route }) => {
           disabled={planIndex === null}
           textStyle={{ color: colors.mainColor, fontWeight: 'bold' }}
           style={{ backgroundColor: '#E8FF58' }}
+          loadingColor={colors.mainColor}
         />
       )}
       <Text

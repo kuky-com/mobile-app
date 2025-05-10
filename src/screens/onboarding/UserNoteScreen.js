@@ -79,7 +79,7 @@ const UserNoteScreen = ({ navigation, route }) => {
             try {
                 console.log({user_note})
                 setLoading(true)
-                apiClient.post('users/update', { user_note: user_note })
+                apiClient.post('users/update', { user_note: user_note.trim() })
                     .then((res) => {
                         setLoading(false)
                         console.log({ res })

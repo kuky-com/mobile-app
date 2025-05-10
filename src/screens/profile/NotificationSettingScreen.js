@@ -21,6 +21,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import analytics from '@react-native-firebase/analytics'
+import CustomSwitch from "../../components/CustomSwitch";
 
 const styles = StyleSheet.create({
   container: {
@@ -134,7 +135,7 @@ const NotificationSettingScreen = ({ navigation }) => {
             <Text style={{ fontSize: 16, color: "#646464", flex: 1, fontWeight: "bold" }}>
               Allow push notification
             </Text>
-            <Switch
+            <CustomSwitch
               value={notificationEnable}
               onValueChange={() => setNotificationEnable((old) => !old)}
             />
@@ -152,7 +153,7 @@ const NotificationSettingScreen = ({ navigation }) => {
             <Text style={{ fontSize: 16, color: "#646464", flex: 1, fontWeight: "bold" }}>
               Allow email notification
             </Text>
-            <Switch
+            <CustomSwitch
               value={emailNotificationEnable}
               onValueChange={() => setEmailNotificationEnable((old) => !old)}
             />
@@ -170,7 +171,7 @@ const NotificationSettingScreen = ({ navigation }) => {
             <Text
               style={{ fontSize: 16, color: "#646464", flex: 1, fontWeight: "bold" }}
             >{`Subscribe Kuky's news`}</Text>
-            <Switch value={subscribeEmail} onValueChange={() => setSubscribeEmail((old) => !old)} />
+            <CustomSwitch value={subscribeEmail} onValueChange={() => setSubscribeEmail((old) => !old)} />
           </View>
         </View>
 

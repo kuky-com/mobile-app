@@ -3,7 +3,7 @@ import { ActivityIndicator, Platform, TouchableOpacity } from 'react-native'
 import Text from './Text'
 import { getUnit } from '@/utils/utils'
 
-const ButtonWithLoading = ({ text = {}, textStyle = {}, onPress, loading = false, disabled = false, style = {} }) => {
+const ButtonWithLoading = ({ text = {}, textStyle = {}, onPress, loading = false, disabled = false, style = {}, loadingColor = 'white' }) => {
 
     return (
         <TouchableOpacity
@@ -19,7 +19,7 @@ const ButtonWithLoading = ({ text = {}, textStyle = {}, onPress, loading = false
             }, style]}
         >
             <Text style={[{ fontSize: getUnit(18), fontWeight: '700', color: 'white' }, textStyle]}>{text}</Text>
-            {loading && <ActivityIndicator color='white' size='small' />}
+            {loading && <ActivityIndicator color={loadingColor} size='small' />}
         </TouchableOpacity>
     )
 }

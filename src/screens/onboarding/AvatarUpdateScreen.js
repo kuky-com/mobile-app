@@ -3,7 +3,7 @@ import images from '@/utils/images'
 import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import React, { useEffect, useState } from 'react'
-import { Dimensions, Platform, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { DeviceEventEmitter, Dimensions, Platform, StyleSheet, Switch, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ImagePicker from 'react-native-image-crop-picker'
@@ -18,6 +18,10 @@ import { userAtom } from '@/actions/global'
 import { getAuthenScreen } from '@/utils/utils'
 import analytics from '@react-native-firebase/analytics'
 import { FontAwesome6 } from '@expo/vector-icons'
+import constants from '../../utils/constants'
+import Purchases from 'react-native-purchases'
+import { BlurView } from 'expo-blur'
+import CustomSwitch from '../../components/CustomSwitch'
 
 const imageImage = `avatar${dayjs().unix()}.png`
 
@@ -51,10 +55,12 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
     const { fromReview, fromUpdate } = route && route.params ? route.params : {}
     const insets = useSafeAreaInsets()
     const [currentUser, setUser] = useAtom(userAtom)
-    const [image, setImage] = useState(currentUser?.avatar ? { uri: currentUser?.avatar } : null)
+    const [image, setImage] = useState(currentUser?.avatar && currentUser?.avatar !== null ? { uri: currentUser?.avatar } : null)
     const reference = storage().ref(imageImage)
     const [imageUrl, setImageUrl] = useState(currentUser?.avatar ?? null)
     const [loading, setLoading] = useState(false)
+    const [isBlur, setBlur] = useState(false)
+    const [canBlur, setCanBlur] = useState(false)
 
     useEffect(() => {
         analytics().logScreenView({
@@ -63,8 +69,37 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
         })
     }, [])
 
+    const loadSubscriptionInfo = async () => {
+        try {
+            const customerInfo = await Purchases.getCustomerInfo();
+            // console.log({ customerInfo: JSON.stringify(customerInfo) })
+
+            if (
+                customerInfo &&
+                customerInfo.entitlements &&
+                customerInfo.entitlements.active &&
+                customerInfo.entitlements.active["blur_face"]
+            ) {
+                setCanBlur(true)
+                setBlur(true)
+            }
+        } catch (error) {
+            console.log({ error });
+        }
+    };
+
     useEffect(() => {
-        if (imageUrl !== currentUser?.avatar) {
+        loadSubscriptionInfo()
+
+        const listener = DeviceEventEmitter.addListener(constants.REFRESH_PROFILE, loadSubscriptionInfo)
+
+        return () => {
+            listener.remove()
+        }
+    }, [])
+
+    useEffect(() => {
+        if (imageUrl !== null && imageUrl !== currentUser?.avatar) {
             onContinue()
         }
     }, [imageUrl])
@@ -73,15 +108,17 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
         try {
             if (image && image.uri) {
                 setLoading(true)
+
                 const uploadedFile = await reference.putFile(image.uri);
 
-                const url = await storage().ref(imageImage).getDownloadURL()
-                console.log({ url })
-                setLoading(false)
-                setImageUrl(url)
+                const url = await storage().ref(imageImage).getDownloadURL();
+                console.log({ url });
+                setLoading(false);
+                setImageUrl(url);
             }
         } catch (error) {
-            setLoading(false)
+            console.log({ error });
+            setLoading(false);
         }
     };
 
@@ -89,7 +126,7 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
         try {
             setLoading(true)
             console.log({ imageUrl })
-            apiClient.post('users/update', { avatar: imageUrl })
+            apiClient.post('users/update', { avatar: imageUrl, is_avatar_blur: isBlur })
                 .then((res) => {
                     setLoading(false)
                     if (res && res.data && res.data.success) {
@@ -156,6 +193,7 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
                             cropping: true,
                         }).then(image => {
                             setImage({ uri: image.path })
+                            setImageUrl(null)
                             console.log(image);
                         });
                     }
@@ -166,12 +204,25 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
                             cropping: true
                         }).then(image => {
                             setImage({ uri: image.path })
+                            setImageUrl(null)
                             console.log(image);
                         });
                     }
                 },
             },
         });
+    }
+    const onSetBlur = (value) => {
+        if (value) {
+            if (canBlur) {
+                setBlur(true)
+            } else {
+                navigation.push('BlurVideoScreen')
+            }
+
+        } else {
+            setBlur(false)
+        }
     }
 
     return (
@@ -196,8 +247,17 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
                     }
                     {image &&
                         <View style={styles.imageContainer}>
-                            <Image style={{ width: Platform.isPad ? 600 : Dimensions.get('screen').width - 32, height: Platform.isPad ? 600 : Dimensions.get('screen').width - 32, borderRadius: 20 }} source={image} contentFit='cover' />
-                            <TouchableOpacity onPress={() => setImage(null)} style={styles.closeButton}>
+                            <Image style={{ width: Platform.isPad ? 600 : Dimensions.get('screen').width - 48, height: Platform.isPad ? 600 : Dimensions.get('screen').width - 48, borderRadius: 20 }} source={image} contentFit='cover' />
+                            {
+                                isBlur &&
+                                <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 20, overflow: 'hidden' }}>
+                                    <BlurView intensity={20} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 20 }} />
+                                </View>
+                            }
+                            <TouchableOpacity onPress={() => {
+                                setImage(null)
+                                setImageUrl(null)
+                            }} style={styles.closeButton}>
                                 <Image source={images.close_icon} style={{ width: 15, height: 15 }} />
                             </TouchableOpacity>
                         </View>
@@ -205,13 +265,12 @@ const AvatarUpdateScreen = ({ navigation, route }) => {
                 </View>
             </View>
 
-            {/* <TouchableOpacity style={{
-                position: 'absolute', top: insets.top + 5, right: 16,
-                width: 25, height: 25, alignItems: 'center', justifyContent: 'center'
-            }}
-                onPress={() => NavigationService.push('SkipOnboardingScreen')}>
-                <FontAwesome6 name='xmark' size={20} color='#333333' />
-            </TouchableOpacity> */}
+            <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 8 }}>
+                    <Text style={{ fontSize: 10, fontWeight: '500', color: 'black' }}>{'Face blur:'}</Text>
+                    <CustomSwitch value={isBlur} onValueChange={onSetBlur} />
+                </View>
+            </View>
             <TouchableOpacity onPress={imageUrl ? onContinue : onUpload} disabled={image === null} style={{ width: Platform.isPad ? 600 : '100%', alignSelf: 'center', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: image === null ? '#9A9A9A' : '#333333', }}>
                 <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>{imageUrl ? 'Continue' : 'Upload'}</Text>
             </TouchableOpacity>

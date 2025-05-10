@@ -77,6 +77,10 @@ const Tabbar = ({ navigation, state }) => {
     const { routes } = state;
     navigation.jumpTo(routes[tabIndex].name);
     updateLastActive()
+
+    if(tabIndex === 1) {
+      DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS)
+    }
   };
 
   const updateLastActive = () => {
@@ -269,7 +273,7 @@ const Tabbar = ({ navigation, state }) => {
                 color: currentIndex === 1 ? colors.mainColor : "#707070",
               }}
             >
-              Matches
+              Connections
             </Text>
 
             {totalUnreadRaw > 0 && (

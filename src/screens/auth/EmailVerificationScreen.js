@@ -47,8 +47,8 @@ const EmailVerificationScreen = ({ navigation, route }) => {
   }, [])
 
   const checkPushToken = () => {
+    registerToken();
     if (pushToken) {
-      registerToken();
       apiClient
         .post("users/update-token", { session_token: pushToken })
         .then((res) => {})

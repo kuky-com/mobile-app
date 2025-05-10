@@ -36,6 +36,7 @@ import { userAtom } from "../../actions/global";
 import axios from "axios";
 import colors from "../../utils/colors";
 import SubtitleDisplay from "../../components/SubtitleDisplay";
+import VideoManager from "../../components/VideoManager";
 // import Vosk from 'react-native-vosk'
 
 const styles = StyleSheet.create({
@@ -311,10 +312,12 @@ const ProfileVideoUpdateScreen = ({ navigation, route }) => {
     } catch (error) { }
   };
 
-  const onPlay = () => {
+  const onPlay = async () => {
     try {
       if (videoRef && videoRef.current) {
+        await VideoManager.stopCurrent();
         videoRef.current.setStatusAsync({ shouldPlay: true, positionMillis: startPosition * 1000 });
+        VideoManager.setCurrent(videoRef.current);
       }
     } catch (error) { }
   };
