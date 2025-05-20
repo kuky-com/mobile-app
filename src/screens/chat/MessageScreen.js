@@ -217,7 +217,7 @@ const typingMessageId = 'typing_indicator'
 const MessageScreen = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
   const currentUser = useAtomValue(userAtom);
-  const { conversation } = route.params;
+  const { conversation, is_support } = route.params;
   const [messages, setMessages] = useState([]);
   const [currentConversation, setCurrentConversation] = useState(conversation);
   const appState = useRef(AppState.currentState);
@@ -444,11 +444,13 @@ const MessageScreen = ({ navigation, route }) => {
     }
   );
 
+  console.log({ currentConversation })
+
   useEffect(() => {
     if (!conversation.profile) {
       setLoading(true);
       apiClient
-        .post("matches/conversation", { conversation_id: conversation.conversation_id })
+        .post("matches/conversation", { conversation_id: conversation.conversation_id, is_support })
         .then((res) => {
           if (res && res.data && res.data.success) {
             setLoading(false);
@@ -700,7 +702,7 @@ const MessageScreen = ({ navigation, route }) => {
 
       if (isValidUrl(currentMessage?.text)) {
         contentView = <MessageUrlPreview currentMessage={currentMessage} currentUser={currentUser} />
-        extraStyle = {maxWidth: '60%'}
+        extraStyle = { maxWidth: '60%' }
       } else {
         contentView = (
           <View style={{ gap: 1, alignItems: 'flex-end' }}>
@@ -800,10 +802,10 @@ const MessageScreen = ({ navigation, route }) => {
         <Composer
           {...props}
           textInputStyle={[
-        styles.inputText,
-        {
-          textAlignVertical: props.text && props.text.includes("\n") ? "top" : "center",
-        },
+            styles.inputText,
+            {
+              textAlignVertical: props.text && props.text.includes("\n") ? "top" : "center",
+            },
           ]}
           placeholder="Type here ..."
         />
@@ -1183,7 +1185,8 @@ const MessageScreen = ({ navigation, route }) => {
   };
 
   const renderHeaderView = () => {
-    if (isHeaderVisible)
+
+    if (isHeaderVisible && !(currentConversation?.profile?.id === 1) && !is_support)
       return (
         <MessageHeader conversation={currentConversation} rejectAction={rejectAction} likeAction={likeAction} />
       )
@@ -1195,6 +1198,17 @@ const MessageScreen = ({ navigation, route }) => {
     if (props.currentMessage.user._id === 0) {
       return (
         <TouchableOpacity onPress={() => navigation.navigate("BotProfileScreen")}>
+          <Image
+            style={{ width: 48, height: 48, borderRadius: 24 }}
+            source={images.bot_avatar}
+          />
+        </TouchableOpacity>
+
+      )
+    }
+    if (props.currentMessage.user._id === 1) {
+      return (
+        <TouchableOpacity onPress={() => navigation.navigate("SupportProfileScreen")}>
           <Image
             style={{ width: 48, height: 48, borderRadius: 24 }}
             source={images.bot_avatar}
@@ -1479,26 +1493,48 @@ const MessageScreen = ({ navigation, route }) => {
         </TouchableOpacity>
         <TouchableOpacity onPress={openProfile}>
           {/* <Image source={{ uri: currentConversation?.profile?.avatar }} style={{ width: 50, height: 50, borderWidth: 2, borderColor: 'white', borderRadius: 25, }} /> */}
-          <AvatarImage
-            full_name={currentConversation?.profile?.full_name ?? ""}
-            avatar={currentConversation?.profile?.avatar}
-            style={{
-              width: 36,
-              height: 36,
-              borderWidth: 2,
-              borderColor: isRecentOnline ? '#47F644' : "white",
-              borderRadius: 18,
-            }}
-          />
+          {
+            currentConversation?.profile?.id === 1 ?
+              <Image
+                source={{ uri: currentConversation?.profile?.avatar }} style={{
+                  width: 50,
+                  height: 50,
+                  borderWidth: 2,
+                  borderColor: isRecentOnline ? '#47F644' : "white",
+                  borderRadius: 5,
+                }} />
+              :
+              <AvatarImage
+                full_name={currentConversation?.profile?.full_name ?? ""}
+                style={{
+                  width: 50,
+                  height: 50,
+                  borderWidth: 2,
+                  borderColor: isRecentOnline ? '#47F644' : "white",
+                  borderRadius: 25,
+                }}
+                avatar={currentConversation?.profile?.avatar}
+              />
+          }
           {isRecentOnline &&
             <View style={styles.onlineStatusBg}>
               <OnlineStatus isRecentOnline={isRecentOnline} status={currentConversation?.profile?.online_status} radius={12} />
             </View>
           }
         </TouchableOpacity>
-        <Text onPress={openProfile} style={{ flex: 1, fontSize: 14, color: "white", fontWeight: "bold" }}>
-          {currentConversation?.profile?.full_name}
-        </Text>
+        {
+          currentConversation?.profile?.id === 1 ?
+            <View style={{ flex: 1, alignItems: 'flex-start', gap: 3 }}>
+              <Text onPress={openProfile} style={{ fontSize: 16, color: "white", fontWeight: "bold" }}>
+                {currentConversation?.profile?.full_name}
+              </Text>
+              <Text style={{ fontSize: 10, fontWeight: 'bold', color: colors.lemon }}>OFFICIAL</Text>
+            </View>
+            :
+            <Text onPress={openProfile} style={{ flex: 1, fontSize: 14, color: "white", fontWeight: "bold" }}>
+              {currentConversation?.profile?.full_name}
+            </Text>
+        }
 
         <View
           style={{
@@ -1525,16 +1561,19 @@ const MessageScreen = ({ navigation, route }) => {
               </TouchableOpacity>
             </>
           }
-          <TouchableOpacity
-            onPress={moreAction}
-            style={{ width: 30, height: 30, alignItems: "center", justifyContent: "center" }}
-          >
-            <Image
-              source={images.more_icon}
-              style={{ width: 20, height: 20 }}
-              contentFit="contain"
-            />
-          </TouchableOpacity>
+          {
+            !(currentConversation?.profile?.id === 1) && !is_support &&
+            <TouchableOpacity
+              onPress={moreAction}
+              style={{ width: 30, height: 30, alignItems: "center", justifyContent: "center" }}
+            >
+              <Image
+                source={images.more_icon}
+                style={{ width: 20, height: 20 }}
+                contentFit="contain"
+              />
+            </TouchableOpacity>
+          }
         </View>
       </View>
       {renderHeaderView()}

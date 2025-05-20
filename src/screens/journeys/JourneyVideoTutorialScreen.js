@@ -90,16 +90,16 @@ const JourneyVideoTutorialScreen = ({ navigation, route }) => {
             <StatusBar translucent style='dark' />
 
             <View style={{ flex: 1, gap: 48, width: Platform.isPad ? 600 : '100%', alignSelf: 'center', alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ fontSize: 20, width: '100%', textAlign: 'center', color: 'white', fontWeight: 'bold', lineHeight: 30 }}>{`How Do You Feel About Moving Forward?`}</Text>
+                <Text style={{ fontSize: 20, width: '100%', textAlign: 'center', color: 'white', fontWeight: 'bold', lineHeight: 30 }}>{`Your Journey & Why You're Here`}</Text>
                 <Image source={images.record_tutorial} style={{ width: 180, height: 180 }} contentFit='contain' />
-                <Text style={{ fontSize: 14, width: '100%', textAlign: 'center', color: 'white', fontWeight: '500', lineHeight: 21 }}>{`${question?.question || ''}`}</Text>
+                <Text style={{ fontSize: 14, width: '100%', textAlign: 'center', color: 'white', fontWeight: '500', lineHeight: 21 }}>{`Share what brought you to Kuky. This helps us match you with people on a similar journey.`}</Text>
             </View>
             <TouchableOpacity onPress={onContinue} style={{ width: Platform.isPad ? 600 : '100%', alignSelf: 'center', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333', }}>
                 <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>{'Record my reflection'}</Text>
             </TouchableOpacity>
-            <View style={{ width: '100%', alignItems: 'center' }}>
+            {/* <View style={{ width: '100%', alignItems: 'center' }}>
                 <Text style={{ padding: 8, fontSize: 14, fontWeight: 'bold', color: 'white' }} onPress={onSkip}>Not right now</Text>
-            </View>
+            </View> */}
 
         </View>
     )

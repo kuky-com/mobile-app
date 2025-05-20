@@ -59,9 +59,6 @@ const DirectCallControllerView = ({ status, call, ios_audioDevice }) => {
         <View style={styles.information}>
           {((isVoiceCall && statusInProgress) || statusEnded || statusStandby) && (
             <Fragment>
-
-              <StatusView isVideoCall={call.isVideoCall} myRole={call.myRole} statusStandby={statusStandby} statusInProgress={statusInProgress} call={call} />
-
               <AvatarImage
                 full_name={call.remoteUser?.nickname ?? ""}
                 style={[{ width: 120, height: 120, borderRadius: 60 }, styles.shadow]}
@@ -70,6 +67,8 @@ const DirectCallControllerView = ({ status, call, ios_audioDevice }) => {
               <Text className="text-md text-red" style={styles.nickname}>
                 {remoteUserNickname}
               </Text>
+
+              <StatusView isVideoCall={call.isVideoCall} myRole={call.myRole} statusStandby={statusStandby} statusInProgress={statusInProgress} call={call} />
 
             </Fragment>
           )}
@@ -189,7 +188,7 @@ const StatusView = ({ call, statusInProgress, statusStandby, myRole, isVideoCall
   }
 
   return (
-    <Text style={{ fontSize: 14, color: 'white', fontWeight: 'bold', marginBottom: 32 }}>{textContent}</Text>
+    <Text style={{ fontSize: 14, color: 'white', fontWeight: 'bold', marginTop: 32 }}>{textContent}</Text>
   );
 };
 
@@ -203,7 +202,7 @@ const styles = StyleSheet.create({
   },
   information: {
     flex: 1,
-    justifyContent: "flex-start",
+    justifyContent: "center",
     alignItems: "center",
     gap: 16
   },

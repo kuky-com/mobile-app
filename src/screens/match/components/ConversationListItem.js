@@ -135,19 +135,19 @@ const ConversationListItem = ({ onPress, isPremium, conversation, marginBottom, 
         )
     }
 
-    return (
-        <SwipeRow rightOpenValue={-75} ref={openRowRef}>
-            <View style={styles.standaloneRowBack}>
-                <TouchableOpacity onPress={onRemove} style={{ marginBottom: marginBottom, gap: 5, width: 47, height: 58, backgroundColor: 'white', borderRadius: 15, alignItems: 'center', justifyContent: 'center' }}>
-                    <Image source={images.delete_icon} style={{ width: 23, height: 23 }} />
-                    <Text style={{ color: '#A2A2A2', fontSize: 10 }}>Delete</Text>
-                </TouchableOpacity>
-            </View>
+    if (conversation?.profile?.id === 1) {
+        return (
             <Pressable onPress={openDetail} style={{ backgroundColor: '#F1F1F3', marginBottom: marginBottom, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: '#78787977', paddingVertical: 16 }}>
-                {/* <Image source={{ uri: conversation?.profile?.avatar }} style={{ width: 70, height: 70, borderRadius: 35, borderWidth: 1, borderColor: colors.mainColor }} /> */}
-                <AvatarImage avatar={conversation?.profile?.avatar} full_name={conversation?.profile?.full_name} style={{ width: 70, height: 70, borderRadius: 35, borderWidth: 1, borderColor: colors.mainColor }} />
+                <View style={{ gap: 3, alignItems: 'center' }}>
+
+                    <Image source={{ uri: conversation?.profile?.avatar }} style={{ width: 70, height: 70, borderRadius: 5 }} />
+                    {/* <Text style={{ fontSize: 10, fontWeight: 'bold', color: colors.mainColor }}>OFFICIAL</Text> */}
+                </View>
                 <View style={{ flex: 1, gap: 8, marginHorizontal: 12 }}>
-                    <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>{conversation?.profile?.full_name}</Text>
+                    <View style={{ gap: 2 }}>
+                        <Text style={{ fontSize: 18, fontWeight: 'bold', color: colors.mainColor }}>{conversation?.profile?.full_name}</Text>
+                        <Text style={{ fontSize: 10, fontWeight: 'bold', color: colors.mainColor }}>OFFICIAL</Text>
+                    </View>
                     <Text numberOfLines={2} style={{ fontSize: 12, lineHeight: 18, color: !lastMessageCloud ? colors.mainColor : '#6C6C6C', fontWeight: unreadCount > 0 || !lastMessageCloud ? 'bold' : '300' }}>{lastMessage}</Text>
                 </View>
                 <View style={{ alignItems: 'flex-end', gap: 5 }}>
@@ -160,11 +160,43 @@ const ConversationListItem = ({ onPress, isPremium, conversation, marginBottom, 
                         }
                     </View>
                     <Text style={{ fontSize: 10, color: '#726E70' }}>{lastDate}</Text>
-
                 </View>
             </Pressable>
-        </SwipeRow>
-    )
+        )
+    } else {
+        return (
+            <SwipeRow rightOpenValue={-75} ref={openRowRef}>
+                <View style={styles.standaloneRowBack}>
+                    <TouchableOpacity onPress={onRemove} style={{ marginBottom: marginBottom, gap: 5, width: 47, height: 58, backgroundColor: 'white', borderRadius: 15, alignItems: 'center', justifyContent: 'center' }}>
+                        <Image source={images.delete_icon} style={{ width: 23, height: 23 }} />
+                        <Text style={{ color: '#A2A2A2', fontSize: 10 }}>Delete</Text>
+                    </TouchableOpacity>
+                </View>
+                <Pressable onPress={openDetail} style={{ backgroundColor: '#F1F1F3', marginBottom: marginBottom, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: '#78787977', paddingVertical: 16 }}>
+                    {/* <Image source={{ uri: conversation?.profile?.avatar }} style={{ width: 70, height: 70, borderRadius: 35, borderWidth: 1, borderColor: colors.mainColor }} /> */}
+                    <AvatarImage avatar={conversation?.profile?.avatar} full_name={conversation?.profile?.full_name} style={{ width: 70, height: 70, borderRadius: 35, borderWidth: 1, borderColor: colors.mainColor }} />
+                    <View style={{ flex: 1, gap: 8, marginHorizontal: 12 }}>
+                        <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>{conversation?.profile?.full_name}</Text>
+                        <Text numberOfLines={2} style={{ fontSize: 12, lineHeight: 18, color: !lastMessageCloud ? colors.mainColor : '#6C6C6C', fontWeight: unreadCount > 0 || !lastMessageCloud ? 'bold' : '300' }}>{lastMessage}</Text>
+                    </View>
+                    <View style={{ alignItems: 'flex-end', gap: 5 }}>
+                        <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                            <View style={{ opacity: unreadCount > 0 ? 1 : 0, backgroundColor: colors.mainColor, paddingHorizontal: 12, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' }}>
+                                <Text style={{ fontSize: 10, color: 'white', fontWeight: '700', fontStyle: 'italic' }}>{`${unreadCount} unread`}</Text>
+                            </View>
+                            {
+                                !lastMessageCloud && <View style={{ backgroundColor: '#FF8B8B', height: 10, width: 10, borderRadius: 5, alignItems: 'center', justifyContent: 'center' }} />
+                            }
+                        </View>
+                        <Text style={{ fontSize: 10, color: '#726E70' }}>{lastDate}</Text>
+
+                    </View>
+                </Pressable>
+            </SwipeRow>
+        )
+    }
+
+
 }
 
 export default ConversationListItem

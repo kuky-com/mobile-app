@@ -38,20 +38,24 @@ export const getAuthenScreen = (currentUser, fromRecording = false) => {
 
     if (!currentUser?.full_name) {
         return 'NameUpdateScreen'
-    } else if (!currentUser?.journey_category_id) {
-        return 'ReferralUpdateScreen'
-    } else if (!currentUser?.journey_id) {
-        return 'StruggleSelectionScreen'
-    } else if (!currentUser?.avatar) {
+    } 
+    // else if (!currentUser?.journey_category_id) {
+    //     return 'ReferralUpdateScreen'
+    // } else if (!currentUser?.journey_id) {
+    //     return 'StruggleSelectionScreen'
+    // } 
+    else if (!currentUser?.avatar) {
         return 'AvatarUpdateScreen'
     } else if (!currentUser?.video_intro) {
         return 'IntroductionVideoTutorialScreen'
+    } else if (!currentUser?.video_purpose) {
+        return 'JourneyVideoTutorialScreen'
+    } else if(!currentUser?.journey_category_id || !currentUser?.journey_id) {
+        return 'JourneyMatchingScreen'
     } else if (currentUser?.askJPFGeneral) {
         return 'GeneralJPFScreen'
     } else if (currentUser?.askJPFSpecific) {
         return 'SpecificJPFScreen'
-    } else if (!currentUser?.video_purpose) {
-        return 'JourneyVideoTutorialScreen'
     }
     // else if (!currentUser?.birthday || !currentUser?.gender || !currentUser?.pronouns || !currentUser?.location || ((currentUser?.likeCount ?? 0) === 0)) {
     //     return 'AskUpdateInfoScreen'

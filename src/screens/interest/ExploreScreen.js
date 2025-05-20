@@ -1,6 +1,6 @@
 import { Header } from '@/components/Header';
 import Text from '@/components/Text';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Image, FlatList, StyleSheet, Dimensions, DeviceEventEmitter, Platform, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import DynamicLikeItem from '@/components/DynamicLikeItem';
@@ -17,6 +17,7 @@ import { FontAwesome6 } from '@expo/vector-icons';
 import { userAtom } from '../../actions/global';
 import { SheetManager } from 'react-native-actions-sheet';
 import { naturalJoin } from '../../utils/utils';
+import TextInput from '../../components/TextInput';
 
 const ITEM_WIDTH = Dimensions.get('window').width > 600 ? Dimensions.get('window').width / 2 - 60 : Dimensions.get('window').width - 50;
 const PAGE_SIZE = 8
@@ -31,8 +32,11 @@ const ExploreScreen = ({ navigation }) => {
     const [page, setPage] = useState(1)
     const [loadingMore, setLoadingMore] = useState(false)
     const [canLoadMore, setCanLoadMore] = useState(true)
+    const [keyword, setKeyword] = useState('')
+    const [finalKeyword, setFinalKeyword] = useState('')
 
     const [journeys, setJourneys] = useState([])
+    const keywordTimeout = useRef(null)
     // const [selectedJourney, setSelectedJourney] = useState(currentUser?.journey ? currentUser?.journey : null)
     const [selectedJourney, setSelectedJourney] = useState()
 
@@ -87,8 +91,6 @@ const ExploreScreen = ({ navigation }) => {
         });
     }
 
-    console.log({selectedJourney})
-
     useEffect(() => {
         let eventListener = DeviceEventEmitter.addListener(constants.REFRESH_SUGGESTIONS, event => {
             onRefresh()
@@ -100,7 +102,11 @@ const ExploreScreen = ({ navigation }) => {
     }, [])
 
     useEffect(() => {
-        const query = selectedJourney ? `journey_id=${selectedJourney?.id}&` : ''
+        let query = selectedJourney ? `journey_id=${selectedJourney?.id}&` : ''
+        if (finalKeyword && finalKeyword.length > 0) {
+            query += `keyword=${finalKeyword}&`
+        }
+
         if (page === 1) {
             if (!isFetching) {
                 setFetching(true)
@@ -163,6 +169,15 @@ const ExploreScreen = ({ navigation }) => {
             setLoadingMore(false)
         }, 500);
     }
+
+    useEffect(() => {
+        setPage(0)
+        setTimeout(() => {
+            setPage(1)
+            setCanLoadMore(true)
+            setLoadingMore(false)
+        }, 500);
+    }, [finalKeyword])
 
     const onRefresh = () => {
         loadMatches()
@@ -294,16 +309,53 @@ const ExploreScreen = ({ navigation }) => {
         missingInfos.push('location')
     }
 
-    console.log({user_id: currentUser?.id})
+    console.log({ user_id: currentUser?.id })
 
     return (
-        <View style={styles.container}>
-            <Header
+        <View style={[styles.container, { paddingTop: insets.top }]}>
+            {/* <Header
                 showLogo
                 rightIcon={images.notification_icon}
                 rightAction={openNotification}
                 rightCounter={notiCounter}
-            />
+            /> */}
+            <View style={{
+                paddingVertical: 10, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center',
+                justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#eeeeee'
+            }}>
+                <Text style={{ fontSize: 24, color: 'black', fontWeight: 'bold' }}>Explore</Text>
+
+                <TouchableOpacity onPress={changeJourney} style={{
+                    paddingHorizontal: 16, height: 30, width: '50%', borderRadius: 15,
+                    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#CDB8E2'
+                }}>
+                    <Text numberOfLines={1} style={{ flex: 1, fontSize: 12, color: 'black', fontWeight: 'bold' }}>{selectedJourney ? selectedJourney.name : 'All Journeys'}</Text>
+                    <FontAwesome6 name='chevron-down' size={15} color='black' />
+                </TouchableOpacity>
+            </View>
+            <View style={{ paddingTop: 16, paddingBottom: 8, gap: 8, paddingHorizontal: 16, backgounrcColor: 'transparent' }}>
+                <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 10, borderRadius: 5, paddingVertical: 5, alignItems: 'center', backgroundColor: '#E1E1E1' }}>
+                    <FontAwesome6 name='magnifying-glass' size={16} color='#8C8C8C' />
+                    <TextInput
+                        value={keyword}
+                        onChangeText={(text) => {
+                            setKeyword(text);
+
+                            if(keywordTimeout.current)
+                                clearTimeout(keywordTimeout.current);
+                            
+                            keywordTimeout.current = setTimeout(() => {
+                                setFinalKeyword(text);
+                            }, 500);
+                        }}
+                        style={{ flex: 1, fontSize: 15, lineHeight: 20, color: '#333333', paddingVertical: 5 }}
+                        underlineColorAndroid="#00000000"
+                        placeholder="Search people ..."
+                        placeholderTextColor="#8C8C8C"
+                        clearButtonMode="always"
+                    />
+                </View>
+            </View>
             {
                 (!currentUser?.birthday || !currentUser?.gender || !currentUser?.pronouns || !currentUser?.location || ((currentUser?.likeCount ?? 0) === 0)) &&
                 <View style={{ width: '100%', paddingHorizontal: 16, paddingVertical: 8 }}>
@@ -318,20 +370,6 @@ const ExploreScreen = ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
             }
-            <View style={{
-                paddingVertical: 10, paddingHorizontal: 8, flexDirection: 'row', alignItems: 'center',
-                justifyContent: 'space-between'
-            }}>
-                <Text style={{ fontSize: 24, color: 'black', fontWeight: 'bold' }}>Explore</Text>
-
-                <TouchableOpacity onPress={changeJourney} style={{
-                    paddingHorizontal: 16, height: 30, width: '50%', borderRadius: 15,
-                    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#CDB8E2'
-                }}>
-                    <Text numberOfLines={1} style={{ flex: 1, fontSize: 12, color: 'black', fontWeight: 'bold' }}>{selectedJourney ? selectedJourney.name : 'All Journeys'}</Text>
-                    <FontAwesome6 name='chevron-down' size={15} color='black' />
-                </TouchableOpacity>
-            </View>
             <FlatList
                 data={isFetching ? [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }, { id: 6 }] : suggestions}
                 renderItem={renderItem}

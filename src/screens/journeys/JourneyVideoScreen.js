@@ -116,7 +116,7 @@ const JourneyVideoScreen = ({ navigation, route }) => {
 
     let latestRequest = null;
 
-    const [question, setQuestion] = useState(null)
+    // const [question, setQuestion] = useState(null)
 
     const loadSubscriptionInfo = async () => {
         try {
@@ -147,21 +147,21 @@ const JourneyVideoScreen = ({ navigation, route }) => {
         }
     }, [])
 
-    const getQuestion = async () => {
-        try {
-            const res = await apiClient.get(`journeys/jpf-video-question?journey_id=${currentUser?.journey_id}`)
+    // const getQuestion = async () => {
+    //     try {
+    //         const res = await apiClient.get(`journeys/jpf-video-question?journey_id=${currentUser?.journey_id}`)
 
-            if (res && res.data && res.data.success) {
-                setQuestion(res.data.data)
-            }
-        } catch (error) {
-            console.log({ error })
-        }
-    }
+    //         if (res && res.data && res.data.success) {
+    //             setQuestion(res.data.data)
+    //         }
+    //     } catch (error) {
+    //         console.log({ error })
+    //     }
+    // }
 
-    useEffect(() => {
-        getQuestion()
-    }, [])
+    // useEffect(() => {
+    //     getQuestion()
+    // }, [])
 
     const setupTranscript = async () => {
         await Audio.setAudioModeAsync({
@@ -478,8 +478,13 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
         ])
     }
 
-    const updateProfile = (video, audio) => {
-        apiClient.post('users/update', { video_purpose: video, audio_purpose: audio, is_video_purpose_blur: isBlur })
+    const updateProfile = (video, audio, subtitle, transcript) => {
+        apiClient.post('users/update', { 
+            video_purpose: video, 
+            audio_purpose: audio, 
+            is_video_purpose_blur: isBlur,
+            subtitle_intro: subtitle,
+            video_intro_transcript: transcript })
             .then((res) => {
                 setProcessing(false)
                 if (res && res.data && res.data.success) {
@@ -492,11 +497,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                         }, 60000);
                     }
 
-                    if (fromOnboarding) {
-                        NavigationService.reset('JourneyMatchingScreen')
-                    } else {
-                        NavigationService.reset('Dashboard')
-                    }
+                    NavigationService.reset('JourneyMatchingScreen')
 
                 } else {
                     Toast.show({ text1: res.data.message, type: 'error' })
@@ -532,7 +533,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
             }).result
 
             const outputVideoUri = `${FileSystem.documentDirectory}video_trimmed.mp4`
-            const commandVideo = `-y -i ${videoUrl.uri} -ss ${startPosition} -to ${endPosition} -vf scale=-2:720 -pix_fmt yuv420p -c:v libx264 -preset veryfast -crf 23 -b:v 800k -maxrate 850k -bufsize 1700k -c:a aac -b:a 256k -ac 2 -ar 48000 -movflags +faststart -f mp4 ${outputVideoUri}`;
+            const commandVideo = `-y -i ${videoUrl.uri} -ss ${startPosition} -to ${endPosition} -vf scale=-2:720 -pix_fmt yuv420p -c:v libx264 -preset veryfast -crf 23 -b:v 800k -maxrate 850k -bufsize 1700k -vf hflip -c:a aac -b:a 256k -ac 2 -ar 48000 -movflags +faststart -f mp4 ${outputVideoUri}`;
 
             await FFmpegKit.executeAsync(commandVideo, async (session) => {
                 const returnCode = await session.getReturnCode();
@@ -557,9 +558,26 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                     //   https: `https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${videoFileName}`,
                     //   audio: `https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${audioFileName}`
                     // })
+                    let transcriptText = null
+                    let subtitleUrl = null
+
+                    try {
+                        const response = await axios.post('https://6sx3m5nsmex2xyify3lb3x7s440xkxud.lambda-url.ap-southeast-1.on.aws', {
+                            audio_uri: `https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${audioFileName}`
+                        })
+
+                        if (response && response.data && response.data.s3_url) {
+                            transcriptText = response.data.transcript_text
+                            subtitleUrl = response.data.s3_url
+                        }
+                    } catch (error) {
+                        console.log({ error })
+                    }
 
                     updateProfile(`https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${videoFileName}`,
-                        `https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${audioFileName}`)
+                        `https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${audioFileName}`,
+                        subtitleUrl,
+                        transcriptText)
 
 
                 } else {
@@ -684,7 +702,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                 >
                     <Text
                         style={{ fontSize: 20, lineHeight: 25, fontWeight: "bold", color: "black", textAlign: 'center' }}
-                    >{`${question?.question ?? 'How Do You Feel About Moving Forward?'}`}</Text>
+                    >{`Your Journey & Why You're Here`}</Text>
                     <Text
                         style={{ fontSize: 14, lineHeight: 21, fontWeight: "500", color: "black", textAlign: 'center' }}
                     >{`You have ${MAX_DURATION} seconds`}</Text>
@@ -779,6 +797,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                                     borderColor: "#CDB8E2",
                                     borderWidth: 6,
                                     borderRadius: 20,
+                                    transform: [{ scaleX: -1 }]
                                 }}
                                 ref={videoRef}
                                 source={videoUrl}
@@ -984,7 +1003,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                                 paddingVertical: 8,
                                 flex: 1, marginRight: 32
                             }}>
-                                <Text style={{ fontSize: 13, color: 'white', lineHeight: 20, fontWeight: '500' }}>{`${question?.question ?? ''}`}</Text>
+                                <Text style={{ fontSize: 13, color: 'white', lineHeight: 20, fontWeight: '500' }}>{`Share what brought you to Kuky. This helps us match you with people on a similar journey.`}</Text>
                             </View>
                         </View>
                     </View>
@@ -1135,7 +1154,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                             you.
                         </Text>
                         <ButtonWithLoading
-                            text="Allow"
+                            text="Continue"
                             style={{ marginTop: 40 }}
                             onPress={retryPermission}
                         />

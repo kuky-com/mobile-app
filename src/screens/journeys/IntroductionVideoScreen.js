@@ -460,9 +460,15 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
     ])
   }
 
-  const updateProfile = (video, audio) => {
+  const updateProfile = (video, audio, subtitle, transcript) => {
     console.log({ video_intro: video, audio_intro: audio })
-    apiClient.post('users/update', { video_intro: video, audio_intro: audio, is_video_intro_blur: isBlur })
+    apiClient.post('users/update', { 
+      video_intro: video, 
+      audio_intro: audio, 
+      is_video_intro_blur: isBlur,
+      subtitle_intro: subtitle,
+      video_intro_transcript: transcript
+     })
       .then((res) => {
         setProcessing(false)
         if (res && res.data && res.data.success) {
@@ -482,7 +488,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
           } else if (!currentUser?.video_purpose) {
             NavigationService.reset('JourneyVideoScreen')
           } else {
-            NavigationService.reset('Dashboard')
+            NavigationService.reset('JourneyMatchingScreen')
           }
 
         } else {
@@ -519,7 +525,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
       }).result
 
       const outputVideoUri = `${FileSystem.documentDirectory}video_trimmed.mp4`
-      const commandVideo = `-y -i ${videoUrl.uri} -ss ${startPosition} -to ${endPosition} -vf scale=-2:720 -pix_fmt yuv420p -c:v libx264 -preset veryfast -crf 23 -b:v 800k -maxrate 850k -bufsize 1700k -c:a aac -b:a 256k -ac 2 -ar 48000 -movflags +faststart -f mp4 ${outputVideoUri}`;
+      const commandVideo = `-y -i ${videoUrl.uri} -ss ${startPosition} -to ${endPosition} -vf scale=-2:720 -pix_fmt yuv420p -c:v libx264 -preset veryfast -crf 23 -b:v 800k -maxrate 850k -bufsize 1700k -vf hflip -c:a aac -b:a 256k -ac 2 -ar 48000 -movflags +faststart -f mp4 ${outputVideoUri}`;
 
       await FFmpegKit.executeAsync(commandVideo, async (session) => {
         const returnCode = await session.getReturnCode();
@@ -545,8 +551,25 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
           //   audio: `https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${audioFileName}`
           // })
 
+          let transcriptText = null
+          let subtitleUrl = null
+
+          try {
+            const response = await axios.post('https://6sx3m5nsmex2xyify3lb3x7s440xkxud.lambda-url.ap-southeast-1.on.aws', {
+              audio_uri: `https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${audioFileName}`
+            })
+  
+            if (response && response.data && response.data.s3_url) {
+              transcriptText = response.data.transcript_text
+              subtitleUrl = response.data.s3_url
+            }
+          } catch (error) {
+            console.log({error})
+          }
+
           updateProfile(`https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${videoFileName}`,
-            `https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${audioFileName}`)
+            `https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${audioFileName}`,
+            subtitleUrl, transcriptText)
 
 
         } else {
@@ -573,6 +596,10 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
       showError()
     }
   }
+
+  useEffect(() => {
+    retryPermission()
+  }, [])
 
   const retryPermission = async (isContinue) => {
     try {
@@ -623,7 +650,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
 
   const onSkip = () => {
     if (fromOnboarding) {
-      NavigationService.reset('JourneyMatchingScreen')
+      NavigationService.reset('JourneyVideoScreen', { fromOnboarding: true })
     } else {
       NavigationService.reset('Dashboard')
     }
@@ -671,7 +698,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
         >
           <Text
             style={{ fontSize: 20, lineHeight: 25, fontWeight: "bold", color: "black", textAlign: 'center' }}
-          >{`Let’s Get to Know You!`}</Text>
+          >{`Introduce Yourself`}</Text>
           <Text
             style={{ fontSize: 14, lineHeight: 21, fontWeight: "500", color: "black", textAlign: 'center' }}
           >{`You have ${MAX_DURATION} seconds`}</Text>
@@ -766,6 +793,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                   borderColor: "#CDB8E2",
                   borderWidth: 6,
                   borderRadius: 20,
+                  transform: [{ scaleX: -1 }]
                 }}
                 ref={videoRef}
                 source={videoUrl}
@@ -971,7 +999,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                 paddingVertical: 8,
                 flex: 1, marginRight: 32
               }}>
-                <Text style={{ fontSize: 13, color: 'white', lineHeight: 20, fontWeight: '500' }}>{`Say hi, tell us your name, and why you’re here.`}</Text>
+                <Text style={{ fontSize: 13, color: 'white', lineHeight: 20, fontWeight: '500' }}>{`Start by telling us who you are. A quick intro helps others get a feel for you as a person.`}</Text>
               </View>
             </View>
           </View>
@@ -1067,7 +1095,8 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
           </View>
         </View>
       </View>
-      {((permission && !permission.granted) || (audioPermission && !audioPermission.granted)) && (
+      {((permission && !permission.granted) || (audioPermission && !audioPermission.granted)) && 
+      !permission.canAskAgain && !audioPermission.canAskAgain && (
         <View
           style={[
             StyleSheet.absoluteFill,
@@ -1122,7 +1151,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
               you.
             </Text>
             <ButtonWithLoading
-              text="Allow"
+              text="Continue"
               style={{ marginTop: 40 }}
               onPress={retryPermission}
             />

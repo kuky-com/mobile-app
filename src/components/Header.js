@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     paddingBottom: 16
   },
   logoImage: {
-    width: 40, height: 40
+    width: 30, height: 30
   },
   leftButton: {
     position: 'absolute',

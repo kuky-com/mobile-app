@@ -44,7 +44,7 @@ const CommunitySuggestionScreen = ({ navigation }) => {
     }
 
     const onReset = () => {
-        NavigationService.reset('JourneySelectionScreen')
+        NavigationService.reset('AvatarUpdateScreen')
     }
 
     return (

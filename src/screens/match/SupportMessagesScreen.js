@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     },
 });
 
-const UnverifiedMatchesScreen = ({ navigation }) => {
+const SupportMessagesScreen = ({ navigation }) => {
     const currentUser = useAtomValue(userAtom);
     const insets = useSafeAreaInsets();
     const [matches, setMatches] = useState([]);
@@ -285,4 +285,4 @@ const UnverifiedMatchesScreen = ({ navigation }) => {
     );
 };
 
-export default UnverifiedMatchesScreen;
+export default SupportMessagesScreen;

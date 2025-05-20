@@ -143,7 +143,7 @@ const StruggleSelectionScreen = ({ navigation, route }) => {
                         if (journeyCategory) {
                             navigation.goBack()
                         } else {
-                            NavigationService.reset('JourneySelectionScreen')
+                            NavigationService.reset('IntroductionVideoScreen')
                         }
                     }}>
                     <Image source={images.back_icon_no_border} style={{ width: 24, height: 24, tintColor: "black" }} contentFit='contain' />

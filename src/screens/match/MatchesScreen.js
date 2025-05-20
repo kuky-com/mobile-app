@@ -28,6 +28,8 @@ import Purchases from "react-native-purchases";
 import TextInput from "../../components/TextInput";
 import { FontAwesome6 } from "@expo/vector-icons";
 import AvatarImage from "../../components/AvatarImage";
+import { set } from "date-fns";
+import SupportListItem from "./components/SupportListItem";
 
 const styles = StyleSheet.create({
   container: {
@@ -44,12 +46,14 @@ const MatchesScreen = ({ navigation }) => {
   const [isFetching, setFetching] = useState(false);
   const unreadMessage = useAtomValue(totalMessageCounterAtom);
   const setUnreadCounter = useSetAtom(totalMessageUnreadAtom);
-  const [viewMode, setViewMode] = useState("received");
   const [isPremium, setIsPremium] = useState(true);
   const [freeTotal, setFreeTotal] = useState(0);
   const [freeCount, setFreeCount] = useState(0);
   const appState = useRef(AppState.currentState);
   const [keyword, setKeyword] = useState('');
+  const [allUsers, setAllUsers] = useState([]);
+
+  const [viewMode, setViewMode] = useState("connections");
 
   const [recentMatches, setRecentMatches] = useState([]);
 
@@ -137,6 +141,45 @@ const MatchesScreen = ({ navigation }) => {
     }
   };
 
+  const sendSupportRequest = (friend_id) => {
+    apiClient.post("matches/send-support-request", { friend_id })
+      .then((res) => {
+        if (res && res.data && res.data.success) {
+          navigation.push("MessageScreen", { conversation: res.data.data, is_support: true });
+        } else {
+          Toast.show({ text1: res.data.message, type: "error" });
+        }
+      })
+      .catch((error) => {
+        console.log({ error });
+        Toast.show({ text1: error, type: "error" });
+      });
+  }
+
+  const loadAllUsers = async () => {
+    if (currentUser?.is_support) {
+      apiClient
+        .get("matches/get-all-users")
+        .then((res) => {
+          setFetching(false);
+          console.log({ matches: res.data });
+          if (res && res.data && res.data.success) {
+
+            setAllUsers(res.data.data ?? []);
+          } else {
+            setAllUsers([]);
+          }
+        })
+        .catch((error) => {
+          setFetching(false);
+          console.log({ error });
+          setAllUsers([]);
+        });
+    } else {
+      setAllUsers([])
+    }
+  }
+
   const onRefresh = () => {
     setFetching(true);
     loadSubscriptionInfo()
@@ -177,10 +220,21 @@ const MatchesScreen = ({ navigation }) => {
         console.log({ error });
         setRecentMatches([]);
       });
+
+    loadAllUsers()
   };
 
   const openChat = (item) => {
     navigation.push("MessageScreen", { conversation: item });
+  };
+
+  const openSupportChat = (item) => {
+    console.log({match: item?.match_info})
+    if (item?.match_info) {
+      navigation.push("MessageScreen", { conversation: item?.match_info, is_support: true });
+    } else {
+      sendSupportRequest(item.id)
+    }
   };
 
   const renderEmpty = () => {
@@ -272,24 +326,97 @@ const MatchesScreen = ({ navigation }) => {
     );
   };
 
-  const filterMatches = matches.filter(match => {
+  const renderSupportItem = ({ item, index }) => {
+    return (
+      <SupportListItem
+        onPress={() => openSupportChat(item)}
+        key={`support-conversation-${item.id}`}
+        user={item}
+        marginBottom={index === allUsers.length - 1 ? insets.bottom + 70 : 0}
+      />
+    );
+  };
+
+  const filterMatches = viewMode === 'connections' ? matches.filter(match => {
     if (keyword.length > 0) {
       return match.profile.full_name.toLowerCase().includes(keyword.toLowerCase())
     }
     return true;
   }
-  )
+  ) : unverifyMatches.filter(match => {
+    if (keyword.length > 0) {
+      return match.profile.full_name.toLowerCase().includes(keyword.toLowerCase())
+    }
+
+    return true;
+  });
+
+  const filterUsers = allUsers.filter(user => {
+    if (keyword.length > 0) {
+      return user.full_name.toLowerCase().includes(keyword.toLowerCase())
+    }
+    return true;
+  }
+  );
 
   const recentMatchesFilter = !isPremium ? recentMatches.filter(conversation => conversation.is_free) : recentMatches
 
   const renderHeader = () => {
+    if (viewMode === 'others' || viewMode === 'support') return null
+
     return (
-      <View style={{ paddingBottom: 8, gap: 8, backgounrcColor: 'transparent' }}>
+      <View style={{ paddingBottom: 3, gap: 8, backgounrcColor: 'transparent' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', }}>
+          <Text style={{ fontSize: 15, fontWeight: "700", color: "black", flex: 1 }}>{`Connections `}
+            {!isPremium && <Text style={{ fontSize: 13, color: '#333333' }}>{`(${freeCount}/${freeTotal})`}</Text>}
+          </Text>
+          {!isPremium &&
+            <TouchableOpacity onPress={() => navigation.navigate('PremiumRequestScreen')} style={{ alignItems: 'center', justifyContent: 'center', height: 24, borderRadius: 12, paddingHorizontal: 8, backgroundColor: colors.mainColor }}>
+              <Text style={{ fontSize: 12, fontWeight: 'bold', color: 'white' }}>Manage Connections</Text>
+            </TouchableOpacity>
+          }
+        </View>
+      </View>
+    )
+  }
+
+  return (
+    <View style={styles.container}>
+      <Header showLogo />
+      <View style={{ paddingTop: 16, paddingBottom: 8, gap: 8, paddingHorizontal: 16, backgounrcColor: 'transparent' }}>
+        <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 10, borderRadius: 5, paddingVertical: 5, alignItems: 'center', backgroundColor: '#E1E1E1' }}>
+          <FontAwesome6 name='magnifying-glass' size={16} color='#8C8C8C' />
+          <TextInput
+            value={keyword}
+            onChangeText={text => setKeyword(text)}
+            style={{ flex: 1, fontSize: 15, lineHeight: 20, color: '#333333', paddingVertical: 5 }}
+            underlineColorAndroid="#00000000"
+            placeholder="Search for conversation"
+            placeholderTextColor="#8C8C8C"
+            clearButtonMode="always"
+          />
+        </View>
+      </View>
+      <View style={{ flexDirection: 'row', paddingVertical: 8, paddingHorizontal: 16, backgroundColor: 'white' }}>
+        <TouchableOpacity onPress={() => setViewMode('connections')} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 8, borderBottomWidth: viewMode === 'connections' ? 2 : 0, borderBottomColor: colors.mainColor }}>
+          <Text style={{ fontSize: 14, color: "#79797A", fontWeight: 'bold' }}>Connections</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setViewMode('others')} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 8, borderBottomWidth: viewMode === 'others' ? 2 : 0, borderBottomColor: colors.mainColor }}>
+          <Text style={{ fontSize: 14, color: "#79797A", fontWeight: 'bold' }}>Others</Text>
+        </TouchableOpacity>
         {
-          recentMatchesFilter && recentMatchesFilter.length > 0 &&
-          <View style={{ paddingTop: 16, paddingBottom: 8, gap: 8, backgounrcColor: 'transparent' }}>
+          currentUser?.is_support &&
+          <TouchableOpacity onPress={() => setViewMode('support')} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 8, borderBottomWidth: viewMode === 'support' ? 2 : 0, borderBottomColor: colors.mainColor }}>
+            <Text style={{ fontSize: 14, color: "#79797A", fontWeight: 'bold' }}>Support</Text>
+          </TouchableOpacity>
+        }
+      </View>
+      <View style={{ paddingHorizontal: 16, paddingBottom: 8, backgroundColor: 'transparent' }}>
+        {
+          recentMatchesFilter && recentMatchesFilter.length > 0 && viewMode === 'connections' &&
+          <View style={{ paddingTop: 8, paddingBottom: 3, gap: 8, backgounrcColor: 'transparent' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', }}>
-              <Text style={{ fontSize: 20, fontWeight: "700", color: "black", flex: 1 }}>{`Recent Matches`}</Text>
+              <Text style={{ fontSize: 15, fontWeight: "700", color: "black", flex: 1 }}>{`Recent Matches`}</Text>
             </View>
 
             <FlatList
@@ -309,89 +436,33 @@ const MatchesScreen = ({ navigation }) => {
             />
           </View>
         }
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', }}>
-          <Text style={{ fontSize: 20, fontWeight: "700", color: "black", flex: 1 }}>{`Connections `}
-            {!isPremium && <Text style={{ fontSize: 13, color: '#333333' }}>{`(${freeCount}/${freeTotal})`}</Text>}
-          </Text>
-          {!isPremium &&
-            <TouchableOpacity onPress={() => navigation.navigate('PremiumRequestScreen')} style={{ alignItems: 'center', justifyContent: 'center', height: 24, borderRadius: 12, paddingHorizontal: 8, backgroundColor: colors.mainColor }}>
-              <Text style={{ fontSize: 12, fontWeight: 'bold', color: 'white' }}>Manage Connections</Text>
-            </TouchableOpacity>
-          }
-        </View>
-      </View>
-    )
-  }
-
-  const renderFooter = () => {
-    if (unverifyMatches && unverifyMatches.length > 0) {
-      return (
-        <View style={{ paddingBottom: 8, gap: 8, backgounrColor: 'transparent' }}>
-          <View style={{ paddingTop: 16, paddingBottom: 8, gap: 8, backgounrcColor: 'transparent' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', }}>
-              <Text style={{ fontSize: 20, fontWeight: "700", color: "black", flex: 1 }}>{`Recent Matches`}</Text>
-            </View>
-
-            {
-              unverifyMatches.map((item) => {
-                return renderItem({ item });
-              })
-            }
-          </View>
-        </View>
-      )
-    } else {
-      return null
-    }
-  }
-
-  const onMore = async () => {
-    const options = [
-      { text: `Unverified Matches (${unverifyMatches.length})` }
-    ]
-
-    await SheetManager.show('action-sheets', {
-      payload: {
-        actions: options,
-        onPress(index) {
-
-          if (index === 0) {
-            navigation.navigate('UnverifiedMatchesScreen')
-          }
-        },
-      },
-    });
-  }
-
-  return (
-    <View style={styles.container}>
-      <Header rightCounter={unverifyMatches.length} showLogo rightIcon={images.more_icon} rightIconColor='black' rightAction={onMore} />
-      <View style={{ paddingTop: 16, paddingBottom: 8, gap: 8, paddingHorizontal: 16, backgounrcColor: 'transparent' }}>
-        <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 10, borderRadius: 5, paddingVertical: 5, alignItems: 'center', backgroundColor: '#E1E1E1' }}>
-          <FontAwesome6 name='magnifying-glass' size={16} color='#8C8C8C' />
-          <TextInput
-            value={keyword}
-            onChangeText={text => setKeyword(text)}
-            style={{ flex: 1, fontSize: 15, lineHeight: 20, color: '#333333', paddingVertical: 5 }}
-            underlineColorAndroid="#00000000"
-            placeholder="Search for keyword"
-            placeholderTextColor="#8C8C8C"
-            clearButtonMode="always"
-          />
-        </View>
       </View>
       <View style={{ paddingHorizontal: 16, flex: 1, alignItems: 'center' }}>
-        <FlatList
-          data={filterMatches}
-          renderItem={renderItem}
-          style={{ width: Platform.isPad ? 600 : '100%', flex: 1 }}
-          ListEmptyComponent={renderEmpty}
-          onRefresh={onRefresh}
-          refreshing={isFetching}
-          showsVerticalScrollIndicator={false}
-          ListHeaderComponent={renderHeader}
-        // ListFooterComponent={renderFooter}
-        />
+        {
+          (viewMode === 'connections' || viewMode === 'others') &&
+          <FlatList
+            data={filterMatches}
+            renderItem={renderItem}
+            style={{ width: Platform.isPad ? 600 : '100%', flex: 1 }}
+            ListEmptyComponent={renderEmpty}
+            onRefresh={onRefresh}
+            refreshing={isFetching}
+            showsVerticalScrollIndicator={false}
+            ListHeaderComponent={renderHeader}
+          />
+        }
+        {
+          (viewMode === 'support') &&
+          <FlatList
+            data={filterUsers}
+            renderItem={renderSupportItem}
+            style={{ width: Platform.isPad ? 600 : '100%', flex: 1 }}
+            onRefresh={onRefresh}
+            refreshing={isFetching}
+            showsVerticalScrollIndicator={false}
+            ListHeaderComponent={renderHeader}
+          />
+        }
       </View>
     </View>
   );

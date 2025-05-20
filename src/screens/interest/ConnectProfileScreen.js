@@ -113,6 +113,12 @@ const ConnectProfileScreen = ({ navigation, route }) => {
     })
   }, [])
 
+  useEffect(() => {
+    if(profile && profile.id === 1) {
+      NavigationService.replace('SupportProfileScreen')
+    }
+  }, [profile])
+
   const onRefresh = () => {
     try {
       setLoading(true);
@@ -154,7 +160,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
           console.log({ error });
         });
 
-      if (isStringInteger(currentProfile.id) && currentProfile.id !== currentUser.id) {
+      if (isStringInteger(currentProfile?.id) && currentProfile?.id !== currentUser.id) {
         // apiClient
         //   .get(`users/${profile.id}/journey`)
         //   .then((res) => {
@@ -200,7 +206,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
   }, [currentProfile])
 
   // useEffect(() => {
-  //   if (isStringInteger(currentProfile.id) && currentProfile.id !== currentUser.id) {
+  //   if (isStringInteger(currentProfile?.id) && currentProfile?.id !== currentUser.id) {
   //     // apiClient
   //     //   .get(`users/${profile.id}/journey`)
   //     //   .then((res) => {
@@ -388,7 +394,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
 
   const moreAction = async () => {
     try {
-      const options = currentProfile.id === currentUser.id ? [
+      const options = currentProfile?.id === currentUser.id ? [
         { text: "Share Profile", image: images.share_profile }
       ] : [
         { text: "Share Profile", image: images.share_profile },
@@ -437,7 +443,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
           if (index < options.length) {
             apiClient
               .post("users/report-user", {
-                reported_id: currentProfile.id,
+                reported_id: currentProfile?.id,
                 reason: options[index].text,
               })
               .then(async (res) => {
@@ -740,11 +746,11 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                       width: "100%",
                       flexDirection: "row",
                       alignItems: "flex-end",
-                      justifyContent: (showAcceptReject && !matchInfo && currentUser.id !== currentProfile.id) ? "space-between" : "center",
+                      justifyContent: (showAcceptReject && !matchInfo && currentUser.id !== currentProfile?.id) ? "space-between" : "center",
                       paddingHorizontal: 9,
                     }}
                   >
-                    {showAcceptReject && currentUser.id !== currentProfile.id && !matchInfo && (
+                    {showAcceptReject && currentUser.id !== currentProfile?.id && !matchInfo && (
                       <View style={{ alignItems: "center", gap: 13 }}>
                         <TouchableOpacity
                           disabled={loading}
@@ -829,7 +835,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                         </Text>
                       </View>
                     )}
-                    {showAcceptReject && currentUser.id !== currentProfile.id && !matchInfo && (
+                    {showAcceptReject && currentUser.id !== currentProfile?.id && !matchInfo && (
                       <View style={{ alignItems: "center", gap: 13 }}>
                         <TouchableOpacity
                           disabled={loading}
@@ -924,7 +930,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
               )}
             </View>
 
-            {currentProfile.publicPronouns && (
+            {currentProfile?.publicPronouns && (
               <View
                 style={{
                   flexDirection: "row",
@@ -985,12 +991,12 @@ const ConnectProfileScreen = ({ navigation, route }) => {
               </View>
               <Text
                 style={{ fontSize: 14, fontWeight: "600", color: "black" }}
-              >{`${currentProfile.location ?? ""}`}</Text>
+              >{`${currentProfile?.location ?? ""}`}</Text>
             </View>
           </View>
           {/** Ratings card */}
           <TouchableOpacity
-            disabled={currentProfile.reviewsCount === 0}
+            disabled={currentProfile?.reviewsCount === 0}
             onPress={() =>
               navigation.navigate("ReviewsScreen", {
                 profileId: currentProfile?.id,
@@ -1018,7 +1024,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                     }}
                   >
                     {currentProfile?.reviewsCount && currentProfile?.reviewsCount !== 0
-                      ? `${currentProfile?.reviewsCount} Review${currentProfile.reviewsCount !== 1 ? "s" : ""
+                      ? `${currentProfile?.reviewsCount} Review${currentProfile?.reviewsCount !== 1 ? "s" : ""
                       }`
                       : "No reviews yet"}
                   </Text>
@@ -1167,7 +1173,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                 <Text style={{ color: "white", fontSize: 14, fontWeight: "bold" }}>
                   Discuss your shared love for these common
                 </Text>
-                {showAcceptReject && currentUser.id !== currentProfile.id && !matchInfo && (
+                {showAcceptReject && currentUser.id !== currentProfile?.id && !matchInfo && (
                   <ButtonWithLoading style={{ width: Platform.isPad ? 500 : '100%' }} text="Connect" onPress={likeAction} loading={loading} />
                 )}
               </View>
@@ -1409,7 +1415,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
             </Text>
 
             {
-              currentProfile.id !== currentUser.id &&
+              currentProfile?.id !== currentUser.id &&
               <Text
                 onPress={onBlock}
                 style={{

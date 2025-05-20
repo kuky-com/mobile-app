@@ -557,7 +557,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
             }
 
             const outputVideoUri = `${FileSystem.documentDirectory}video_trimmed.mp4`
-            const commandVideo = `-y -i ${videoUrl.uri} -ss ${startPosition} -to ${endPosition} -vf scale=-2:720 -pix_fmt yuv420p -c:v libx264 -preset veryfast -crf 23 -b:v 800k -maxrate 850k -bufsize 1700k -c:a aac -b:a 256k -ac 2 -ar 48000 -movflags +faststart -f mp4 ${outputVideoUri}`;
+            const commandVideo = `-y -i ${videoUrl.uri} -ss ${startPosition} -to ${endPosition} -vf scale=-2:720 -pix_fmt yuv420p -c:v libx264 -preset veryfast -crf 23 -b:v 800k -maxrate 850k -bufsize 1700k -vf hflip -c:a aac -b:a 256k -ac 2 -ar 48000 -movflags +faststart -f mp4 ${outputVideoUri}`;
 
             await FFmpegKit.executeAsync(commandVideo, async (session) => {
                 const returnCode = await session.getReturnCode();
@@ -707,7 +707,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                 >
                     <Text
                         style={{ fontSize: 18, lineHeight: 25, fontWeight: "bold", color: "black", textAlign: 'center' }}
-                    >{`Tell us something you really like/dislike!`}</Text>
+                    >{`Your Likes & Dislikes`}</Text>
                     <Text
                         style={{ fontSize: 14, lineHeight: 21, fontWeight: "500", color: "black", textAlign: 'center' }}
                     >{`You have ${MAX_DURATION} seconds`}</Text>
@@ -802,6 +802,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                                     borderColor: "#CDB8E2",
                                     borderWidth: 6,
                                     borderRadius: 20,
+                                    transform: [{ scaleX: -1 }]
                                 }}
                                 ref={videoRef}
                                 source={videoUrl}
@@ -962,7 +963,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                                 paddingVertical: 8,
                                 flex: 1, marginRight: 32
                             }}>
-                                <Text style={{ fontSize: 13, color: 'white', lineHeight: 20, fontWeight: '500' }}>{`Tell us something you really like/dislike! (A favorite food, hobby, or activity)`}</Text>
+                                <Text style={{ fontSize: 13, color: 'white', lineHeight: 20, fontWeight: '500' }}>{`Tell us what lights you up — and what you’d rather avoid. This adds colour to your profile and helps with better matches.`}</Text>
                             </View>
                         </View>
                     </View>
@@ -1130,7 +1131,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                             you.
                         </Text>
                         <ButtonWithLoading
-                            text="Allow"
+                            text="Continue"
                             style={{ marginTop: 40 }}
                             onPress={retryPermission}
                         />

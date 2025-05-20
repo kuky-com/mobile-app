@@ -68,7 +68,8 @@ const ReferralUpdateScreen = ({ navigation, route }) => {
         console.log({resR})
 
         if(resR.data.success){
-          NavigationService.reset("JourneySelectionScreen");
+          NavigationService.reset("AvatarUpdateScreen");
+          // NavigationService.reset("JourneySelectionScreen");
         } else {
           if(resR.data.message) {
             Toast.show({ text1: resR.data.message, type: 'error' })
@@ -131,7 +132,7 @@ const ReferralUpdateScreen = ({ navigation, route }) => {
         />
         <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
           <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 8 }}
-            onPress={() => NavigationService.reset('JourneySelectionScreen')}>
+            onPress={() => NavigationService.reset('AvatarUpdateScreen')}>
             <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#333333' }}>Continue without referral</Text>
           </TouchableOpacity>
         </View>

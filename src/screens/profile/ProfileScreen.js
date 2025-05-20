@@ -286,6 +286,18 @@ const ProfileScreen = ({ navigation }) => {
             })
     }
 
+    const startChatSupport = () => {
+        apiClient.get(`matches/start-chat-support`)
+            .then((res) => {
+                if (res && res.data && res.data.data) {
+                    navigation.push('MessageScreen', {conversation: res.data.data})
+                }
+            })
+            .catch((error) => {
+                console.log({ error })
+            })
+    }
+
     const onShareProfile = () => {
         apiClient
             .get(`users/${currentUser.id}/share-link`)
@@ -516,7 +528,7 @@ const ProfileScreen = ({ navigation }) => {
                                     </Text>
                                 </View>
 
-                                <TouchableOpacity onPress={onUpdateJourney} style={[styles.shadow, { alignItems: 'center', backgroundColor: '#E9E5FF', borderRadius: 15, paddingHorizontal: 16, paddingVertical: 12, gap: 8, flexDirection: 'row' }]}
+                                <View style={[styles.shadow, { alignItems: 'center', backgroundColor: '#E9E5FF', borderRadius: 15, paddingHorizontal: 16, paddingVertical: 12, gap: 8, flexDirection: 'row' }]}
                                 >
                                     <View style={{ flex: 1, gap: 10 }}>
                                         <Text style={{ fontSize: 14, color: 'black', fontWeight: 'bold' }}>{currentUser?.journey_category?.name}</Text>
@@ -528,8 +540,8 @@ const ProfileScreen = ({ navigation }) => {
                                             </View>
                                         }
                                     </View>
-                                    <FontAwesome6 name='chevron-right' size={20} color={colors.mainColor} />
-                                </TouchableOpacity>
+                                    {/* <FontAwesome6 name='chevron-right' size={20} color={colors.mainColor} /> */}
+                                </View>
                             </View>
 
                             {/* <View >
@@ -703,6 +715,11 @@ const ProfileScreen = ({ navigation }) => {
                                 </View>
                             </View>
 
+                            <TouchableOpacity onPress={startChatSupport} style={{ flexDirection: 'row', gap: 16, backgroundColor: '#725ED4', borderRadius: 10, padding: 16, alignItems: 'center', justifyContent: 'center' }}>
+                                <FontAwesome6 name='headset' size={18} color='white' />
+                                <Text style={{fontSize: 14, color: 'white', fontWeight: "bold"}}>Kuky Support</Text>
+                            </TouchableOpacity>
+
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                                 <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>Statistics</Text>
                                 {/* <Text style={{ fontSize: 12, fontWeight: '400', color: 'black' }}>{`${dayjs().startOf('month').format('MMM, DD')} - ${dayjs().format('MMM, DD')}`}</Text> */}
@@ -740,13 +757,15 @@ const ProfileScreen = ({ navigation }) => {
                                     <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>{formatSeconds(moderatorData.avg_call_duration ?? 0)}</Text>
                                 </View>
 
-                                <View style={{
-                                    backgroundColor: '#D3CEEA', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 12,
-                                    flexDirection: "row", alignItems: 'center', justifyContent: 'space-between'
-                                }}>
-                                    <Text style={{ fontSize: 12, fontWeight: "400", color: '#494949' }}>App Usage Time:</Text>
-                                    <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>{formatSeconds(moderatorData.total_session_time ?? 0)}</Text>
-                                </View>
+                                {moderatorData.total_session_time &&
+                                    <View style={{
+                                        backgroundColor: '#D3CEEA', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 12,
+                                        flexDirection: "row", alignItems: 'center', justifyContent: 'space-between'
+                                    }}>
+                                        <Text style={{ fontSize: 12, fontWeight: "400", color: '#494949' }}>App Usage Time:</Text>
+                                        <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>{formatSeconds(moderatorData.total_session_time)}</Text>
+                                    </View>
+                                }
 
                                 <View style={{
                                     backgroundColor: '#D3CEEA', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 12,

@@ -19,7 +19,7 @@
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.6.0</string>
+	<string>2.8.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -99,7 +99,6 @@
 	<string>This identifier will be used to deliver personalized matching to you.</string>
 	<key>UIBackgroundModes</key>
 	<array>
-		<string>fetch</string>
 		<string>remote-notification</string>
 		<string>voip</string>
 	</array>

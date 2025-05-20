@@ -102,7 +102,7 @@ import AIMatchingScreen from "./profile/AIMatchingScreen";
 import AcceptTermScreen from "./auth/AcceptTermScreen";
 import UserNoteScreen from "./onboarding/UserNoteScreen";
 import { Audio } from "expo-av";
-import UnverifiedMatchesScreen from "./match/UnverifiedMatchesScreen";
+import SupportMessagesScreen from "./match/SupportMessagesScreen";
 import VideoIntroductionScreen from "./onboarding/VideoIntroductionScreen";
 import OnboardingVideoResultScreen from "./onboarding/OnboardingVideoResultScreen";
 import VideoListEditScreen from "./onboarding/VideoListEditScreen";
@@ -122,6 +122,7 @@ import Toast from "react-native-toast-message";
 import WelcomeBackScreen from "./journeys/WelcomeBackScreen";
 import BlurVideoScreen from "./journeys/BlurVideoScreen";
 import InterestVideoScreen from "./journeys/InterestVideoScreen";
+import SupportProfileScreen from "./chat/SupportProfileScreen";
 
 SendbirdCalls.setListener({
   onRinging: async (callProps) => {
@@ -216,7 +217,7 @@ const AppStack = ({ navgation }) => {
   const urlHandleRef = useRef(null);
   const pushToken = useAtomValue(pushTokenAtom);
   const [usedUrl, setUsedUrl] = useAtom(linkingUrlAtom)
-  const sessionUpdateInterval = useRef()
+  const sessionTimeout = useRef()
   const currentSessionRef = useRef()
 
   //config onesignal
@@ -377,22 +378,33 @@ const AppStack = ({ navgation }) => {
     } else {
       currentSessionRef.current = null
     }
+
+    startSessionUpdater()
   };
 
+  const startSessionUpdater = async () => {
+    if (sessionTimeout.current) {
+      clearTimeout(sessionTimeout.current);
+      sessionTimeout.current = null;
+    }
 
-  // const startSessionUpdater = () => {
-  //   if (sessionUpdateInterval.current) {
-  //     stopSessionUpdater()
-  //   }
+    sessionTimeout.current = setTimeout(async () => {
+      if (currentSessionRef.current) {
+        await stopSessionUpdater();
+        currentSessionRef.current = null;
+      }
+    }, 110 * 1000);
+  }
 
-  //   sessionUpdateInterval.current = setInterval(async () => {
-  //     if (currentSessionRef.current) {
-  //       await apiClient.put(`users/sessions/${currentSessionRef.current}`, {
-  //         end_time: dayjs().format()
-  //       })
-  //     }
-  //   }, 2 * 60 * 1000)
-  // };
+  useEffect(() => {
+    const unsubscribe = navigationRef.current?.addListener('state', () => {
+      startSessionUpdater()
+    });
+
+    return () => {
+      unsubscribe?.();
+    };
+  }, []);
 
   const stopSessionUpdater = async () => {
     // if (sessionUpdateInterval.current) {
@@ -419,16 +431,11 @@ const AppStack = ({ navgation }) => {
       appState.current = nextAppState;
 
       if (currentUser) {
+        console.log({ nextAppState })
         if (nextAppState === 'active') {
           await createSession()
-          // startSessionUpdater()
         } else if (nextAppState.match(/inactive|background/)) {
-          stopSessionUpdater()
-          // if (currentSessionRef.current) {
-          //   apiClient.put(`users/sessions/${currentSessionRef.current}`, {
-          //     end_time: dayjs().format()
-          //   })
-          // }
+          await stopSessionUpdater()
 
           currentSessionRef.current = null
         }
@@ -523,8 +530,6 @@ const AppStack = ({ navgation }) => {
       getVersion();
     }, 5000);
   }, []);
-
-  console.log({ url })
 
   useEffect(() => {
     try {
@@ -794,7 +799,8 @@ const AppStack = ({ navgation }) => {
       <Stack.Screen name="AIMatchingScreen" component={AIMatchingScreen} />
       <Stack.Screen name="AcceptTermScreen" component={AcceptTermScreen} options={{ ...TransitionPresets.ModalSlideFromBottomIOS }} />
       <Stack.Screen name="UserNoteScreen" component={UserNoteScreen} />
-      <Stack.Screen name="UnverifiedMatchesScreen" component={UnverifiedMatchesScreen} />
+      <Stack.Screen name="SupportMessagesScreen" component={SupportMessagesScreen} />
+      <Stack.Screen name="SupportProfileScreen" component={SupportProfileScreen} />
       <Stack.Screen name="VideoIntroductionScreen" component={VideoIntroductionScreen} />
       <Stack.Screen name="OnboardingVideoResultScreen" component={OnboardingVideoResultScreen} />
       <Stack.Screen name="VideoListEditScreen" component={VideoListEditScreen} />
