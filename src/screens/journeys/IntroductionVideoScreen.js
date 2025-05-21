@@ -462,13 +462,13 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
 
   const updateProfile = (video, audio, subtitle, transcript) => {
     console.log({ video_intro: video, audio_intro: audio })
-    apiClient.post('users/update', { 
-      video_intro: video, 
-      audio_intro: audio, 
+    apiClient.post('users/update', {
+      video_intro: video,
+      audio_intro: audio,
       is_video_intro_blur: isBlur,
       subtitle_intro: subtitle,
       video_intro_transcript: transcript
-     })
+    })
       .then((res) => {
         setProcessing(false)
         if (res && res.data && res.data.success) {
@@ -558,13 +558,13 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
             const response = await axios.post('https://6sx3m5nsmex2xyify3lb3x7s440xkxud.lambda-url.ap-southeast-1.on.aws', {
               audio_uri: `https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${audioFileName}`
             })
-  
+
             if (response && response.data && response.data.s3_url) {
               transcriptText = response.data.transcript_text
               subtitleUrl = response.data.s3_url
             }
           } catch (error) {
-            console.log({error})
+            console.log({ error })
           }
 
           updateProfile(`https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${videoFileName}`,
@@ -647,10 +647,22 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
     }
   };
 
+  const skipFromOnboarding = () => {
+    apiClient.post('users/update', {
+      skip_recording_count: currentUser?.skip_recording_count ? currentUser?.skip_recording_count + 1 : 1
+    })
+      .then((res) => {
+        NavigationService.reset('JourneyVideoScreen', { fromOnboarding: true })
+      })
+      .catch((error) => {
+        console.log({ error })
+        NavigationService.reset('JourneyVideoScreen', { fromOnboarding: true })
+      })
+  }
 
   const onSkip = () => {
     if (fromOnboarding) {
-      NavigationService.reset('JourneyVideoScreen', { fromOnboarding: true })
+      skipFromOnboarding()
     } else {
       NavigationService.reset('Dashboard')
     }
@@ -703,7 +715,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
             style={{ fontSize: 14, lineHeight: 21, fontWeight: "500", color: "black", textAlign: 'center' }}
           >{`You have ${MAX_DURATION} seconds`}</Text>
           <View style={{ position: 'absolute', top: 0, left: 0, width: "100%", alignItems: "flex-end", paddingHorizontal: 32, paddingTop: insets.top }}>
-            <Text style={{ fontSize: 13, color: '#725ED4', fontWeight: 'bold' }} onPress={onSkip}>Skip</Text>
+            {currentUser?.skip_recording_count < 5 && <Text style={{ fontSize: 13, color: '#725ED4', fontWeight: 'bold' }} onPress={onSkip}>Skip</Text>}
           </View>
         </View>
         <View
@@ -1095,77 +1107,81 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
           </View>
         </View>
       </View>
-      {((permission && !permission.granted) || (audioPermission && !audioPermission.granted)) && 
-      !permission.canAskAgain && !audioPermission.canAskAgain && (
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            {
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "#000000aa",
-            },
-          ]}
-        >
+      {((permission && !permission.granted) || (audioPermission && !audioPermission.granted)) &&
+        !permission.canAskAgain && !audioPermission.canAskAgain && (
           <View
-            style={{
-              backgroundColor: "#725ED4",
-              width: "90%",
-              maxWidth: 500,
-              borderRadius: 20,
-              alignItems: "center",
-              justifyContent: "center",
-              paddingVertical: 16,
-              paddingHorizontal: 24,
-            }}
+            style={[
+              StyleSheet.absoluteFill,
+              {
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "#000000aa",
+              },
+            ]}
           >
-            <Image
-              source={images.camera_icon}
-              style={{ width: 42, height: 42 }}
-              contentFit="contain"
-            />
-            <Text style={{ fontSize: 20, color: "white", fontWeight: "bold", marginTop: 10 }}>
-              Camera Access Needed
-            </Text>
-            <Text
+            <View
               style={{
-                lineHeight: 24,
-                fontSize: 16,
-                color: "white",
-                fontWeight: "400",
-                marginTop: 16,
-                textAlign: "center",
-              }}
-            >{`To continue, Kuky needs access to your camera. \nThis is required for recording your video introduction.`}</Text>
-            <Text
-              style={{
-                lineHeight: 21,
-                fontSize: 14,
-                color: "white",
-                fontWeight: "400",
-                marginTop: 16,
-                textAlign: "center",
+                backgroundColor: "#725ED4",
+                width: "90%",
+                maxWidth: 500,
+                borderRadius: 20,
+                alignItems: "center",
+                justifyContent: "center",
+                paddingVertical: 16,
+                paddingHorizontal: 24,
               }}
             >
-              We use your camera to help you create a video that lets us find the best matches for
-              you.
-            </Text>
-            <ButtonWithLoading
-              text="Continue"
-              style={{ marginTop: 40 }}
-              onPress={retryPermission}
-            />
-            <TouchableOpacity
-              onPress={onSkip}
-              style={{ paddingHorizontal: 15, paddingVertical: 8, marginTop: 8 }}
-            >
-              <Text style={{ fontSize: 14, fontWeight: "500", color: "white" }}>
-                Skip for now
+              <Image
+                source={images.camera_icon}
+                style={{ width: 42, height: 42 }}
+                contentFit="contain"
+              />
+              <Text style={{ fontSize: 20, color: "white", fontWeight: "bold", marginTop: 10 }}>
+                Camera Access Needed
               </Text>
-            </TouchableOpacity>
+              <Text
+                style={{
+                  lineHeight: 24,
+                  fontSize: 16,
+                  color: "white",
+                  fontWeight: "400",
+                  marginTop: 16,
+                  textAlign: "center",
+                }}
+              >{`To continue, Kuky needs access to your camera. \nThis is required for recording your video introduction.`}</Text>
+              <Text
+                style={{
+                  lineHeight: 21,
+                  fontSize: 14,
+                  color: "white",
+                  fontWeight: "400",
+                  marginTop: 16,
+                  textAlign: "center",
+                }}
+              >
+                We use your camera to help you create a video that lets us find the best matches for
+                you.
+              </Text>
+              <ButtonWithLoading
+                text="Continue"
+                style={{ marginTop: 40 }}
+                onPress={retryPermission}
+              />
+              {
+                currentUser?.skip_recording_count < 5 && (
+                  <TouchableOpacity
+                    onPress={onSkip}
+                    style={{ paddingHorizontal: 15, paddingVertical: 8, marginTop: 8 }}
+                  >
+                    <Text style={{ fontSize: 14, fontWeight: "500", color: "white" }}>
+                      Skip for now
+                    </Text>
+                  </TouchableOpacity>
+                )
+              }
+            </View>
           </View>
-        </View>
-      )}
+        )}
     </View>
   );
 };

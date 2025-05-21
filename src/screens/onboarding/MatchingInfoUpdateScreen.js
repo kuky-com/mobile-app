@@ -121,30 +121,11 @@ const MatchingInfoUpdateScreen = ({ navigation, route }) => {
     }, []);
 
     const onContinue = async () => {
-        NavigationService.reset('Dashboard')
-        // setLoading(true)
-        // const updateLikesRequest = await apiClient.post('interests/update-likes', { likes: likes })
-        // const updateDislikesRequest = await apiClient.post('interests/update-dislikes', { dislikes: dislikes })
-
-
-        // if (updateLikesRequest && updateLikesRequest.data && updateLikesRequest.data.success &&
-        //     updateDislikesRequest && updateDislikesRequest.data && updateDislikesRequest.data.success
-        // ) {
-        //     apiClient("users/user-info")
-        //         .then((res) => {
-        //             if (res && res.data && res.data.success) {
-        //                 setUser(res.data.data);
-        //                 setLoading(false)
-        //                 NavigationService.reset('Dashboard')
-        //             }
-        //         })
-        //         .catch((error) => {
-        //             console.log({ error });
-        //             setLoading(false)
-        //         });
-        // } else {
-        //     Toast.show({ text1: 'Your request failed. Please try again!', type: 'error' })
-        // }
+        if(route?.params?.fromOnboarding || !currentUser?.journey_id) {
+            NavigationService.reset('JourneyMatchingScreen')
+        } else {
+            NavigationService.reset('Dashboard')
+        }
     }
 
     const onSelectLike = async () => {

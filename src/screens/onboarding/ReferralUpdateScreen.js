@@ -68,7 +68,8 @@ const ReferralUpdateScreen = ({ navigation, route }) => {
         console.log({resR})
 
         if(resR.data.success){
-          NavigationService.reset("AvatarUpdateScreen");
+          // NavigationService.reset("AvatarUpdateScreen");
+          NavigationService.reset("MatchingInfoUpdateScreen", {fromOnboarding: true});
           // NavigationService.reset("JourneySelectionScreen");
         } else {
           if(resR.data.message) {
@@ -83,6 +84,10 @@ const ReferralUpdateScreen = ({ navigation, route }) => {
       }
     }
   };
+
+  const onSkip = () => {
+    NavigationService.reset("MatchingInfoUpdateScreen", {fromOnboarding: true});
+  }
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 8 }]}>
@@ -132,7 +137,7 @@ const ReferralUpdateScreen = ({ navigation, route }) => {
         />
         <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
           <TouchableOpacity style={{ alignItems: 'center', justifyContent: 'center', padding: 8 }}
-            onPress={() => NavigationService.reset('AvatarUpdateScreen')}>
+            onPress={onSkip}>
             <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#333333' }}>Continue without referral</Text>
           </TouchableOpacity>
         </View>

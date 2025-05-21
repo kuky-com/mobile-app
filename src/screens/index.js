@@ -217,8 +217,6 @@ const AppStack = ({ navgation }) => {
   const urlHandleRef = useRef(null);
   const pushToken = useAtomValue(pushTokenAtom);
   const [usedUrl, setUsedUrl] = useAtom(linkingUrlAtom)
-  const sessionTimeout = useRef()
-  const currentSessionRef = useRef()
 
   //config onesignal
   useEffect(() => {
@@ -366,58 +364,6 @@ const AppStack = ({ navgation }) => {
     }
   };
 
-  const createSession = async () => {
-    const res = await apiClient.post(`users/sessions`, {
-      device_id: deviceId,
-      platform: Platform.OS,
-      start_time: dayjs().format()
-    })
-
-    if (res && res.data) {
-      currentSessionRef.current = res.data.data.session_id
-    } else {
-      currentSessionRef.current = null
-    }
-
-    startSessionUpdater()
-  };
-
-  const startSessionUpdater = async () => {
-    if (sessionTimeout.current) {
-      clearTimeout(sessionTimeout.current);
-      sessionTimeout.current = null;
-    }
-
-    sessionTimeout.current = setTimeout(async () => {
-      if (currentSessionRef.current) {
-        await stopSessionUpdater();
-        currentSessionRef.current = null;
-      }
-    }, 110 * 1000);
-  }
-
-  useEffect(() => {
-    const unsubscribe = navigationRef.current?.addListener('state', () => {
-      startSessionUpdater()
-    });
-
-    return () => {
-      unsubscribe?.();
-    };
-  }, []);
-
-  const stopSessionUpdater = async () => {
-    // if (sessionUpdateInterval.current) {
-    //   clearInterval(sessionUpdateInterval.current);
-    // }
-
-    if (currentSessionRef.current) {
-      await apiClient.put(`users/sessions/${currentSessionRef.current}`, {
-        end_time: dayjs().format()
-      })
-    }
-  }
-
   useEffect(() => {
     const subscription = AppState.addEventListener("change", async (nextAppState) => {
       if (
@@ -429,30 +375,12 @@ const AppStack = ({ navgation }) => {
       }
 
       appState.current = nextAppState;
-
-      if (currentUser) {
-        console.log({ nextAppState })
-        if (nextAppState === 'active') {
-          await createSession()
-        } else if (nextAppState.match(/inactive|background/)) {
-          await stopSessionUpdater()
-
-          currentSessionRef.current = null
-        }
-      }
     });
 
     return () => {
       subscription.remove();
     };
   }, [currentUser]);
-
-  useEffect(() => {
-    if (currentUser) {
-      createSession()
-      // startSessionUpdater()
-    }
-  }, [currentUser])
 
   useEffect(() => {
     const getVersion = () => {

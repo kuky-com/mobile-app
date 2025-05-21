@@ -65,6 +65,8 @@ import colors from "../../utils/colors";
 import { useAlertWithIcon } from "../../components/AlertIconProvider";
 import * as Progress from "react-native-progress";
 import MessageUrlPreview from "../../components/MessageUrlPreview";
+import DeviceInfo from 'react-native-device-info';
+import { deviceIdAtom } from "../../actions/global";
 
 const styles = StyleSheet.create({
   container: {
@@ -221,6 +223,7 @@ const MessageScreen = ({ navigation, route }) => {
   const [messages, setMessages] = useState([]);
   const [currentConversation, setCurrentConversation] = useState(conversation);
   const appState = useRef(AppState.currentState);
+  const currentSessionRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const showAlert = useAlert();
   const showAlertIcon = useAlertWithIcon()
@@ -235,6 +238,8 @@ const MessageScreen = ({ navigation, route }) => {
   const [messageUnlockState, setMessageUnlockState] = useState('welcome') //welcome, more, later
 
   const [sendingImage, setSendingImage] = useState(false)
+
+  const deviceId = useAtomValue(deviceIdAtom)
 
   usePermissions(CALL_PERMISSIONS);
 
@@ -395,6 +400,60 @@ const MessageScreen = ({ navigation, route }) => {
   }, []);
 
   useEffect(() => {
+    if (currentUser) {
+      createSession()
+    }
+
+    return () => {
+      stopSessionUpdater()
+    }
+  }, [currentUser])
+
+  const createSession = async () => {
+    const res = await apiClient.post(`users/sessions`, {
+      device_id: deviceId,
+      platform: Platform.OS,
+      start_time: dayjs().format(),
+      screen_name: 'message'
+    })
+
+    if (res && res.data) {
+      currentSessionRef.current = res.data.data.session_id
+    } else {
+      currentSessionRef.current = null
+    }
+  };
+
+  const stopSessionUpdater = async () => {
+    if (currentSessionRef.current) {
+      await apiClient.put(`users/sessions/${currentSessionRef.current}`, {
+        end_time: dayjs().format()
+      })
+    }
+  }
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", async (nextAppState) => {
+      appState.current = nextAppState;
+
+      if (currentUser) {
+        console.log({ nextAppState })
+        if (nextAppState === 'active') {
+          await createSession()
+        } else if (nextAppState.match(/inactive|background/)) {
+          await stopSessionUpdater()
+
+          currentSessionRef.current = null
+        }
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextAppState) => {
       if (
         appState.current &&
@@ -416,7 +475,7 @@ const MessageScreen = ({ navigation, route }) => {
   //   if (!currentUser?.profile_approved) {
   //     showAlert(
   //       "Your account is almost ready!",
-  //       "While we complete the approval, feel free to browse and get familiar with other profiles. You’ll be connecting soon!",
+  //       "While we complete the approval, feel free to browse and get familiar with other profiles. You'll be connecting soon!",
   //       [
   //         {
   //           text: "Keep Exploring",
@@ -1263,7 +1322,7 @@ const MessageScreen = ({ navigation, route }) => {
 
   let unlockMessages = [
     {
-      text: `Hey ${currentUser?.full_name} 🤩,\nYou’ve reached your 3-connection limit for the free plan. \n\nBut don’t worry, you can unlock more connections and grow your community!`,
+      text: `Hey ${currentUser?.full_name} 🤩,\nYou've reached your 3-connection limit for the free plan. \n\nBut don't worry, you can unlock more connections and grow your community!`,
       user: {
         _id: 0,
         name: 'Kuky',

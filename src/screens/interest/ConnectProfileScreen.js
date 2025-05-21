@@ -14,9 +14,10 @@ import { ResizeMode, Video } from "expo-av";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAtom, useAtomValue } from "jotai";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { SectionCard } from "@/components/SectionCard";
 import {
+  AppState,
   DeviceEventEmitter,
   Dimensions,
   Platform,
@@ -43,6 +44,8 @@ import OnlineStatus from "../../components/OnlineStatus";
 import SwipeCard from "../../components/SwipeCard";
 import VideoManager from "../../components/VideoManager";
 import SimilarByPathItem from "../../components/SimilarByPathItem";
+import DeviceInfo from 'react-native-device-info';
+import { deviceIdAtom } from "../../actions/global";
 
 const styles = StyleSheet.create({
   container: {
@@ -105,6 +108,9 @@ const ConnectProfileScreen = ({ navigation, route }) => {
   const [isMute, setIsMute] = useState(false)
 
   const videoRef = useRef(null);
+  const currentSessionRef = useRef(null);
+  const appState = useRef(AppState.currentState);
+  const deviceId = useAtomValue(deviceIdAtom)
 
   useEffect(() => {
     analytics().logScreenView({
@@ -288,7 +294,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
           } else if (res && res.data && !res.data.success) {
             showAlert(
               "Your account is almost ready!",
-              "While we complete the approval, feel free to browse and get familiar with other profiles. You’ll be connecting soon!",
+              "While we complete the approval, feel free to browse and get familiar with other profiles. You'll be connecting soon!",
               [
                 {
                   text: "Keep Exploring",
@@ -422,6 +428,60 @@ const ConnectProfileScreen = ({ navigation, route }) => {
       setLoading(false);
     }
   };
+
+  const createSession = async () => {
+    const res = await apiClient.post(`users/sessions`, {
+      device_id: deviceId,
+      platform: Platform.OS,
+      start_time: dayjs().format(),
+      screen_name: 'profile'
+    })
+
+    if (res && res.data) {
+      currentSessionRef.current = res.data.data.session_id
+    } else {
+      currentSessionRef.current = null
+    }
+  };
+
+  const stopSessionUpdater = async () => {
+    if (currentSessionRef.current) {
+      await apiClient.put(`users/sessions/${currentSessionRef.current}`, {
+        end_time: dayjs().format()
+      })
+    }
+  }
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", async (nextAppState) => {
+      appState.current = nextAppState;
+
+      if (currentUser) {
+        console.log({ nextAppState })
+        if (nextAppState === 'active') {
+          await createSession()
+        } else if (nextAppState.match(/inactive|background/)) {
+          await stopSessionUpdater()
+
+          currentSessionRef.current = null
+        }
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      createSession()
+    }
+
+    return () => {
+      stopSessionUpdater()
+    }
+  }, [currentUser])
 
   const onReport = async () => {
     analytics().logEvent('report_button_clicked')
@@ -1161,6 +1221,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                     </>
                   )
                 } */}
+
 
           {/* <View
                   style={{

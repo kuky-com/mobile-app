@@ -479,12 +479,13 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
     }
 
     const updateProfile = (video, audio, subtitle, transcript) => {
-        apiClient.post('users/update', { 
-            video_purpose: video, 
-            audio_purpose: audio, 
+        apiClient.post('users/update', {
+            video_purpose: video,
+            audio_purpose: audio,
             is_video_purpose_blur: isBlur,
             subtitle_intro: subtitle,
-            video_intro_transcript: transcript })
+            video_intro_transcript: transcript
+        })
             .then((res) => {
                 setProcessing(false)
                 if (res && res.data && res.data.success) {
@@ -707,7 +708,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                         style={{ fontSize: 14, lineHeight: 21, fontWeight: "500", color: "black", textAlign: 'center' }}
                     >{`You have ${MAX_DURATION} seconds`}</Text>
                     <View style={{ position: 'absolute', top: 0, left: 0, width: "100%", alignItems: "flex-end", paddingHorizontal: 32, paddingTop: insets.top }}>
-                        <Text style={{ fontSize: 13, color: '#725ED4', fontWeight: 'bold' }} onPress={onSkip}>Skip</Text>
+                        {currentUser?.skip_recording_count < 5 && <Text style={{ fontSize: 13, color: '#725ED4', fontWeight: 'bold' }} onPress={onSkip}>Skip</Text>}
                     </View>
                 </View>
                 <View
@@ -1158,14 +1159,14 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                             style={{ marginTop: 40 }}
                             onPress={retryPermission}
                         />
-                        <TouchableOpacity
+                        {currentUser?.skip_recording_count < 5 && <TouchableOpacity
                             onPress={onSkip}
                             style={{ paddingHorizontal: 15, paddingVertical: 8, marginTop: 8 }}
                         >
                             <Text style={{ fontSize: 14, fontWeight: "500", color: "white" }}>
                                 Skip for now
                             </Text>
-                        </TouchableOpacity>
+                        </TouchableOpacity>}
                     </View>
                 </View>
             )}

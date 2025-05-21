@@ -74,14 +74,16 @@ const ProfileScreen = ({ navigation }) => {
 
     const actionSheetRef = useRef();
     const [reportDate, setReportDate] = React.useState(dayjs().format());
+    const [halfMonth, setHalfMonth] = React.useState(dayjs().date() <= 15 ? 'first' : 'second');
 
     const handleOpenPicker = () => {
         actionSheetRef.current?.show();
     };
 
-    const handleSelect = ({ year, month }) => {
-        console.log({ year, month })
+    const handleSelect = ({ year, month, half }) => {
+        console.log({ year, month, half })
         setReportDate(dayjs(`01-${String(month).padStart(2, '0')}-${year}`, 'DD-MM-YYYY').format())
+        setHalfMonth(half);
     };
 
     // const openMonthYearSelector = async () => {
@@ -167,7 +169,17 @@ const ProfileScreen = ({ navigation }) => {
     const refreshModeratorData = () => {
         if (currentUser?.is_moderators) {
             setModeratorData({})
-            apiClient.get(`users/stats?start_date=${dayjs(reportDate).startOf('month').format('DD/MM/YYYY')}&end_date=${dayjs(reportDate).endOf('month').format('DD/MM/YYYY')}`)
+            let startDate, endDate;
+
+            if (halfMonth === 'first') {
+                startDate = dayjs(reportDate).startOf('month');
+                endDate = dayjs(reportDate).date(15);
+            } else {
+                startDate = dayjs(reportDate).date(16);
+                endDate = dayjs(reportDate).endOf('month');
+            }
+
+            apiClient.get(`users/stats?start_date=${startDate.format('DD/MM/YYYY')}&end_date=${endDate.format('DD/MM/YYYY')}`)
                 .then((res) => {
                     if (res && res.data && res.data.success) {
                         setModeratorData(res.data.data.data)
@@ -692,7 +704,9 @@ const ProfileScreen = ({ navigation }) => {
                         showsVerticalScrollIndicator={false} style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 16, paddingTop: 24 }}>
                         <View style={{ flex: 1, width: Platform.isPad ? 600 : '100%', alignSelf: 'center', gap: 16, marginBottom: insets.bottom + 120 }}>
                             <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                                <Text style={{ fontSize: 16, color: 'black', fontWeight: "bold" }}>{dayjs(reportDate).format('MMMM, YYYY')}</Text>
+                                <Text style={{ fontSize: 16, color: 'black', fontWeight: "bold" }}>
+                                    {`${dayjs(reportDate).format('MMMM, YYYY')} (${halfMonth === 'first' ? '1st-15th' : '16th-31st'})`}
+                                </Text>
 
                                 <TouchableOpacity onPress={handleOpenPicker} style={{ borderRadius: 5, gap: 5, backgroundColor: '#725ED4', flexDirection: "row", paddingHorizontal: 12, paddingVertical: 6 }}>
                                     <Text style={{ fontSize: 12, color: 'white' }}>View Stats by</Text>
@@ -753,8 +767,8 @@ const ProfileScreen = ({ navigation }) => {
                                     backgroundColor: '#D3CEEA', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 12,
                                     flexDirection: "row", alignItems: 'center', justifyContent: 'space-between'
                                 }}>
-                                    <Text style={{ fontSize: 12, fontWeight: "400", color: '#494949' }}>Avg. Call Duration:</Text>
-                                    <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>{formatSeconds(moderatorData.avg_call_duration ?? 0)}</Text>
+                                    <Text style={{ fontSize: 12, fontWeight: "400", color: '#494949' }}>Total Call Duration:</Text>
+                                    <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>{formatSeconds(moderatorData.total_call_duration ?? 0)}</Text>
                                 </View>
 
                                 {moderatorData.total_session_time &&
@@ -1008,6 +1022,7 @@ const ProfileScreen = ({ navigation }) => {
                                             </View>
                                         }
                                     </View>
+                                    {/* <FontAwesome6 name='chevron-right' size={20} color={colors.mainColor} /> */}
                                 </View>
                             </View>
 
