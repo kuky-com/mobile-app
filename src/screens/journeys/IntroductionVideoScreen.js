@@ -103,6 +103,7 @@ const IntroductionVideoScreen = ({ navigation, route }) => {
   const [askPermissionOnce, setAskPermissionOnce] = useState(false)
   const [isBlur, setBlur] = useState(false)
   const [canBlur, setCanBlur] = useState(false)
+  const [isFlipped, setIsFlipped] = useState(false)
 
   const showAlert = useAlertWithIcon()
   const showNormalAlert = useAlert()
@@ -283,6 +284,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
 
   const startRecording = async () => {
     analytics().logEvent('video_recording_button')
+    setIsFlipped(true)
 
     if (cameraRef.current) {
       setRecording(true);
@@ -331,6 +333,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
         return
       }
       setVideoUrl(result.assets[0])
+      setIsFlipped(false)
     }
   }
 
@@ -452,6 +455,8 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
             NavigationService.reset('SpecificJPFScreen')
           } else if (!currentUser?.video_purpose) {
             NavigationService.reset('JourneyVideoScreen')
+          } else if (!currentUser?.journey_id) {
+            NavigationService.reset('MatchingInfoUpdateScreen', { fromOnboarding: true })
           } else {
             NavigationService.reset('Dashboard')
           }
@@ -525,7 +530,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
       }).result
 
       const outputVideoUri = `${FileSystem.documentDirectory}video_trimmed.mp4`
-      const commandVideo = `-y -i ${videoUrl.uri} -ss ${startPosition} -to ${endPosition} -vf scale=-2:720 -pix_fmt yuv420p -c:v libx264 -preset veryfast -crf 23 -b:v 800k -maxrate 850k -bufsize 1700k -vf hflip -c:a aac -b:a 256k -ac 2 -ar 48000 -movflags +faststart -f mp4 ${outputVideoUri}`;
+      const commandVideo = `-y -i ${videoUrl.uri} -ss ${startPosition} -to ${endPosition} -vf scale=-2:720 -pix_fmt yuv420p -c:v libx264 -preset veryfast -crf 23 -b:v 800k -maxrate 850k -bufsize 1700k ${isFlipped ? '-vf hflip' : ''} -c:a aac -b:a 256k -ac 2 -ar 48000 -movflags +faststart -f mp4 ${outputVideoUri}`;
 
       await FFmpegKit.executeAsync(commandVideo, async (session) => {
         const returnCode = await session.getReturnCode();
@@ -648,20 +653,22 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
   };
 
   const skipFromOnboarding = () => {
+      NavigationService.reset('JourneyVideoScreen', { fromOnboarding: true })
+  }
+
+  const onSkip = () => {
+    console.log({skipTime: currentUser?.skip_recording_count})
     apiClient.post('users/update', {
       skip_recording_count: currentUser?.skip_recording_count ? currentUser?.skip_recording_count + 1 : 1
     })
       .then((res) => {
-        NavigationService.reset('JourneyVideoScreen', { fromOnboarding: true })
+        
       })
       .catch((error) => {
         console.log({ error })
-        NavigationService.reset('JourneyVideoScreen', { fromOnboarding: true })
       })
-  }
-
-  const onSkip = () => {
-    if (fromOnboarding) {
+      
+    if (fromOnboarding || !currentUser?.journey_id) {
       skipFromOnboarding()
     } else {
       NavigationService.reset('Dashboard')
@@ -805,7 +812,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                   borderColor: "#CDB8E2",
                   borderWidth: 6,
                   borderRadius: 20,
-                  transform: [{ scaleX: -1 }]
+                  transform: [{ scaleX: isFlipped ? -1 : 1 }]
                 }}
                 ref={videoRef}
                 source={videoUrl}

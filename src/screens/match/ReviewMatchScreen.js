@@ -9,7 +9,7 @@ import NavigationService from "@/utils/NavigationService";
 import { Image, ImageBackground } from "expo-image";
 import { useAtomValue } from "jotai";
 import React, { useEffect, useState } from "react";
-import { Keyboard, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Keyboard, Platform, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
@@ -48,7 +48,9 @@ const ReviewMatchScreen = ({ navigation, route }) => {
   useEffect(() => {
     const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
       setTimeout(() => {
-        textInputRef.current?.focus();
+        if(Platform.OS === 'android') {
+          textInputRef.current?.focus();
+        }
       }, 500);
     });
 
@@ -101,23 +103,24 @@ const ReviewMatchScreen = ({ navigation, route }) => {
   };
 
   useEffect(() => {
-    if(reason && reason.length > 0 && rating > 0 && !note) {
+    if (reason && reason.length > 0 && rating > 0 && !note) {
       textInputRef.current.focus();
     }
   }, [reason, rating, note])
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
-      <KeyboardAwareScrollView
+     <KeyboardAwareScrollView
         showsVerticalScrollIndicator={false}
         style={{ flex: 1, width: "100%" }}
         enableOnAndroid={true}
+        keyboardShouldPersistTaps='handled'
       >
         <View style={{ flex: 1, width: "100%", gap: 16, alignItems: "center" }}>
           <Text style={{ fontSize: 13, fontWeight: "bold", color: "black" }}>
             Share your feedback!
           </Text>
-          <Text style={{fontSize: 18, color: colors.mainColor, fontWeight: 'bold'}}>{profile?.full_name}</Text>
+          <Text style={{ fontSize: 18, color: colors.mainColor, fontWeight: 'bold' }}>{profile?.full_name}</Text>
           <AvatarImage
             avatar={profile?.avatar}
             full_name={profile?.full_name}
@@ -262,17 +265,17 @@ const ReviewMatchScreen = ({ navigation, route }) => {
             Write your ( optional )
           </Text>
           <TextInput
-              style={{ backgroundColor: "rgba(181, 171, 226, 0.3)", borderRadius: 10, padding: 16, fontSize: 14, color: "#333333", width: "100%", height: 150, margin: 0 }}
-              multiline
-              numberOfLines={8}
-              textAlignVertical="top"
-              placeholder="Write your review here…"
-              placeholderTextColor="#555555"
-              underlineColorAndroid="#00000000"
-              value={note}
-              onChangeText={setNote}
-              ref={textInputRef}
-            />
+            style={{ backgroundColor: "rgba(181, 171, 226, 0.3)", borderRadius: 10, padding: 16, fontSize: 14, color: "#333333", width: "100%", height: 150, margin: 0 }}
+            multiline
+            numberOfLines={8}
+            textAlignVertical="top"
+            placeholder="Write your review here…"
+            placeholderTextColor="#555555"
+            underlineColorAndroid="#00000000"
+            value={note}
+            onChangeText={setNote}
+            ref={textInputRef}
+          />
           <ButtonWithLoading
             text="Submit Review"
             loading={loading}

@@ -57,7 +57,16 @@ const JourneyMatchingScreen = ({ navigation, route }) => {
     }, [])
 
     const onContinue = () => {
-        NavigationService.reset('Dashboard')
+        // NavigationService.reset('Dashboard')
+        NavigationService.resetRaw([
+            {
+                name: "Dashboard",
+                state: {
+                    index: 2,
+                    routes: [{ name: "ExploreScreen" }, { name: "MatchesScreen" }, { name: "ProfileScreen" }],
+                },
+            },
+        ]);
     }
 
     return (

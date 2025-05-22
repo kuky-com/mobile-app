@@ -44,9 +44,10 @@ export const getAuthenScreen = (currentUser, fromRecording = false) => {
     // } else if (!currentUser?.journey_id) {
     //     return 'StruggleSelectionScreen'
     // } 
-    else if((currentUser?.likeCount ?? 0) === 0 && (currentUser?.dislikeCount ?? 0) === 0) {
-        return 'MatchingInfoUpdateScreen'
-    } else if (!currentUser?.avatar) {
+    // else if((currentUser?.likeCount ?? 0) === 0 && (currentUser?.dislikeCount ?? 0) === 0) {
+    //     return 'MatchingInfoUpdateScreen'
+    // }
+     else if (!currentUser?.avatar) {
         return 'AvatarUpdateScreen'
     } else if (!currentUser?.video_intro) {
         return 'IntroductionVideoTutorialScreen'

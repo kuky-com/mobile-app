@@ -234,6 +234,7 @@ const MatchingInfoUpdateScreen = ({ navigation, route }) => {
                 text={'Continue'}
                 onPress={onContinue}
                 loading={loading}
+                disabled={likes.length + dislikes.length === 0}
             />
         </View>
     )

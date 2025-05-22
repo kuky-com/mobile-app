@@ -1035,22 +1035,61 @@ const MessageScreen = ({ navigation, route }) => {
         },
       );
     } else {
-      if (isVideoCall) {
-        analytics().logEvent('video_call')
+      if (currentUser?.is_moderators && currentConversation?.profile?.is_moderators) {
+        showAlert(
+          "Hold on",
+          "Time spent on a call with another moderator is not included in your paid session time.",
+          [
+            {
+              text: "Continue",
+              onPress: async () => {
+                if (isVideoCall) {
+                  analytics().logEvent('video_call')
+                } else {
+                  analytics().logEvent('voice_call')
+                }
+
+                try {
+                  await authenticate();
+                  const callProps = await SendbirdCalls.dial(
+                    `${NODE_ENV}_${conversation.profile?.id}`,
+                    isVideoCall,
+                  );
+                  onNavigate(callProps);
+                } catch (e) {
+                  Alert.alert("Failed", e.message);
+                }
+              },
+            },
+            {
+              text: "Cancel",
+              onPress: () => {
+              },
+            },
+          ],
+          () => {
+          },
+        );
+        return
       } else {
-        analytics().logEvent('voice_call')
+        if (isVideoCall) {
+          analytics().logEvent('video_call')
+        } else {
+          analytics().logEvent('voice_call')
+        }
+
+        try {
+          await authenticate();
+          const callProps = await SendbirdCalls.dial(
+            `${NODE_ENV}_${conversation.profile?.id}`,
+            isVideoCall,
+          );
+          onNavigate(callProps);
+        } catch (e) {
+          Alert.alert("Failed", e.message);
+        }
       }
 
-      try {
-        await authenticate();
-        const callProps = await SendbirdCalls.dial(
-          `${NODE_ENV}_${conversation.profile?.id}`,
-          isVideoCall,
-        );
-        onNavigate(callProps);
-      } catch (e) {
-        Alert.alert("Failed", e.message);
-      }
     }
   };
 

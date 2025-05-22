@@ -68,8 +68,8 @@ const ReferralUpdateScreen = ({ navigation, route }) => {
         console.log({resR})
 
         if(resR.data.success){
-          // NavigationService.reset("AvatarUpdateScreen");
-          NavigationService.reset("MatchingInfoUpdateScreen", {fromOnboarding: true});
+          NavigationService.reset("AvatarUpdateScreen");
+          // NavigationService.reset("MatchingInfoUpdateScreen", {fromOnboarding: true});
           // NavigationService.reset("JourneySelectionScreen");
         } else {
           if(resR.data.message) {
@@ -86,7 +86,8 @@ const ReferralUpdateScreen = ({ navigation, route }) => {
   };
 
   const onSkip = () => {
-    NavigationService.reset("MatchingInfoUpdateScreen", {fromOnboarding: true});
+    NavigationService.reset("AvatarUpdateScreen");
+    // NavigationService.reset("MatchingInfoUpdateScreen", {fromOnboarding: true});
   }
 
   return (
