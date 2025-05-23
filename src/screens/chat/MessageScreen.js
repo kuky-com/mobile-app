@@ -252,6 +252,7 @@ const MessageScreen = ({ navigation, route }) => {
 
   useEffect(() => {
     setKeyboardHeight(0)
+    Keyboard.dismiss()
 
     const keyboardDidShowListener = Keyboard.addListener(
       "keyboardDidShow",
@@ -360,6 +361,7 @@ const MessageScreen = ({ navigation, route }) => {
   }
 
   const sendAttachment = async () => {
+    Keyboard.dismiss()
     if (sendingImage) return
 
     const options = [
@@ -826,7 +828,7 @@ const MessageScreen = ({ navigation, route }) => {
   const renderInputToolbar = (props) => {
     return (
       <View style={{
-        paddingBottom: keyboardHeight > 0 || Platform.OS === 'android' ? (12 + insets.bottom) : insets.bottom,
+        paddingBottom: (keyboardHeight > 0 || Platform.OS === 'android') ? (12 + insets.bottom) : insets.bottom,
         paddingTop: 12,
         paddingHorizontal: 16,
         gap: 3,
@@ -1505,6 +1507,7 @@ const MessageScreen = ({ navigation, route }) => {
 
   const isRecentOnline = currentConversation?.profile && currentConversation?.profile.last_active_time ? dayjs().diff(dayjs(currentConversation?.profile.last_active_time), 'minute') < 60 : false
 
+  console.log({ keyboardHeight })
   if (!isPremium && !currentConversation?.is_free) {
     return (
       <View style={styles.container}>
@@ -1701,7 +1704,7 @@ const MessageScreen = ({ navigation, route }) => {
           contentContainerStyle: {
             flexGrow: 1,
             justifyContent: "flex-start",
-            paddingBottom: keyboardHeight,
+            paddingBottom: Platform.OS === 'ios',
           },
         }}
       />

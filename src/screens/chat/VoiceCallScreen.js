@@ -5,15 +5,24 @@ import { useDirectCall } from "@/hooks/useDirectCall";
 import { BlurView } from "expo-blur";
 import AvatarImage from "@/components/AvatarImage";
 import analytics from '@react-native-firebase/analytics'
+import { useKeepAwake } from 'expo-keep-awake'
+import { Audio } from "expo-av";
 
 export const VoiceCallScreen = ({ route, navigation }) => {
   const { call, status, currentAudioDeviceIOS, callLog } = useDirectCall(route.params.callId);
+  useKeepAwake()
 
   useEffect(() => {
     analytics().logScreenView({
       screen_name: "VoiceCallScreen",
       screen_class: "VoiceCallScreen",
     })
+
+    Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      staysActiveInBackground: true,
+      playsInSilentModeIOS: true,
+    });
   }, [])
 
   useEffect(() => {

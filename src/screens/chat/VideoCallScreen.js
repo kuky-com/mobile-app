@@ -7,6 +7,7 @@ import AvatarImage from "@/components/AvatarImage";
 import { BlurView } from "expo-blur";
 import { useKeepAwake } from 'expo-keep-awake'
 import analytics from '@react-native-firebase/analytics'
+import { Audio } from "expo-av";
 
 export const VideoCallScreen = ({ route, navigation }) => {
   const { call, status, currentAudioDeviceIOS, callLog } = useDirectCall(route.params.callId);
@@ -17,6 +18,12 @@ export const VideoCallScreen = ({ route, navigation }) => {
       screen_name: "VideoCallScreen",
       screen_class: "VideoCallScreen",
     })
+
+    Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      staysActiveInBackground: true,
+      playsInSilentModeIOS: true,
+    });
   }, [])
 
   useEffect(() => {

@@ -171,11 +171,20 @@ SendbirdCalls.setListener({
   },
 });
 
-SendbirdCalls.setDirectCallDialingSoundOnWhenSilentOrVibrateMode(true)
-SendbirdCalls.addDirectCallSound(SoundType.RINGING, "ringing.mp3");
-SendbirdCalls.addDirectCallSound(SoundType.DIALING, "dialing.mp3");
-SendbirdCalls.addDirectCallSound(SoundType.RECONNECTED, "reconnected.mp3");
-SendbirdCalls.addDirectCallSound(SoundType.RECONNECTING, "reconnecting.mp3");
+// Need to import SoundType from @sendbird/calls-react-native
+// Need to ensure sound files are in the correct assets directory
+// Wrap in try-catch to handle potential errors
+try {
+  SendbirdCalls.setDirectCallDialingSoundOnWhenSilentOrVibrateMode(true);
+
+  SendbirdCalls.addDirectCallSound(SoundType.RINGING, 'ringing.mp3');
+  SendbirdCalls.addDirectCallSound(SoundType.DIALING, 'dialing.mp3'); 
+  SendbirdCalls.addDirectCallSound(SoundType.RECONNECTED, 'reconnected.mp3');
+  SendbirdCalls.addDirectCallSound(SoundType.RECONNECTING, 'reconnecting.mp3');
+  console.log('Setting up Sendbird call sounds');
+} catch (error) {
+  console.log('Error setting up Sendbird call sounds:', error);
+}
 
 if (Platform.OS === "android") {
   setFirebaseMessageHandlers();
@@ -235,6 +244,14 @@ const AppStack = ({ navgation }) => {
         .catch(() => { });
     }
   }, [currentUser]);
+
+  useEffect(() => {
+    Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      staysActiveInBackground: false,
+      playsInSilentModeIOS: true,
+    });
+  }, []);
 
   // config profile status (accepted/rejected)
   useEffect(() => {
@@ -626,11 +643,6 @@ const AppStack = ({ navgation }) => {
         .then(() => { })
         .catch(() => { });
     };
-
-    Audio.setAudioModeAsync({
-      playsInSilentModeIOS: true,
-      allowsRecordingIOS: true,
-    })
 
     getDeviceId();
   }, []);

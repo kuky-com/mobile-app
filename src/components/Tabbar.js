@@ -23,6 +23,7 @@ import * as Linking from "expo-linking";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NavigationService, { navigationRef } from "../utils/NavigationService";
 import { OneSignal } from "react-native-onesignal";
+import Notifee, { AndroidImportance } from "@notifee/react-native";
 
 const ONESIGNAL_APP_ID = "c3fb597e-e318-4eab-9d90-cd43b9491bc1";
 
@@ -124,9 +125,7 @@ const Tabbar = ({ navigation, state }) => {
 
   useEffect(() => {
     try {
-      if (Platform.OS === "ios") {
-        PushNotificationIOS.setApplicationIconBadgeNumber(totalUnreadRaw + notiCounter);
-      }
+      Notifee.setBadgeCount(totalUnreadRaw + notiCounter);
     } catch (error) { }
   }, [totalUnreadRaw, notiCounter]);
 
