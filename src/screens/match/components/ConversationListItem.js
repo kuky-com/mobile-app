@@ -27,6 +27,7 @@ const ConversationListItem = ({ onPress, isPremium, conversation, marginBottom, 
 
     const [unreadCount, setUnreadCount] = useState(0)
     const [lastMessageCloud, setLastMessage] = useState(conversation?.last_message)
+    const [callIcon, setCallIcon] = useState(null)
     const [totalUnread, setTotalUnread] = useAtom(totalMessageCounterAtom)
 
     useEffect(() => {
@@ -48,14 +49,29 @@ const ConversationListItem = ({ onPress, isPremium, conversation, marginBottom, 
                     let lastMessage = null
                     if (messagesFirestore.type === 'missed_video_call') {
                         lastMessage = 'Missed video call'
+                        setCallIcon((
+                            <Image source={conversation?.last_message_sender === currentUser?.id ? images.video_out_icon : images.video_in_icon} style={{ width: 16, height: 16, tintColor: "#f44336" }} />
+                        ))
                     } else if (messagesFirestore.type === 'missed_voice_call') {
                         lastMessage = 'Missed voice call'
+
+                        setCallIcon((
+                            <Image source={conversation?.last_message_sender === currentUser?.id ? images.call_out_icon : images.call_in_icon} style={{ width: 16, height: 16, tintColor: "#f44336" }} />
+                        ))
                     } else if (messagesFirestore.type === 'video_call') {
                         lastMessage = `Video call\n${messagesFirestore.text}`
+
+                        setCallIcon((
+                            <Image source={conversation?.last_message_sender === currentUser?.id ? images.video_out_icon : images.video_in_icon} style={{ width: 16, height: 16 }} />
+                        ))
                     } else if (messagesFirestore.type === 'voice_call') {
                         lastMessage = `Voice call\n${messagesFirestore.text}`
+                        setCallIcon((
+                            <Image source={conversation?.last_message_sender === currentUser?.id ? images.call_out_icon : images.call_in_icon} style={{ width: 16, height: 16 }} />
+                        ))
                     } else {
                         lastMessage = messagesFirestore ? messagesFirestore.text : null
+                        setCallIcon(null)
                     }
 
                     setLastMessage(lastMessage);
@@ -98,12 +114,12 @@ const ConversationListItem = ({ onPress, isPremium, conversation, marginBottom, 
     }
     if (!lastDate) {
         if (conversation.response_date) {
-            lastDate = dayjs(conversation.response_date).fromNow()
+            lastDate = dayjs(conversation.response_date).fromNow(true)
         } else if (conversation.sent_date) {
-            lastDate = dayjs(conversation.sent_date).fromNow()
+            lastDate = dayjs(conversation.sent_date).fromNow(true)
         }
     } else {
-        lastDate = dayjs(lastDate).fromNow()
+        lastDate = dayjs(lastDate).fromNow(true)
     }
 
     if (!isPremium && !conversation.is_free) {
@@ -177,7 +193,11 @@ const ConversationListItem = ({ onPress, isPremium, conversation, marginBottom, 
                     <AvatarImage avatar={conversation?.profile?.avatar} full_name={conversation?.profile?.full_name} style={{ width: 70, height: 70, borderRadius: 35, borderWidth: 1, borderColor: colors.mainColor }} />
                     <View style={{ flex: 1, gap: 8, marginHorizontal: 12 }}>
                         <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>{conversation?.profile?.full_name}</Text>
-                        <Text numberOfLines={2} style={{ fontSize: 12, lineHeight: 18, color: !lastMessageCloud ? colors.mainColor : '#6C6C6C', fontWeight: unreadCount > 0 || !lastMessageCloud ? 'bold' : '300' }}>{lastMessage}</Text>
+
+                        <View style={{flexDirection: 'row', alignItems: 'flex-start', gap: 5, width: '100%'}}>
+                            {callIcon}
+                            <Text numberOfLines={2} style={{ fontSize: 12, lineHeight: 18, color: !lastMessageCloud ? colors.mainColor : '#6C6C6C', fontWeight: unreadCount > 0 || !lastMessageCloud ? 'bold' : '300' }}>{lastMessage}</Text>
+                        </View>
                     </View>
                     <View style={{ alignItems: 'flex-end', gap: 5 }}>
                         <View style={{ alignItems: 'center', justifyContent: 'center' }}>
@@ -189,7 +209,6 @@ const ConversationListItem = ({ onPress, isPremium, conversation, marginBottom, 
                             }
                         </View>
                         <Text style={{ fontSize: 10, color: '#726E70' }}>{lastDate}</Text>
-
                     </View>
                 </Pressable>
             </SwipeRow>

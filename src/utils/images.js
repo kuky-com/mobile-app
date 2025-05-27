@@ -110,6 +110,13 @@ const tiktok_icon = require("../assets/images/social/tiktok.png");
 const cal_icon = require("../assets/images/social/cal.png");
 const linkedin_icon = require("../assets/images/social/linkedin.png");
 
+const call_in_icon = require("../assets/images/call_in.png");
+const call_out_icon = require("../assets/images/call_out.png");
+const call_missed_icon = require("../assets/images/call_miss.png");
+const video_in_icon = require("../assets/images/video_in.png");
+const video_out_icon = require("../assets/images/video_out.png");
+const video_missed_icon = require("../assets/images/video_miss.png");
+
 const report_flag = require("../assets/images/report_flag.png");
 
 export default {
@@ -217,5 +224,11 @@ export default {
   verify_success_bg,
   verify_success_icon,
   record_tutorial,
-  report_flag
+  report_flag,
+  call_in_icon,
+  call_out_icon,
+  call_missed_icon,
+  video_in_icon,
+  video_out_icon,
+  video_missed_icon
 };

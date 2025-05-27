@@ -164,7 +164,7 @@ const SignUpEmailScreen = ({ navigation }) => {
     setLoading(true);
 
     apiClient
-      .post("auth/register", { full_name: `${firstName} ${lastName}`, email, password })
+      .post("auth/register", { full_name: `${firstName} ${lastName}`, email, password, platform: Platform.OS })
       .then((res) => {
         setLoading(false);
         console.log({ res: res.data })

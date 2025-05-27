@@ -179,6 +179,8 @@ const ProfileScreen = ({ navigation }) => {
                 endDate = dayjs(reportDate).endOf('month');
             }
 
+            console.log({ startDate: startDate.format('DD/MM/YYYY'), endDate: endDate.format('DD/MM/YYYY') })   
+
             apiClient.get(`users/stats?start_date=${startDate.format('DD/MM/YYYY')}&end_date=${endDate.format('DD/MM/YYYY')}`)
                 .then((res) => {
                     if (res && res.data && res.data.success) {
@@ -193,7 +195,7 @@ const ProfileScreen = ({ navigation }) => {
 
     useEffect(() => {
         refreshModeratorData()
-    }, [reportDate])
+    }, [reportDate, halfMonth])
 
     const onAddDislikes = () => {
         // navigation.push('DislikeUpdateScreen', { dislikes: dislikes, onUpdated: (newList) => setDislikes(newList) })
@@ -336,7 +338,7 @@ const ProfileScreen = ({ navigation }) => {
                         <Image source={images.setting_icon} style={{ width: 22, height: 22 }} contentFit='contain' />
                     </TouchableOpacity>
                 </View> */}
-                <View style={{ gap: 8, paddingBottom: 3, width: '100%', alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
+                <View style={{ gap: 8, paddingBottom: 3, width: '100%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
                     <TouchableOpacity onPress={onShareProfile} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
                         <FontAwesome6 name='share-from-square' color='white' size={22} />
                     </TouchableOpacity>
@@ -1076,6 +1078,7 @@ const ProfileScreen = ({ navigation }) => {
                 onClose={() => setShowShare(null)}
                 full_name={currentUser?.full_name}
                 shareLink={showShare ?? ""}
+                shareCode={currentUser?.referral_id ?? ''}
             />
 
             <MonthYearPickerSheet ref={actionSheetRef} onSelect={handleSelect} />

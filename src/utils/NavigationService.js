@@ -43,6 +43,17 @@ function reset(name, params) {
   );
 }
 
+function addListener(event, callback) {
+  if (event === 'state') {
+    return navigationRef.current?.addListener('state', (e) => {
+      const currentRoute = navigationRef.current?.getCurrentRoute();
+      callback(currentRoute);
+    });
+  }
+  return () => {};
+}
+
+
 const nav = {
   navigate,
   reset,
@@ -50,7 +61,8 @@ const nav = {
   goBack,
   replace,
   resetRaw,
-  getCurrentRoute
+  getCurrentRoute,
+  addListener
 };
 
 function resetRaw(routes) {

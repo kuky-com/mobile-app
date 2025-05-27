@@ -1557,9 +1557,9 @@ PODS:
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
-  - OneSignalXCFramework (5.2.8):
-    - OneSignalXCFramework/OneSignalComplete (= 5.2.8)
-  - OneSignalXCFramework/OneSignal (5.2.8):
+  - OneSignalXCFramework (5.2.10):
+    - OneSignalXCFramework/OneSignalComplete (= 5.2.10)
+  - OneSignalXCFramework/OneSignal (5.2.10):
     - OneSignalXCFramework/OneSignalCore
     - OneSignalXCFramework/OneSignalExtension
     - OneSignalXCFramework/OneSignalLiveActivities
@@ -1567,38 +1567,38 @@ PODS:
     - OneSignalXCFramework/OneSignalOSCore
     - OneSignalXCFramework/OneSignalOutcomes
     - OneSignalXCFramework/OneSignalUser
-  - OneSignalXCFramework/OneSignalComplete (5.2.8):
+  - OneSignalXCFramework/OneSignalComplete (5.2.10):
     - OneSignalXCFramework/OneSignal
     - OneSignalXCFramework/OneSignalInAppMessages
     - OneSignalXCFramework/OneSignalLocation
-  - OneSignalXCFramework/OneSignalCore (5.2.8)
-  - OneSignalXCFramework/OneSignalExtension (5.2.8):
+  - OneSignalXCFramework/OneSignalCore (5.2.10)
+  - OneSignalXCFramework/OneSignalExtension (5.2.10):
     - OneSignalXCFramework/OneSignalCore
     - OneSignalXCFramework/OneSignalOutcomes
-  - OneSignalXCFramework/OneSignalInAppMessages (5.2.8):
+  - OneSignalXCFramework/OneSignalInAppMessages (5.2.10):
     - OneSignalXCFramework/OneSignalCore
     - OneSignalXCFramework/OneSignalNotifications
     - OneSignalXCFramework/OneSignalOSCore
     - OneSignalXCFramework/OneSignalOutcomes
     - OneSignalXCFramework/OneSignalUser
-  - OneSignalXCFramework/OneSignalLiveActivities (5.2.8):
+  - OneSignalXCFramework/OneSignalLiveActivities (5.2.10):
     - OneSignalXCFramework/OneSignalCore
     - OneSignalXCFramework/OneSignalOSCore
     - OneSignalXCFramework/OneSignalUser
-  - OneSignalXCFramework/OneSignalLocation (5.2.8):
+  - OneSignalXCFramework/OneSignalLocation (5.2.10):
     - OneSignalXCFramework/OneSignalCore
     - OneSignalXCFramework/OneSignalNotifications
     - OneSignalXCFramework/OneSignalOSCore
     - OneSignalXCFramework/OneSignalUser
-  - OneSignalXCFramework/OneSignalNotifications (5.2.8):
+  - OneSignalXCFramework/OneSignalNotifications (5.2.10):
     - OneSignalXCFramework/OneSignalCore
     - OneSignalXCFramework/OneSignalExtension
     - OneSignalXCFramework/OneSignalOutcomes
-  - OneSignalXCFramework/OneSignalOSCore (5.2.8):
+  - OneSignalXCFramework/OneSignalOSCore (5.2.10):
     - OneSignalXCFramework/OneSignalCore
-  - OneSignalXCFramework/OneSignalOutcomes (5.2.8):
+  - OneSignalXCFramework/OneSignalOutcomes (5.2.10):
     - OneSignalXCFramework/OneSignalCore
-  - OneSignalXCFramework/OneSignalUser (5.2.8):
+  - OneSignalXCFramework/OneSignalUser (5.2.10):
     - OneSignalXCFramework/OneSignalCore
     - OneSignalXCFramework/OneSignalNotifications
     - OneSignalXCFramework/OneSignalOSCore
@@ -2905,8 +2905,8 @@ PODS:
     - React-Core
   - react-native-in-app-review (4.3.3):
     - React-Core
-  - react-native-onesignal (5.2.7):
-    - OneSignalXCFramework (= 5.2.8)
+  - react-native-onesignal (5.2.11):
+    - OneSignalXCFramework (= 5.2.10)
     - React (< 1.0.0, >= 0.13.0)
   - react-native-render-html (6.3.4):
     - React-Core
@@ -4016,7 +4016,7 @@ SPEC CHECKSUMS:
   lottie-ios: a881093fab623c467d3bce374367755c272bdd59
   lottie-react-native: d99d99c0363a27052827d5e2ad9b7b9cfeb801ba
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
-  OneSignalXCFramework: 4215fb8deb8a669504d39c02dffaf2ec8ebe10ae
+  OneSignalXCFramework: 1a3b28dfbff23aabce585796d23c1bef37772774
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
   PurchasesHybridCommon: 2e684a22e4aaf33c5fc10fd9e2ca2e27e6b7abff
@@ -4052,7 +4052,7 @@ SPEC CHECKSUMS:
   react-native-fbsdk-next: b430fc002cf9b8675b8688d43fe6eddd5ff4e029
   react-native-get-random-values: 21325b2244dfa6b58878f51f9aa42821e7ba3d06
   react-native-in-app-review: db8bb167a5f238e7ceca5c242d6b36ce8c4404a4
-  react-native-onesignal: 439c090f45a362ee8074d8821780a2380f002054
+  react-native-onesignal: 62ad0dfd1dabd68cc1dcc64746cb89e2ccd2ea70
   react-native-render-html: 984dfe2294163d04bf5fe25d7c9f122e60e05ebe
   react-native-safe-area-context: 142fade490cbebbe428640b8cbdb09daf17e8191
   react-native-slider: 8925e9856a27e84c0ce105b1d4f4ada65defec6c

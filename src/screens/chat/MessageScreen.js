@@ -241,6 +241,8 @@ const MessageScreen = ({ navigation, route }) => {
 
   const deviceId = useAtomValue(deviceIdAtom)
 
+  const currentUserId = is_support ? 1 : currentUser?.id
+
   usePermissions(CALL_PERMISSIONS);
 
   useEffect(() => {
@@ -327,8 +329,11 @@ const MessageScreen = ({ navigation, route }) => {
           _id: `${dayjs().unix()}`,
           text: urls,
           createdAt: dayjs().toDate(),
-          user: {
-            _id: currentUser?.id,
+          user: is_support ? {
+            _id: 1,
+            name: 'Kuky Support',
+          } : {
+            _id: currentUserId,
             name: currentUser?.full_name ?? "",
           },
           readBy: [currentUser.id],
@@ -573,19 +578,19 @@ const MessageScreen = ({ navigation, route }) => {
                 hadRead = true;
               }
 
-              if (!data.readBy.includes(currentUser?.id)) {
+              if (!data.readBy.includes(currentUserId)) {
                 firestore()
                   .collection("conversations")
                   .doc(conversation.conversation_id)
                   .collection("messages")
                   .doc(doc.id)
                   .update({
-                    readBy: firestore.FieldValue.arrayUnion(currentUser?.id),
+                    readBy: firestore.FieldValue.arrayUnion(currentUserId),
                   });
 
                 firestore()
                   .collection("users")
-                  .doc(currentUser?.id)
+                  .doc(currentUserId)
                   .collection("readStatus")
                   .doc(conversation.conversation_id)
                   .set({ lastRead: firestore.FieldValue.serverTimestamp() }, { merge: true });
@@ -601,7 +606,7 @@ const MessageScreen = ({ navigation, route }) => {
       });
 
     return () => unsubscribe();
-  }, [currentConversation, currentUser?.id]);
+  }, [currentConversation, currentUserId]);
 
   useEffect(() => {
     const getCallStatus = async () => {
@@ -660,7 +665,7 @@ const MessageScreen = ({ navigation, route }) => {
     })
 
     return () => unsubscribe();
-  }, [currentConversation, currentUser?.id]);
+  }, [currentConversation, currentUserId]);
 
   const renderMessage = (props) => {
     const { currentMessage, previousMessage } = props
@@ -673,13 +678,13 @@ const MessageScreen = ({ navigation, route }) => {
     } else if (currentMessage.type === 'missed_voice_call') {
       contentView = (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Image source={currentMessage?.user?._id === currentUser?.id ? images.out_voice_call : images.missed_voice_call}
+          <Image source={currentMessage?.user?._id === currentUserId ? images.out_voice_call : images.missed_voice_call}
             style={{ width: 30, height: 30 }} contentFit="contain" />
           <TouchableOpacity onPress={() => calling(false)} style={{ gap: 1 }}>
-            <Text style={{ fontSize: 13, fontWeight: 'bold', lineHeight: 20, color: currentMessage?.user?._id !== currentUser?.id ? '#f0f0f0' : 'black' }}>{currentMessage?.user?._id === currentUser?.id ? 'Voice call' : 'Missed voice call'}</Text>
+            <Text style={{ fontSize: 13, fontWeight: 'bold', lineHeight: 20, color: currentMessage?.user?._id !== currentUserId ? '#f0f0f0' : 'black' }}>{currentMessage?.user?._id === currentUserId ? 'Voice call' : 'Missed voice call'}</Text>
             <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
-              <Text style={{ fontSize: 13, color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#4c4c4c', lineHeight: 20 }}>{currentMessage?.user?._id === currentUser?.id ? 'No answer' : 'tap to call back'}</Text>
-              <Text style={{ color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
+              <Text style={{ fontSize: 13, color: currentMessage?.user?._id !== currentUserId ? '#cccccc' : '#4c4c4c', lineHeight: 20 }}>{currentMessage?.user?._id === currentUserId ? 'No answer' : 'tap to call back'}</Text>
+              <Text style={{ color: currentMessage?.user?._id !== currentUserId ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -687,13 +692,13 @@ const MessageScreen = ({ navigation, route }) => {
     } else if (currentMessage.type === 'missed_video_call') {
       contentView = (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Image source={currentMessage?.user?._id === currentUser?.id ? images.out_video_call : images.missed_video_call}
+          <Image source={currentMessage?.user?._id === currentUserId ? images.out_video_call : images.missed_video_call}
             style={{ width: 30, height: 30 }} contentFit="contain" />
           <TouchableOpacity onPress={() => calling(true)} style={{ gap: 1 }}>
-            <Text style={{ fontSize: 13, fontWeight: 'bold', lineHeight: 20, color: currentMessage?.user?._id !== currentUser?.id ? '#f0f0f0' : 'black' }}>{currentMessage?.user?._id === currentUser?.id ? 'Video call' : 'Missed video call'}</Text>
+            <Text style={{ fontSize: 13, fontWeight: 'bold', lineHeight: 20, color: currentMessage?.user?._id !== currentUserId ? '#f0f0f0' : 'black' }}>{currentMessage?.user?._id === currentUserId ? 'Video call' : 'Missed video call'}</Text>
             <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
-              <Text style={{ fontSize: 13, color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#4c4c4c', lineHeight: 20 }}>{currentMessage?.user?._id === currentUser?.id ? 'No answer' : 'tap to call back'}</Text>
-              <Text style={{ color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
+              <Text style={{ fontSize: 13, color: currentMessage?.user?._id !== currentUserId ? '#cccccc' : '#4c4c4c', lineHeight: 20 }}>{currentMessage?.user?._id === currentUserId ? 'No answer' : 'tap to call back'}</Text>
+              <Text style={{ color: currentMessage?.user?._id !== currentUserId ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -704,10 +709,10 @@ const MessageScreen = ({ navigation, route }) => {
           <Image source={currentMessage.type === 'video_call' ? images.out_video_call : images.out_voice_call}
             style={{ width: 30, height: 30 }} contentFit="contain" />
           <View style={{ gap: 1 }}>
-            <Text style={{ fontSize: 13, fontWeight: 'bold', lineHeight: 20, color: currentMessage?.user?._id !== currentUser?.id ? '#f0f0f0' : 'black' }}>{currentMessage.type === 'video_call' ? 'Video call' : 'Voice call'}</Text>
+            <Text style={{ fontSize: 13, fontWeight: 'bold', lineHeight: 20, color: currentMessage?.user?._id !== currentUserId ? '#f0f0f0' : 'black' }}>{currentMessage.type === 'video_call' ? 'Video call' : 'Voice call'}</Text>
             <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
-              <Text style={{ fontSize: 13, color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#4c4c4c', lineHeight: 20 }}>{currentMessage?.text}</Text>
-              <Text style={{ color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
+              <Text style={{ fontSize: 13, color: currentMessage?.user?._id !== currentUserId ? '#cccccc' : '#4c4c4c', lineHeight: 20 }}>{currentMessage?.text}</Text>
+              <Text style={{ color: currentMessage?.user?._id !== currentUserId ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
             </View>
           </View>
         </View>
@@ -737,14 +742,14 @@ const MessageScreen = ({ navigation, route }) => {
               })
             }
           </View>
-          <Text style={{ color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
+          <Text style={{ color: currentMessage?.user?._id !== currentUserId ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>{dayjs(currentMessage.createdAt).format('hh:mmA')}</Text>
         </View >
       )
     } else if (currentMessage.type === 'option') {
       contentView = (
         <Pressable onPress={() => currentMessage.onSelected && currentMessage.onSelected()} style={{ gap: 1, alignItems: 'flex-end', paddingVertical: 5, paddingHorizontal: 8 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Text style={{ fontSize: 16, fontWeight: 'bold', color: currentMessage?.user?._id !== currentUser?.id ? '#333333' : '#333333', lineHeight: 20 }}>{currentMessage.text}</Text>
+            <Text style={{ fontSize: 16, fontWeight: 'bold', color: currentMessage?.user?._id !== currentUserId ? '#333333' : '#333333', lineHeight: 20 }}>{currentMessage.text}</Text>
             <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: '#7B65E8', alignItems: 'center', justifyContent: 'center' }}>
               {currentMessage.selected && <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: '#7B65E8' }} />}
             </View>
@@ -770,11 +775,11 @@ const MessageScreen = ({ navigation, route }) => {
             <Hyperlink
               onPress={(url) => Linking.openURL(url)}
               linkStyle={{ color: "#2980b9" }}>
-              <Text selectable style={{ fontSize: 13, color: currentMessage?.user?._id !== currentUser?.id ? '#f0f0f0' : 'black', lineHeight: 20 }}>
+              <Text selectable style={{ fontSize: 13, color: currentMessage?.user?._id !== currentUserId ? '#f0f0f0' : 'black', lineHeight: 20 }}>
                 {currentMessage?.text}
               </Text>
             </Hyperlink>
-            <Text style={{ color: currentMessage?.user?._id !== currentUser?.id ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>
+            <Text style={{ color: currentMessage?.user?._id !== currentUserId ? '#cccccc' : '#A2A2A2', fontSize: 10, lineHeight: 20 }}>
               {dayjs(currentMessage.createdAt).format('hh:mmA')}
             </Text>
           </View>
@@ -793,29 +798,29 @@ const MessageScreen = ({ navigation, route }) => {
         <View style={[{
           width: '100%', paddingHorizontal: 8,
           flexDirection: 'row', alignItems: 'center',
-          justifyContent: currentMessage?.user?._id === currentUser?.id ? 'flex-end' : 'flex-start',
-          alignSelf: currentMessage?.user?._id === currentUser?.id ? 'flex-end' : 'flex-start',
+          justifyContent: currentMessage?.user?._id === currentUserId ? 'flex-end' : 'flex-start',
+          alignSelf: currentMessage?.user?._id === currentUserId ? 'flex-end' : 'flex-start',
           gap: 8, paddingBottom: 2, paddingTop: 2
         }, extraStyle]}>
           <View style={{ width: 45 }}>
             {
-              ((currentMessage.showUserAvatar || currentMessage.isTyping) && currentMessage?.user?._id !== currentUser?.id) && renderAvatar(props)
+              ((currentMessage.showUserAvatar || currentMessage.isTyping) && currentMessage?.user?._id !== currentUserId) && renderAvatar(props)
             }
           </View>
-          <View style={[currentMessage?.user?._id === currentUser?.id ? styles.rightMessageContainer : (currentMessage?.user?._id === 0 ? styles.botMessageContainer : styles.leftMessageContainer), {
-            maxWidth: Dimensions.get('screen').width - 28 - (currentMessage?.user?._id !== currentUser?.id ? 45 : 0)
+          <View style={[currentMessage?.user?._id === currentUserId ? styles.rightMessageContainer : (currentMessage?.user?._id === 0 ? styles.botMessageContainer : styles.leftMessageContainer), {
+            maxWidth: Dimensions.get('screen').width - 28 - (currentMessage?.user?._id !== currentUserId ? 45 : 0)
           }, currentMessage.type === 'image' ? { backgroundColor: 'transparent' } : {}]}>
             {contentView}
           </View>
 
           <View style={{ position: 'absolute', bottom: 6, right: 8 }}>
-            {!!currentMessage.received && currentMessage.user._id === currentUser?.id && currentUser?.id && (
+            {!!currentMessage.received && currentMessage.user._id === currentUserId && currentUserId && (
               <Text style={{ color: "#6C6C6C", fontWeight: "bold", fontSize: 8 }}>Read</Text>
             )}
             {!!currentMessage.sent &&
               !currentMessage.received &&
-              currentMessage.user._id === currentUser?.id &&
-              currentUser?.id && <Text style={{ color: "#6C6C6C", fontSize: 8 }}>Delivered</Text>}
+              currentMessage.user._id === currentUserId &&
+              currentUserId && <Text style={{ color: "#6C6C6C", fontSize: 8 }}>Delivered</Text>}
           </View>
         </View>
       </View>
@@ -943,11 +948,14 @@ const MessageScreen = ({ navigation, route }) => {
         _id: dayjs().unix.toString(),
         text: `Missed ${isVideo ? 'video' : 'voice'} call`,
         createdAt: new Date(),
-        user: {
-          _id: currentUser?.id,
+        user: is_support ? {
+          _id: 1,
+          name: 'Kuky Support',
+        } : {
+          _id: currentUserId,
           name: currentUser?.full_name ?? "",
         },
-        readBy: [currentUser?.id],
+        readBy: [currentUserId],
         type: `missed_${isVideo ? 'video' : 'voice'}_call`
       });
 
@@ -976,11 +984,14 @@ const MessageScreen = ({ navigation, route }) => {
         _id: dayjs().unix.toString(),
         text: text,
         createdAt: new Date(),
-        user: {
-          _id: currentUser?.id,
+        user: is_support ? {
+          _id: 1,
+          name: 'Kuky Support',
+        } : {
+          _id: currentUserId,
           name: currentUser?.full_name ?? "",
         },
-        readBy: [currentUser?.id],
+        readBy: [currentUserId],
         type: `${isVideo ? 'video' : 'voice'}_call`
       });
 
@@ -1311,7 +1322,7 @@ const MessageScreen = ({ navigation, route }) => {
         <TouchableOpacity onPress={() => navigation.navigate("SupportProfileScreen")}>
           <Image
             style={{ width: 48, height: 48, borderRadius: 24 }}
-            source={images.bot_avatar}
+            source={{ uri: currentConversation?.profile?.avatar }}
           />
         </TouchableOpacity>
 
@@ -1339,7 +1350,7 @@ const MessageScreen = ({ navigation, route }) => {
         .collection('conversations')
         .doc(conversation?.conversation_id)
         .collection('typing')
-        .doc(`${currentUser?.id}`)
+        .doc(`${currentUserId}`)
         .set({ isTyping }, { merge: true });
     } catch (error) {
       console.log({ error });
@@ -1692,7 +1703,10 @@ const MessageScreen = ({ navigation, route }) => {
             <Progress.Bar indeterminate indeterminateAnimationDuration={3000} color="#725ED4" height={6} borderRadius={3} style={{ flex: 1 }} />
             <Text style={{ fontSize: 10, fontWeight: '500' }}>{'Uploading images'}</Text>
           </View> : null}
-        user={{
+        user={is_support ? {
+          _id: 1,
+          name: 'Kuky Support',
+        } : {
           _id: currentUser?.id,
           name: currentUser?.full_name ?? "",
         }}

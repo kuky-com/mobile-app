@@ -74,7 +74,7 @@ const IntroductionVideoTutorialScreen = ({ navigation, route }) => {
     }, [])
 
     const onContinue = () => {
-        NavigationService.reset('IntroductionVideoScreen')
+        NavigationService.reset('IntroductionVideoScreen', { fromOnboarding: true })
     }
 
     const onSkip = () => {

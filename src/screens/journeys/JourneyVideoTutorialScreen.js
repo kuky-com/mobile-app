@@ -74,7 +74,7 @@ const JourneyVideoTutorialScreen = ({ navigation, route }) => {
     }, [])
 
     const onContinue = () => {
-        NavigationService.reset('JourneyVideoScreen')
+        NavigationService.reset('JourneyVideoScreen', { fromOnboarding: true })
     }
 
     const onSkip = () => {

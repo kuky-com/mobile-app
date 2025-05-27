@@ -471,8 +471,12 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
         ], [
             {
                 text: 'Skip Video Uploading', onPress: () => {
-                    if (fromOnboarding || !currentUser?.journey_id) {
-                        NavigationService.reset('MatchingInfoUpdateScreen', { fromOnboarding: true })
+                    if (fromOnboarding || (!currentUser?.journey_id && !currentUser?.video_intro)) {
+                        if (!currentUser?.journey_id) {
+                            NavigationService.reset('JourneyMatchingScreen')
+                        } else {
+                            NavigationService.reset('MatchingInfoUpdateScreen', { fromOnboarding: true })
+                        }
                     } else {
                         NavigationService.reset('Dashboard')
                     }
@@ -657,8 +661,12 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
 
 
     const onSkip = () => {
-        if (fromOnboarding || !currentUser?.journey_id) {
-            NavigationService.reset('MatchingInfoUpdateScreen', { fromOnboarding: true })
+        if (fromOnboarding || (!currentUser?.journey_id && !currentUser?.video_intro)) {
+            if (!currentUser?.journey_id) {
+                NavigationService.reset('JourneyMatchingScreen')
+            } else {
+                NavigationService.reset('MatchingInfoUpdateScreen', { fromOnboarding: true })
+            }
         } else {
             NavigationService.reset('Dashboard')
         }
@@ -1085,7 +1093,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                         </TouchableOpacity>
                     )}
                     <View style={{ height: 30, width: "100%", paddingBottom: insets.bottom + 10 }}>
-                        {videoUrl && (
+                        {videoUrl && !processing && !loading && (
                             <TouchableOpacity
                                 onPress={clearVideo}
                                 style={{

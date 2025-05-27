@@ -123,6 +123,8 @@ import WelcomeBackScreen from "./journeys/WelcomeBackScreen";
 import BlurVideoScreen from "./journeys/BlurVideoScreen";
 import InterestVideoScreen from "./journeys/InterestVideoScreen";
 import SupportProfileScreen from "./chat/SupportProfileScreen";
+import InviteFriendScreen from "./match/InviteFriendScreen";
+import VideoManager from "../components/VideoManager";
 
 SendbirdCalls.setListener({
   onRinging: async (callProps) => {
@@ -282,7 +284,9 @@ const AppStack = ({ navgation }) => {
   useEffect(() => {
     if (currentUser && currentUser?.id) {
       OneSignal.login(`${process.env.NODE_ENV}_${currentUser.id}`);
+      console.log('OneSignal login', `${process.env.NODE_ENV}_${currentUser.id}`);
     } else {
+      console.log('OneSignal logout');
       OneSignal.logout();
     }
   }, [currentUser]);
@@ -292,15 +296,17 @@ const AppStack = ({ navgation }) => {
     const handleNotificationData = (notiData, notification) => {
       if (notiData.type === "message") {
         if (notiData.conversationId) {
-          NavigationService.resetRaw([
-            { name: "Dashboard" },
-            {
-              name: "MessageScreen",
-              params: { conversation: { conversation_id: notiData.conversationId } },
-            },
-          ]);
+          console.log({notiData})
+          navigationRef.current.navigate('MessageScreen', { conversation: { conversation_id: notiData.conversationId }, is_support: notiData.is_support })
+          // NavigationService.resetRaw([
+          //   { name: "Dashboard" },
+          //   {
+          //     name: "MessageScreen",
+          //     params: { conversation: { conversation_id: notiData.conversationId } },
+          //   },
+          // ]);
         } else {
-          NavigationService.resetRaw([{ name: "Dashboard" }, { name: "NotificationScreen" }]);
+          navigationRef.current.navigate('NotificationScreen')
         }
       } else if (notiData.type === "profile_approved") {
         NavigationService.push("ProfileApprovedScreen");
@@ -609,6 +615,15 @@ const AppStack = ({ navgation }) => {
     configPurchase();
   }, []);
 
+  // Track screen changes
+  useEffect(() => {
+    const unsubscribe = NavigationService.addListener('state', (e) => {
+      VideoManager.stopCurrent()
+    });
+
+    return unsubscribe;
+  }, [currentUser]);
+
   // useEffect(() => {
   //   const unsubscribe = messaging().onMessage(async (remoteMessage) => {
   //     console.log("ACI?");
@@ -643,6 +658,7 @@ const AppStack = ({ navgation }) => {
         .then(() => { })
         .catch(() => { });
     };
+
 
     getDeviceId();
   }, []);
@@ -758,6 +774,7 @@ const AppStack = ({ navgation }) => {
       <Stack.Screen name="WelcomeBackScreen" component={WelcomeBackScreen} />
       <Stack.Screen name="BlurVideoScreen" component={BlurVideoScreen} />
       <Stack.Screen name="InterestVideoScreen" component={InterestVideoScreen} />
+      <Stack.Screen name="InviteFriendScreen" component={InviteFriendScreen} options={{ ...TransitionPresets.ModalSlideFromBottomIOS }}/>
     </Stack.Navigator>
   );
 };

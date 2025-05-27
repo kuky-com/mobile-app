@@ -41,7 +41,7 @@ import SubtitleDisplay from "../../components/SubtitleDisplay";
 import { set } from "date-fns";
 import apiClient, { NODE_ENV } from "../../utils/apiClient";
 import { uploadData, getUrl, } from 'aws-amplify/storage'
-import { getAuthenScreen, getVideoResizeDimensions } from "../../utils/utils";
+import { capitalize, getAuthenScreen, getVideoResizeDimensions } from "../../utils/utils";
 import Voice from '@react-native-voice/voice'
 import { PERMISSIONS, request } from "react-native-permissions";
 import SwitchWithText from "../../components/SwitchWithText";
@@ -454,7 +454,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
           } else if (currentUser?.askJPFSpecific) {
             NavigationService.reset('SpecificJPFScreen')
           } else if (!currentUser?.video_purpose) {
-            NavigationService.reset('JourneyVideoScreen')
+            NavigationService.reset('JourneyVideoScreen', { fromOnboarding: true })
           } else if (!currentUser?.journey_id) {
             NavigationService.reset('MatchingInfoUpdateScreen', { fromOnboarding: true })
           } else {
@@ -465,8 +465,47 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
     ])
   }
 
-  const updateProfile = (video, audio, subtitle, transcript) => {
-    console.log({ video_intro: video, audio_intro: audio })
+  const updateProfile = async (video, audio, subtitle, transcript) => {
+
+    if ((currentUser?.likeCount ?? 0) === 0 && (currentUser?.dislikeCount ?? 0) === 0) {
+      try {
+        const response = await axios.post('https://ugfgxk4hudtff26aeled4u3h3u0buuhr.lambda-url.ap-southeast-1.on.aws', {
+          s3_uri: audio
+        })
+        if (response && response.data && response.data.tags) {
+          const tags = response.data.tags
+
+          try {
+            if (tags.like) {
+              let names = []
+              if (tags.like && tags.like.length > 0) {
+                names = tags.like.map((item) => capitalize(item))
+              }
+
+              const res = await apiClient.post('interests/update-likes', { likes: names })
+            }
+          } catch (error) {
+            console.log({ error })
+          }
+
+          try {
+            if (tags.dislike) {
+              let names = []
+              if (tags.dislike && tags.dislike.length > 0) {
+                names = tags.dislike.map((item) => capitalize(item))
+              }
+
+              const res = await apiClient.post('interests/update-dislikes', { dislikes: names })
+            }
+          } catch (error) {
+            console.log({ error })
+          }
+        }
+      } catch (error) {
+        console.log({ error })
+      }
+    }
+
     apiClient.post('users/update', {
       video_intro: video,
       audio_intro: audio,
@@ -491,7 +530,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
           } else if (currentUser?.askJPFSpecific) {
             NavigationService.reset('SpecificJPFScreen')
           } else if (!currentUser?.video_purpose) {
-            NavigationService.reset('JourneyVideoScreen')
+            NavigationService.reset('JourneyVideoScreen', { fromOnboarding: true })
           } else {
             NavigationService.reset('JourneyMatchingScreen')
           }
@@ -653,21 +692,21 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
   };
 
   const skipFromOnboarding = () => {
-      NavigationService.reset('JourneyVideoScreen', { fromOnboarding: true })
+    NavigationService.reset('JourneyVideoScreen', { fromOnboarding: true })
   }
 
   const onSkip = () => {
-    console.log({skipTime: currentUser?.skip_recording_count})
+    console.log({ skipTime: currentUser?.skip_recording_count })
     apiClient.post('users/update', {
       skip_recording_count: currentUser?.skip_recording_count ? currentUser?.skip_recording_count + 1 : 1
     })
       .then((res) => {
-        
+
       })
       .catch((error) => {
         console.log({ error })
       })
-      
+
     if (fromOnboarding || !currentUser?.journey_id) {
       skipFromOnboarding()
     } else {
@@ -1096,7 +1135,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
             </TouchableOpacity>
           )}
           <View style={{ height: 30, width: "100%", paddingBottom: insets.bottom + 10 }}>
-            {videoUrl && (
+            {videoUrl && !processing && !loading && (
               <TouchableOpacity
                 onPress={clearVideo}
                 style={{

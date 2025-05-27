@@ -382,7 +382,7 @@ const MatchesScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Header showLogo />
+      <Header showLogo rightText="Invite Your Friends" rightAction={() => navigation.navigate('InviteFriendScreen')}/>
       <View style={{ paddingTop: 16, paddingBottom: 8, gap: 8, paddingHorizontal: 16, backgounrcColor: 'transparent' }}>
         <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 10, borderRadius: 5, paddingVertical: 5, alignItems: 'center', backgroundColor: '#E1E1E1' }}>
           <FontAwesome6 name='magnifying-glass' size={16} color='#8C8C8C' />

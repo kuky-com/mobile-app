@@ -1521,6 +1521,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
         onClose={() => setShowShare(null)}
         full_name={currentProfile?.full_name}
         shareLink={showShare ?? ""}
+        shareCode={currentProfile?.referral_id ?? ''}
       />
     </View>
   );

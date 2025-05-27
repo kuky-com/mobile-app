@@ -8,9 +8,11 @@ import * as Clipboard from 'expo-clipboard';
 import Toast from 'react-native-toast-message'
 import Share from 'react-native-share'
 import colors from '../utils/colors'
+import { FontAwesome6 } from '@expo/vector-icons'
 
-const ShareModal = ({ visible = false, onClose, full_name = '', shareLink = '' }) => {
+const ShareModal = ({ visible = false, onClose, full_name = '', shareLink = '', shareCode = '' }) => {
     const [copied, setCopied] = useState(false)
+    const [copiedCode, setCopiedCode] = useState(false)
     const [success, setSuccess] = useState(false)
 
     const onShare = async () => {
@@ -25,10 +27,16 @@ const ShareModal = ({ visible = false, onClose, full_name = '', shareLink = '' }
         }
     }
 
-    const onCopy = async () => {
+    const onCopyLink = async () => {
         await Clipboard.setStringAsync(shareLink);
-        Toast.show({text1: 'Link copied', type: 'success'})
+        Toast.show({ text1: 'Link copied', type: 'success' })
         setCopied(true)
+    }
+
+    const onCopyCode = async () => {
+        await Clipboard.setStringAsync(shareCode);
+        Toast.show({ text1: 'Referral code copied', type: 'success' })
+        setCopiedCode(true)
     }
 
     const singleShare = async (type) => {
@@ -51,7 +59,7 @@ const ShareModal = ({ visible = false, onClose, full_name = '', shareLink = '' }
     const onCloseModal = () => {
         setCopied(false)
         setSuccess(false)
-        if(onClose) onClose()
+        if (onClose) onClose()
     }
 
     return (
@@ -88,10 +96,23 @@ const ShareModal = ({ visible = false, onClose, full_name = '', shareLink = '' }
                             </View>
                         </View>
 
-                        <TouchableOpacity onPress={onCopy} style={{ paddingHorizontal: 16, width: '100%', maxWidth: 300, borderRadius: 10, backgroundColor: '#B5ABE2', height: 54, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                            <Text style={{ color: copied ? colors.mainColor : '#333333', fontSize: 16, fontWeight: 'bold', flex: 1 }}>{copied ? 'Link copied' : 'Copy link'}</Text>
-                            <Image source={images.link_icon} style={{ width: 22, height: 22, tintColor: copied ? colors.mainColor : '#333333' }} contentFit='contain' />
+                        <TouchableOpacity onPress={onCopyLink} style={{ paddingHorizontal: 16, width: '100%', maxWidth: 300, borderRadius: 10, backgroundColor: '#B5ABE2', height: 54, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                            <View style={{ gap: 3, flex: 1 }}>
+                                <Text style={{ color: copied ? colors.mainColor : '#333333', fontSize: 15, fontWeight: 'bold' }}>{copied ? 'Link copied' : 'Profile link'}</Text>
+                                <Text style={{ color: copied ? colors.mainColor : '#333333', fontSize: 10, fontWeight: 'bold' }}>{shareLink}</Text>
+                            </View>
+                            <FontAwesome6 name='copy' size={22} color={copied ? colors.mainColor : '#333333'} />
                         </TouchableOpacity>
+
+                        {shareCode && shareCode.length > 0 &&
+                            <TouchableOpacity onPress={onCopyCode} style={{ paddingHorizontal: 16, width: '100%', maxWidth: 300, borderRadius: 10, backgroundColor: '#B5ABE2', height: 54, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                                <View style={{ gap: 3, flex: 1 }}>
+                                    <Text style={{ color: copiedCode ? colors.mainColor : '#333333', fontSize: 15, fontWeight: 'bold' }}>{copiedCode ? 'Code copied' : 'Referral code'}</Text>
+                                    <Text style={{ color: copiedCode ? colors.mainColor : '#333333', fontSize: 10, fontWeight: 'bold' }}>{shareCode}</Text>
+                                </View>
+                                <FontAwesome6 name='copy' size={22} color={copiedCode ? colors.mainColor : '#333333'} />
+                            </TouchableOpacity>
+                        }
 
                         <TouchableOpacity onPress={() => onShare()} style={styles.button}>
                             <Text style={styles.buttonText}>{'Share Profile'}</Text>
