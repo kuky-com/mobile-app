@@ -76,6 +76,18 @@ export const getAuthenScreen = (currentUser, fromRecording = false) => {
     return 'Dashboard'
 }
 
+export const getVersionNumber = (version) => {
+    const parts = version.split('.');
+    if (parts.length === 1) {
+        return parts[0] * 1;
+    } else if (parts.length === 2) {
+        return parts[0] * 100 + parts[1] * 1;
+    } else if (parts.length === 3) {
+        return parts[0] * 10000 + parts[1] * 100 + parts[2] * 1;
+    }
+    return 0;
+}
+
 export const getVideoResizeDimensions = async (filePath) => {
     const command = `-v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "${filePath}"`;
     return new Promise((resolve, reject) => {

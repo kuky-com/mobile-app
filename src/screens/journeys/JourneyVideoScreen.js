@@ -472,10 +472,12 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
             {
                 text: 'Skip Video Uploading', onPress: () => {
                     if (fromOnboarding || (!currentUser?.journey_id && !currentUser?.video_intro)) {
-                        if (!currentUser?.journey_id) {
+                        if (!currentUser?.video_intro) {
+                            NavigationService.reset('MatchingInfoUpdateScreen', { fromOnboarding: true })
+                        } else if (!currentUser?.journey_id) {
                             NavigationService.reset('JourneyMatchingScreen')
                         } else {
-                            NavigationService.reset('MatchingInfoUpdateScreen', { fromOnboarding: true })
+                            NavigationService.reset('Dashboard')
                         }
                     } else {
                         NavigationService.reset('Dashboard')
@@ -661,11 +663,25 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
 
 
     const onSkip = () => {
+        if (currentUser?.video_intro) {
+            apiClient.post('users/update', {
+                skip_recording_count: currentUser?.skip_recording_count ? currentUser?.skip_recording_count + 1 : 1
+            })
+                .then((res) => {
+
+                })
+                .catch((error) => {
+                    console.log({ error })
+                })
+        }
+
         if (fromOnboarding || (!currentUser?.journey_id && !currentUser?.video_intro)) {
-            if (!currentUser?.journey_id) {
+            if (!currentUser?.video_intro) {
+                NavigationService.reset('MatchingInfoUpdateScreen', { fromOnboarding: true })
+            } else if (!currentUser?.journey_id) {
                 NavigationService.reset('JourneyMatchingScreen')
             } else {
-                NavigationService.reset('MatchingInfoUpdateScreen', { fromOnboarding: true })
+                NavigationService.reset('Dashboard')
             }
         } else {
             NavigationService.reset('Dashboard')

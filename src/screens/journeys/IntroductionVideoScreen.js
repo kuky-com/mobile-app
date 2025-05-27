@@ -696,7 +696,6 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
   }
 
   const onSkip = () => {
-    console.log({ skipTime: currentUser?.skip_recording_count })
     apiClient.post('users/update', {
       skip_recording_count: currentUser?.skip_recording_count ? currentUser?.skip_recording_count + 1 : 1
     })

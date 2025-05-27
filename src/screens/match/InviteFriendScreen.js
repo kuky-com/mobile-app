@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
     View,
     TouchableOpacity,
     ScrollView,
     StyleSheet,
     Alert,
-    Image
+    Image,
+    Keyboard
 } from 'react-native';
 import { FontAwesome6 } from '@expo/vector-icons';
 import apiClient from '@/utils/apiClient';
@@ -24,6 +25,7 @@ const InviteFriendScreen = ({ navigation }) => {
     const [inviteList, setInviteList] = useState([]);
     const [loading, setLoading] = useState(false);
     const insets = useSafeAreaInsets();
+    const emailRef = useRef(null);
 
     const validateEmail = (email) => {
         return email.match(
@@ -32,6 +34,7 @@ const InviteFriendScreen = ({ navigation }) => {
     };
 
     const addToInviteList = () => {
+        Keyboard.dismiss()
         if (!name.trim() || !email.trim()) {
             Toast.show({
                 text1: 'Please enter both name and email',
@@ -151,6 +154,7 @@ const InviteFriendScreen = ({ navigation }) => {
                             value={name}
                             onChangeText={setName}
                             placeholderTextColor="#8C8C8C"
+                            onSubmitEditing={() => emailRef.current?.focus()}
                         />
                     </View>
                     <View style={[styles.inputContainer, {paddingRight: 5}]}>
@@ -162,6 +166,8 @@ const InviteFriendScreen = ({ navigation }) => {
                             keyboardType="email-address"
                             autoCapitalize="none"
                             placeholderTextColor="#8C8C8C"
+                            ref={emailRef}
+                            onSubmitEditing={() => addToInviteList()}
                         />
                         <TouchableOpacity
                             style={{

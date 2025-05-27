@@ -117,7 +117,7 @@ import JourneyVideoScreen from "./journeys/JourneyVideoScreen";
 import JourneyMatchingScreen from "./journeys/JourneyMatchingScreen";
 import IntroductionVideoTutorialScreen from "./journeys/IntroductionVideoTutorialScreen";
 import { linkingUrlAtom, tokenAtom } from "../actions/global";
-import { getAuthenScreen } from "../utils/utils";
+import { getAuthenScreen, getVersionNumber } from "../utils/utils";
 import Toast from "react-native-toast-message";
 import WelcomeBackScreen from "./journeys/WelcomeBackScreen";
 import BlurVideoScreen from "./journeys/BlurVideoScreen";
@@ -125,6 +125,7 @@ import InterestVideoScreen from "./journeys/InterestVideoScreen";
 import SupportProfileScreen from "./chat/SupportProfileScreen";
 import InviteFriendScreen from "./match/InviteFriendScreen";
 import VideoManager from "../components/VideoManager";
+import { NODE_ENV } from "../utils/apiClient";
 
 SendbirdCalls.setListener({
   onRinging: async (callProps) => {
@@ -283,8 +284,14 @@ const AppStack = ({ navgation }) => {
   // Onesignal setup for logged in user
   useEffect(() => {
     if (currentUser && currentUser?.id) {
-      OneSignal.login(`${process.env.NODE_ENV}_${currentUser.id}`);
-      console.log('OneSignal login', `${process.env.NODE_ENV}_${currentUser.id}`);
+      OneSignal.login(`${NODE_ENV}_${currentUser.id}`);
+      OneSignal.User.addEmail(currentUser?.email)
+      try {
+        OneSignal.User.pushSubscription.optIn()
+      } catch (error) {
+        
+      }
+      console.log('OneSignal login', `${NODE_ENV}_${currentUser.id}`);
     } else {
       console.log('OneSignal logout');
       OneSignal.logout();
@@ -420,7 +427,10 @@ const AppStack = ({ navgation }) => {
 
             const appVersion = DeviceInfo.getVersion();
 
-            if (appVersion < version) {
+            const versionNumber = getVersionNumber(version)
+            const appVersionNumber = getVersionNumber(appVersion)
+
+            if (appVersionNumber < versionNumber) {
               if (Platform.select({ ios: res.data.data.is_required, android: res.data.data.is_required_android })) {
                 showUpdateAlert(
                   `Version ${version}`,
@@ -774,7 +784,7 @@ const AppStack = ({ navgation }) => {
       <Stack.Screen name="WelcomeBackScreen" component={WelcomeBackScreen} />
       <Stack.Screen name="BlurVideoScreen" component={BlurVideoScreen} />
       <Stack.Screen name="InterestVideoScreen" component={InterestVideoScreen} />
-      <Stack.Screen name="InviteFriendScreen" component={InviteFriendScreen} options={{ ...TransitionPresets.ModalSlideFromBottomIOS }}/>
+      <Stack.Screen name="InviteFriendScreen" component={InviteFriendScreen}/>
     </Stack.Navigator>
   );
 };
