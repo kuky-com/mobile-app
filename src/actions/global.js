@@ -11,8 +11,13 @@ export const pushTokenAtom = atom(null)
 export const notiCounterAtom = atom(0)
 
 export const totalMessageCounterAtom = atom({})
-
 export const totalMessageUnreadAtom = atom(0)
+
+export const totalOtherMessageCounterAtom = atom({})
+export const totalOtherMessageUnreadAtom = atom(0)
+
+export const totalSupportMessageCounterAtom = atom({})
+export const totalSupportMessageUnreadAtom = atom(0)
 
 export const sampleProfileViewAtom = atom(0)
 

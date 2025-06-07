@@ -24,6 +24,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import NavigationService, { navigationRef } from "../utils/NavigationService";
 import { OneSignal } from "react-native-onesignal";
 import Notifee, { AndroidImportance } from "@notifee/react-native";
+import { totalOtherMessageUnreadAtom, totalSupportMessageUnreadAtom } from "../actions/global";
 
 const ONESIGNAL_APP_ID = "c3fb597e-e318-4eab-9d90-cd43b9491bc1";
 
@@ -65,6 +66,8 @@ const Tabbar = ({ navigation, state }) => {
   const insets = useSafeAreaInsets();
   const currentIndex = state.index;
   const totalUnreadRaw = useAtomValue(totalMessageUnreadAtom);
+  const totalOtherUnreadRaw = useAtomValue(totalOtherMessageUnreadAtom);
+  const totalSupportUnread = useAtomValue(totalSupportMessageUnreadAtom)
   const [notiCounter, setNotiCounter] = useAtom(notiCounterAtom);
   const url = Linking.useURL();
   const urlHandleRef = useRef(null);
@@ -79,7 +82,7 @@ const Tabbar = ({ navigation, state }) => {
     navigation.jumpTo(routes[tabIndex].name);
     updateLastActive()
 
-    if(tabIndex === 1) {
+    if (tabIndex === 1) {
       DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS)
     }
   };
@@ -125,9 +128,9 @@ const Tabbar = ({ navigation, state }) => {
 
   useEffect(() => {
     try {
-      Notifee.setBadgeCount(totalUnreadRaw + notiCounter);
+      Notifee.setBadgeCount(totalUnreadRaw + totalSupportUnread + notiCounter);
     } catch (error) { }
-  }, [totalUnreadRaw, notiCounter]);
+  }, [totalUnreadRaw, totalSupportUnread, notiCounter]);
 
   useEffect(() => {
     try {
@@ -155,18 +158,43 @@ const Tabbar = ({ navigation, state }) => {
               }
             }
             if (route?.path && route?.hostname.includes("conversation")) {
-              const conversation_id = route?.path.split('/')[1];
-              const token = await AsyncStorage.getItem("ACCESS_TOKEN");
-              if (token) {
-                if (navigationRef.current.getCurrentRoute().name === "ConnectProfileScreen") {
-                  NavigationService.replace("MessageScreen", {
-                    conversation: { conversation_id: conversation_id },
-                  });
+              try {
+                if (route?.path.split('/').length >= 2) {
+                  const conversation_id = route?.path.split('/')[1];
+                  const token = await AsyncStorage.getItem("ACCESS_TOKEN");
+                  if (token) {
+                    if (navigationRef.current.getCurrentRoute().name === "ConnectProfileScreen") {
+                      NavigationService.replace("MessageScreen", {
+                        conversation: { conversation_id: conversation_id },
+                      });
+                    } else {
+                      NavigationService.push("MessageScreen", {
+                        conversation: { conversation_id: conversation_id },
+                      });
+                    }
+                  }
                 } else {
-                  NavigationService.push("MessageScreen", {
-                    conversation: { conversation_id: conversation_id },
-                  });
+                  NavigationService.resetRaw([
+                    {
+                      name: "Dashboard",
+                      state: {
+                        index: 1,
+                        routes: [{ name: "ExploreScreen" }, { name: "MatchesScreen" }, { name: "ProfileScreen" }],
+                      },
+                    },
+                  ]);
                 }
+
+              } catch (error) {
+                NavigationService.resetRaw([
+                  {
+                    name: "Dashboard",
+                    state: {
+                      index: 1,
+                      routes: [{ name: "ExploreScreen" }, { name: "MatchesScreen" }, { name: "ProfileScreen" }],
+                    },
+                  },
+                ]);
               }
             }
           } else {
@@ -184,18 +212,32 @@ const Tabbar = ({ navigation, state }) => {
             }
             if (route?.hostname === "conversation") {
               const conversation_id = route?.path;
-              const token = await AsyncStorage.getItem("ACCESS_TOKEN");
-              if (token) {
-                if (navigationRef.current.getCurrentRoute().name === "ConnectProfileScreen") {
-                  NavigationService.replace("MessageScreen", {
-                    conversation: { conversation_id: conversation_id },
-                  });
-                } else {
-                  NavigationService.push("MessageScreen", {
-                    conversation: { conversation_id: conversation_id },
-                  });
+
+              if (conversation_id) {
+                const token = await AsyncStorage.getItem("ACCESS_TOKEN");
+                if (token) {
+                  if (navigationRef.current.getCurrentRoute().name === "ConnectProfileScreen") {
+                    NavigationService.replace("MessageScreen", {
+                      conversation: { conversation_id: conversation_id },
+                    });
+                  } else {
+                    NavigationService.push("MessageScreen", {
+                      conversation: { conversation_id: conversation_id },
+                    });
+                  }
                 }
+              } else {
+                NavigationService.resetRaw([
+                  {
+                    name: "Dashboard",
+                    state: {
+                      index: 1,
+                      routes: [{ name: "ExploreScreen" }, { name: "MatchesScreen" }, { name: "ProfileScreen" }],
+                    },
+                  },
+                ]);
               }
+
             }
           }
         }, 1000);
@@ -275,7 +317,7 @@ const Tabbar = ({ navigation, state }) => {
               Connections
             </Text>
 
-            {totalUnreadRaw > 0 && (
+            {(totalUnreadRaw + totalSupportUnread + totalOtherUnreadRaw) > 0 && (
               <View
                 style={{
                   position: "absolute",
@@ -290,7 +332,7 @@ const Tabbar = ({ navigation, state }) => {
                 }}
               >
                 <Text style={{ fontSize: 8, fontWeight: "500", color: "white" }}>
-                  {totalUnreadRaw > 99 ? "..." : totalUnreadRaw}
+                  {(totalUnreadRaw + totalSupportUnread + totalOtherUnreadRaw) > 99 ? "..." : (totalUnreadRaw + totalSupportUnread + totalOtherUnreadRaw)}
                 </Text>
               </View>
             )}

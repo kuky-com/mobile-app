@@ -3,8 +3,6 @@ import Text from "@/components/Text";
 import apiClient from "@/utils/apiClient";
 import colors from "@/utils/colors";
 import images from "@/utils/images";
-import dayjs from "dayjs";
-import { Image } from "expo-image";
 import React, { useEffect, useRef, useState } from "react";
 import {
   AppState,
@@ -21,15 +19,16 @@ import ConversationListItem from "./components/ConversationListItem";
 import { SheetManager } from "react-native-actions-sheet";
 import Toast from "react-native-toast-message";
 import constants from "@/utils/constants";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { totalMessageCounterAtom, totalMessageUnreadAtom, userAtom } from "@/actions/global";
 import analytics from '@react-native-firebase/analytics'
 import Purchases from "react-native-purchases";
 import TextInput from "../../components/TextInput";
 import { FontAwesome6 } from "@expo/vector-icons";
 import AvatarImage from "../../components/AvatarImage";
-import { set } from "date-fns";
 import SupportListItem from "./components/SupportListItem";
+import { totalOtherMessageCounterAtom, totalOtherMessageUnreadAtom, totalSupportMessageCounterAtom, totalSupportMessageUnreadAtom } from "../../actions/global";
+import firestore from '@react-native-firebase/firestore';
 
 const styles = StyleSheet.create({
   container: {
@@ -44,8 +43,15 @@ const MatchesScreen = ({ navigation }) => {
   const [matches, setMatches] = useState([]);
   const [unverifyMatches, setUnverifyMatches] = useState([]);
   const [isFetching, setFetching] = useState(false);
-  const unreadMessage = useAtomValue(totalMessageCounterAtom);
-  const setUnreadCounter = useSetAtom(totalMessageUnreadAtom);
+  
+  // Message counter atoms
+  const [unreadCounterMessage, setTotalCounterUnread] = useAtom(totalMessageCounterAtom);
+  const [unreadMessage, setUnreadMessage] = useAtom(totalMessageUnreadAtom);
+  const [unreadOtherMessage, setTotalOtherUnread] = useAtom(totalOtherMessageCounterAtom);
+  const [otherUnread, setOtherUnreadCounter] = useAtom(totalOtherMessageUnreadAtom);
+  const [supportUnreadCounter, setSupportUnreadCounter] = useAtom(totalSupportMessageCounterAtom);
+  const [supportUnread, setSupportUnread] = useAtom(totalSupportMessageUnreadAtom);
+  
   const [isPremium, setIsPremium] = useState(true);
   const [freeTotal, setFreeTotal] = useState(0);
   const [freeCount, setFreeCount] = useState(0);
@@ -54,8 +60,11 @@ const MatchesScreen = ({ navigation }) => {
   const [allUsers, setAllUsers] = useState([]);
 
   const [viewMode, setViewMode] = useState("connections");
-
   const [recentMatches, setRecentMatches] = useState([]);
+  
+  // Message management state
+  const [conversationMessages, setConversationMessages] = useState({});
+  const [conversationCallIcons, setConversationCallIcons] = useState({});
 
   useEffect(() => {
     analytics().logScreenView({
@@ -87,7 +96,7 @@ const MatchesScreen = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    let eventListener = DeviceEventEmitter.addListener(constants.REFRESH_SUGGESTIONS, (event) => {
+    let eventListener = DeviceEventEmitter.addListener(constants.REFRESH_SUGGESTIONS, () => {
       onRefresh();
     });
 
@@ -96,21 +105,181 @@ const MatchesScreen = ({ navigation }) => {
     };
   }, []);
 
+  // Centralized message listener for all conversation types
+  useEffect(() => {
+    const allUnsubscribers = {};
+
+    // Helper function to create a listener for a conversation
+    const createConversationListener = (conversationId, conversationType) => {
+      if (allUnsubscribers[conversationId]) {
+        return; // Already listening to this conversation
+      }
+
+      const unsubscribe = firestore()
+        .collection('conversations')
+        .doc(conversationId)
+        .collection('messages')
+        .orderBy('createdAt', 'desc')
+        .onSnapshot(querySnapshot => {
+          if (querySnapshot.empty) {
+            // Update appropriate unread counter atom based on conversation type
+            if (conversationType === 'verified') {
+              setTotalCounterUnread((prev) => ({ ...(prev ?? {}), [conversationId]: 0 }));
+            } else if (conversationType === 'unverified') {
+              setTotalOtherUnread((prev) => ({ ...(prev ?? {}), [conversationId]: 0 }));
+            } else if (conversationType === 'support') {
+              setSupportUnreadCounter((prev) => ({ ...(prev ?? {}), [conversationId]: 0 }));
+            }
+          } else {
+            const messagesFirestore = querySnapshot.docs.length > 0 ? querySnapshot.docs[0].data() : null;
+            
+            // Calculate unread count based on user type
+            const readByField = (currentUser?.is_support && conversationType === 'support') ? 1 : currentUser?.id;
+            const counter = querySnapshot.docs.length - querySnapshot.docs.filter((item) => 
+              item.data().readBy.includes(readByField)
+            ).length;
+
+            // Update appropriate unread counter atom
+            if (conversationType === 'verified') {
+              setTotalCounterUnread((prev) => ({ ...(prev ?? {}), [conversationId]: counter }));
+            } else if (conversationType === 'unverified') {
+              setTotalOtherUnread((prev) => ({ ...(prev ?? {}), [conversationId]: counter }));
+            } else if (conversationType === 'support') {
+              setSupportUnreadCounter((prev) => ({ ...(prev ?? {}), [conversationId]: counter }));
+            }
+
+            // Process message content and call icons
+            let lastMessage = null;
+            let callIcon = null;
+
+            if (messagesFirestore?.type === 'missed_video_call') {
+              lastMessage = 'Missed video call';
+              callIcon = {
+                source: messagesFirestore?.sendBy === currentUser?.id ? images.video_out_icon : images.video_in_icon,
+                tintColor: "#f44336"
+              };
+            } else if (messagesFirestore?.type === 'missed_voice_call') {
+              lastMessage = 'Missed voice call';
+              callIcon = {
+                source: messagesFirestore?.sendBy === currentUser?.id ? images.call_out_icon : images.call_in_icon,
+                tintColor: "#f44336"
+              };
+            } else if (messagesFirestore?.type === 'video_call') {
+              lastMessage = `Video call\n${messagesFirestore.text}`;
+              callIcon = {
+                source: messagesFirestore?.sendBy === currentUser?.id ? images.video_out_icon : images.video_in_icon
+              };
+            } else if (messagesFirestore?.type === 'voice_call') {
+              lastMessage = `Voice call\n${messagesFirestore.text}`;
+              callIcon = {
+                source: messagesFirestore?.sendBy === currentUser?.id ? images.call_out_icon : images.call_in_icon
+              };
+            } else {
+              lastMessage = messagesFirestore ? messagesFirestore.text : null;
+              callIcon = null;
+            }
+
+            // Update conversation messages state
+            setConversationMessages(prev => ({
+              ...prev,
+              [conversationId]: { lastMessage, unreadCount: counter }
+            }));
+            
+            // Update call icons (only for non-support conversations)
+            if (conversationType !== 'support') {
+              setConversationCallIcons(prev => ({
+                ...prev,
+                [conversationId]: callIcon
+              }));
+            }
+          }
+        });
+
+      allUnsubscribers[conversationId] = unsubscribe;
+    };
+
+    // Set up listeners for verified matches
+    matches.forEach(conversation => {
+      createConversationListener(conversation.conversation_id, 'verified');
+    });
+
+    // Set up listeners for unverified matches
+    unverifyMatches.forEach(conversation => {
+      createConversationListener(conversation.conversation_id, 'unverified');
+    });
+
+    // Set up listeners for support conversations
+    const supportConversations = allUsers.filter(user => user.match_info?.conversation_id);
+    supportConversations.forEach(user => {
+      createConversationListener(user.match_info.conversation_id, 'support');
+    });
+
+    // Clean up old listeners for conversations that no longer exist
+    const currentConversationIds = new Set([
+      ...matches.map(m => m.conversation_id),
+      ...unverifyMatches.map(m => m.conversation_id),
+      ...supportConversations.map(u => u.match_info.conversation_id)
+    ]);
+
+    Object.keys(allUnsubscribers).forEach(conversationId => {
+      if (!currentConversationIds.has(conversationId)) {
+        allUnsubscribers[conversationId]?.();
+        delete allUnsubscribers[conversationId];
+        
+        // Clean up state for removed conversations
+        setConversationMessages(prev => {
+          const newState = { ...prev };
+          delete newState[conversationId];
+          return newState;
+        });
+        setConversationCallIcons(prev => {
+          const newState = { ...prev };
+          delete newState[conversationId];
+          return newState;
+        });
+      }
+    });
+
+    // Store unsubscribers for cleanup in the return function
+    return () => {
+      Object.values(allUnsubscribers).forEach(unsubscribe => unsubscribe?.());
+    };
+  }, [matches, unverifyMatches, allUsers, currentUser?.id, currentUser?.is_support]);
+
   useEffect(() => {
     try {
       let counter = 0;
+      let otherCounter = 0;
+      let supportCounter = 0;
+
       for (const match of matches) {
         try {
-          counter += unreadMessage[match.conversation_id] ?? 0;
+          counter += unreadCounterMessage[match.conversation_id] ?? 0;
         } catch (error) {
           console.log({ error });
         }
       }
-      setUnreadCounter(counter);
+      for (const match of unverifyMatches) {
+        try {
+          otherCounter += unreadOtherMessage[match.conversation_id] ?? 0;
+        } catch (error) {
+          console.log({ error });
+        }
+      }
+      for (const match of allUsers) {
+        try {
+          supportCounter += supportUnreadCounter[match?.match_info?.conversation_id] ?? 0;
+        } catch (error) {
+          console.log({ error });
+        }
+      }
+      setOtherUnreadCounter(otherCounter)
+      setUnreadMessage(counter);
+      setSupportUnread(supportCounter);
     } catch (error) {
       console.log({ error });
     }
-  }, [matches, unreadMessage]);
+  }, [matches, unreadCounterMessage, supportUnreadCounter, unreadOtherMessage, allUsers]);
 
   const loadSubscriptionInfo = async () => {
     try {
@@ -229,7 +398,7 @@ const MatchesScreen = ({ navigation }) => {
   };
 
   const openSupportChat = (item) => {
-    console.log({match: item?.match_info})
+    console.log({ match: item?.match_info })
     if (item?.match_info) {
       navigation.push("MessageScreen", { conversation: item?.match_info, is_support: true });
     } else {
@@ -314,6 +483,9 @@ const MatchesScreen = ({ navigation }) => {
   };
 
   const renderItem = ({ item, index }) => {
+    const messageData = conversationMessages[item.conversation_id];
+    const callIcon = conversationCallIcons[item.conversation_id];
+    
     return (
       <ConversationListItem
         onPress={() => openChat(item)}
@@ -322,17 +494,25 @@ const MatchesScreen = ({ navigation }) => {
         marginBottom={index === matches.length - 1 ? insets.bottom + 70 : 0}
         onDisconnect={() => onDisconnect(item)}
         isPremium={isPremium}
+        lastMessage={messageData?.lastMessage}
+        unreadCount={messageData?.unreadCount || 0}
+        callIcon={callIcon}
       />
     );
   };
 
   const renderSupportItem = ({ item, index }) => {
+    const conversationId = item.match_info?.conversation_id;
+    const messageData = conversationId ? conversationMessages[conversationId] : null;
+    
     return (
       <SupportListItem
         onPress={() => openSupportChat(item)}
         key={`support-conversation-${item.id}`}
         user={item}
         marginBottom={index === allUsers.length - 1 ? insets.bottom + 70 : 0}
+        lastMessage={messageData?.lastMessage}
+        unreadCount={messageData?.unreadCount || 0}
       />
     );
   };
@@ -363,6 +543,7 @@ const MatchesScreen = ({ navigation }) => {
 
   const renderHeader = () => {
     if (viewMode === 'others' || viewMode === 'support') return null
+    if(recentMatches.length === 0) return null
 
     return (
       <View style={{ paddingBottom: 3, gap: 8, backgounrcColor: 'transparent' }}>
@@ -382,7 +563,7 @@ const MatchesScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Header showLogo rightText="Invite Your Friends" rightAction={() => navigation.navigate('InviteFriendScreen')}/>
+      <Header showLogo rightText="Invite Your Friends" rightAction={() => navigation.navigate('InviteFriendScreen')} />
       <View style={{ paddingTop: 16, paddingBottom: 8, gap: 8, paddingHorizontal: 16, backgounrcColor: 'transparent' }}>
         <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 10, borderRadius: 5, paddingVertical: 5, alignItems: 'center', backgroundColor: '#E1E1E1' }}>
           <FontAwesome6 name='magnifying-glass' size={16} color='#8C8C8C' />
@@ -400,14 +581,29 @@ const MatchesScreen = ({ navigation }) => {
       <View style={{ flexDirection: 'row', paddingVertical: 8, paddingHorizontal: 16, backgroundColor: 'white' }}>
         <TouchableOpacity onPress={() => setViewMode('connections')} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 8, borderBottomWidth: viewMode === 'connections' ? 2 : 0, borderBottomColor: colors.mainColor }}>
           <Text style={{ fontSize: 14, color: "#79797A", fontWeight: 'bold' }}>Connections</Text>
+          {!!unreadMessage && unreadMessage > 0 &&
+              <View style={{ position: 'absolute', top: -5, right: 0, backgroundColor: '#FFD2D2', width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontSize: 10, color: 'black', fontWeight: 'bold' }}>{unreadMessage}</Text>
+              </View>
+            }
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setViewMode('others')} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 8, borderBottomWidth: viewMode === 'others' ? 2 : 0, borderBottomColor: colors.mainColor }}>
           <Text style={{ fontSize: 14, color: "#79797A", fontWeight: 'bold' }}>Others</Text>
+          {!!otherUnread && otherUnread > 0 &&
+            <View style={{ position: 'absolute', top: -5, right: 0, backgroundColor: '#FFD2D2', width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 10, color: 'black', fontWeight: 'bold' }}>{otherUnread}</Text>
+            </View>
+          }
         </TouchableOpacity>
         {
           currentUser?.is_support &&
           <TouchableOpacity onPress={() => setViewMode('support')} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 8, borderBottomWidth: viewMode === 'support' ? 2 : 0, borderBottomColor: colors.mainColor }}>
             <Text style={{ fontSize: 14, color: "#79797A", fontWeight: 'bold' }}>Support</Text>
+            {!!supportUnread && supportUnread > 0 &&
+              <View style={{ position: 'absolute', top: -5, right: 0, backgroundColor: '#FFD2D2', width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontSize: 10, color: 'black', fontWeight: 'bold' }}>{supportUnread}</Text>
+              </View>
+            }
           </TouchableOpacity>
         }
       </View>

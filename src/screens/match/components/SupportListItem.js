@@ -1,70 +1,16 @@
-import { totalMessageCounterAtom, userAtom } from '@/actions/global'
+import { userAtom } from '@/actions/global'
 import Text from '@/components/Text'
 import colors from '@/utils/colors'
-import images from '@/utils/images'
 import dayjs from 'dayjs'
-import { Image } from 'expo-image'
-import { useAtom, useAtomValue, useSetAtom } from 'jotai'
-import React, { useEffect, useRef, useState } from 'react'
-import { Pressable, StyleSheet, TouchableOpacity, View } from 'react-native'
-import { SwipeRow } from 'react-native-swipe-list-view'
-import firestore from '@react-native-firebase/firestore';
+import { useAtomValue } from 'jotai'
+import React from 'react'
+import { Pressable, View } from 'react-native'
 import AvatarImage from '@/components/AvatarImage'
 
-const styles = StyleSheet.create({
-    standaloneRowBack: {
-        alignItems: 'center',
-        flex: 1,
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        padding: 15,
-    },
-})
-
-const SupportListItem = ({ onPress, user, marginBottom }) => {
-    const currentUser = useAtomValue(userAtom)
-
-    const [unreadCount, setUnreadCount] = useState(0)
-    const [lastMessageCloud, setLastMessage] = useState(user?.match_info ? (user?.match_info?.last_message ?? 'Not started yet') : 'Not started yet')
-    const [totalUnread, setTotalUnread] = useAtom(totalMessageCounterAtom)
-
-    useEffect(() => {
-        if (user && user.match_info && user.match_info.conversation_id) {
-            const unsubscribe = firestore()
-                .collection('conversations')
-                .doc(user.match_info.conversation_id)
-                .collection('messages')
-                .orderBy('createdAt', 'desc')
-                .onSnapshot(querySnapshot => {
-                    if (querySnapshot.empty) {
-                        setTotalUnread((prev) => ({ ...(prev ?? {}), [user.match_info.conversation_id]: 1 }))
-                    } else {
-                        const messagesFirestore = querySnapshot.docs.length > 0 ? querySnapshot.docs[0].data() : null
-
-                        const counter = querySnapshot.docs.length - querySnapshot.docs.filter((item) => item.data().readBy.includes(currentUser?.id)).length
-                        setUnreadCount(counter)
-                        setTotalUnread((prev) => ({ ...(prev ?? {}), [user.match_info.conversation_id]: counter }))
-
-                        let lastMessage = null
-                        if (messagesFirestore.type === 'missed_video_call') {
-                            lastMessage = 'Missed video call'
-                        } else if (messagesFirestore.type === 'missed_voice_call') {
-                            lastMessage = 'Missed voice call'
-                        } else if (messagesFirestore.type === 'video_call') {
-                            lastMessage = `Video call\n${messagesFirestore.text}`
-                        } else if (messagesFirestore.type === 'voice_call') {
-                            lastMessage = `Voice call\n${messagesFirestore.text}`
-                        } else {
-                            lastMessage = messagesFirestore ? messagesFirestore.text : null
-                        }
-
-                        setLastMessage(lastMessage);
-                    }
-                });
-
-            return () => unsubscribe();
-        }
-    }, [user?.match_info?.conversation_id]);
+const SupportListItem = ({ onPress, user, marginBottom, lastMessage: lastMessageProp, unreadCount: unreadCountProp }) => {
+    const currentUser = useAtomValue(userAtom)    // Use props if available, otherwise fall back to user data
+    const unreadCount = unreadCountProp ?? 0;
+    const lastMessageCloud = lastMessageProp ?? (user?.match_info ? (user?.match_info?.last_message ?? 'Not started yet') : 'Not started yet');
 
     const openDetail = () => {
         onPress && onPress()

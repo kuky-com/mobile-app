@@ -179,7 +179,7 @@ const ProfileScreen = ({ navigation }) => {
                 endDate = dayjs(reportDate).endOf('month');
             }
 
-            console.log({ startDate: startDate.format('DD/MM/YYYY'), endDate: endDate.format('DD/MM/YYYY') })   
+            console.log({ startDate: startDate.format('DD/MM/YYYY'), endDate: endDate.format('DD/MM/YYYY') })
 
             apiClient.get(`users/stats?start_date=${startDate.format('DD/MM/YYYY')}&end_date=${endDate.format('DD/MM/YYYY')}`)
                 .then((res) => {
@@ -196,6 +196,10 @@ const ProfileScreen = ({ navigation }) => {
     useEffect(() => {
         refreshModeratorData()
     }, [reportDate, halfMonth])
+
+    const openModeratorFAQs = () => {
+        navigation.push('ModeratorFAQsScreen')
+    }
 
     const onAddDislikes = () => {
         // navigation.push('DislikeUpdateScreen', { dislikes: dislikes, onUpdated: (newList) => setDislikes(newList) })
@@ -304,7 +308,7 @@ const ProfileScreen = ({ navigation }) => {
         apiClient.get(`matches/start-chat-support`)
             .then((res) => {
                 if (res && res.data && res.data.data) {
-                    navigation.push('MessageScreen', {conversation: res.data.data})
+                    navigation.push('MessageScreen', { conversation: res.data.data })
                 }
             })
             .catch((error) => {
@@ -361,6 +365,9 @@ const ProfileScreen = ({ navigation }) => {
                     </View>
                     <View style={{ flex: 1, gap: 5, justifyContent: 'center' }}>
                         <Text style={{ fontSize: 16, color: 'white', fontWeight: 'bold' }}>{`${currentUser?.full_name}`}</Text>
+                        {currentUser?.login_type !== 'apple' &&
+                            <Text style={{ fontSize: 12, color: '#eeeeee', fontWeight: '500' }}>{`${currentUser?.email}`}</Text>
+                        }
                         <TouchableOpacity onPress={onSetStatus} style={{ flexDirection: 'row', gap: 3, alignItems: 'center' }}>
                             <Text style={{ fontSize: 12, fontWeight: 'bold', color: 'white' }}>{capitalize(currentUser?.online_status)}</Text>
                             <FontAwesome6 name='chevron-down' size={12} color='white' />
@@ -731,9 +738,13 @@ const ProfileScreen = ({ navigation }) => {
                                 </View>
                             </View>
 
+                            <TouchableOpacity onPress={openModeratorFAQs} style={{ flexDirection: 'row', gap: 16, backgroundColor: 'white', borderWidth: 2, borderColor: '#725ED4', borderRadius: 10, padding: 16, alignItems: 'center', justifyContent: 'center' }}>
+                                <Text style={{ fontSize: 14, color: '#725ED4', fontWeight: "bold" }}>Frequently Asked Questions</Text>
+                            </TouchableOpacity>
+
                             <TouchableOpacity onPress={startChatSupport} style={{ flexDirection: 'row', gap: 16, backgroundColor: '#725ED4', borderRadius: 10, padding: 16, alignItems: 'center', justifyContent: 'center' }}>
                                 <FontAwesome6 name='headset' size={18} color='white' />
-                                <Text style={{fontSize: 14, color: 'white', fontWeight: "bold"}}>Kuky Support</Text>
+                                <Text style={{ fontSize: 14, color: 'white', fontWeight: "bold" }}>Kuky Support</Text>
                             </TouchableOpacity>
 
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
@@ -796,10 +807,10 @@ const ProfileScreen = ({ navigation }) => {
                                 <>
                                     <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>Statistics</Text>
                                     <View style={{ padding: 16, borderRadius: 10, backgroundColor: '#DEDEDE50', gap: 8 }}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', justifyContent: 'space-between' }}>
+                                        {/* <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', justifyContent: 'space-between' }}>
                                             <Text>Bonuses: </Text>
                                             <Text>{moderatorData.earning.bonuses}</Text>
-                                        </View>
+                                        </View> */}
                                         <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', justifyContent: 'space-between' }}>
                                             <Text>Next payout date: </Text>
                                             <Text>{moderatorData.earning.next_payment_date}</Text>
@@ -830,7 +841,7 @@ const ProfileScreen = ({ navigation }) => {
                                     </View>
                                 }
                                 {
-                                    (currentUser?.profile_approved === 'pending' || currentUser?.profile_approved === 'resubmitted') &&
+                                    (currentUser?.profile_approved === 'pending' || currentUser?.profile_approved === 'partially_approved' || currentUser?.profile_approved === 'resubmitted') &&
                                     <View style={{ width: '100%', flexDirection: 'row', gap: 16, alignItems: 'center' }}>
                                         <Image source={images.profile_pending} style={{ width: 25, height: 25 }} contentFit='contain' />
                                         <Text style={{ fontSize: 13, fontWeight: 'bold', color: 'black' }}>Your account is under review.</Text>
@@ -847,7 +858,7 @@ const ProfileScreen = ({ navigation }) => {
                                     currentUser?.profile_approved === 'rejected' &&
                                     <View style={{ width: '100%', gap: 8 }}>
                                         <Text style={{ fontSize: 13, fontWeight: 'bold', color: '#00000077' }}>Here is why:</Text>
-                                        <Text style={{ fontSize: 13, fontWeight: 'bold', color: 'black', paddingLeft: 8 }}>{currentUser?.profile_rejected_reason}</Text>
+                                        <Text style={{ fontSize: 13, fontWeight: 'bold', color: 'black', paddingLeft: 8, lineHeight: 18 }}>{currentUser?.profile_rejected_reason}</Text>
                                     </View>
                                 }
                                 {

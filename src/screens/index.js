@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Tabbar from "@/components/Tabbar";
 import { createStackNavigator, TransitionPresets } from "@react-navigation/stack";
@@ -87,7 +87,7 @@ import ConnectUsScreen from "./profile/ConnectUsScreen";
 import SampleExploreScreen from "./interest/SampleExploreScreen";
 import SampleProfileScreen from "./interest/SampleProfileScreen";
 import OnboardingVideoWalkthroughtScreen from "./onboarding/OnboardingVideoWalkthroughtScreen";
-import { LogLevel, OneSignal } from "react-native-onesignal";
+import { LogLevel, OneSignal, OSNotification } from "react-native-onesignal";
 
 const ONESIGNAL_APP_ID = "c3fb597e-e318-4eab-9d90-cd43b9491bc1";
 import LetDiscoverScreen from "./auth/LetDiscoverScreen";
@@ -126,6 +126,7 @@ import SupportProfileScreen from "./chat/SupportProfileScreen";
 import InviteFriendScreen from "./match/InviteFriendScreen";
 import VideoManager from "../components/VideoManager";
 import { NODE_ENV } from "../utils/apiClient";
+import ModeratorFAQsScreen from "./profile/ModeratorFAQsScreen";
 
 SendbirdCalls.setListener({
   onRinging: async (callProps) => {
@@ -229,6 +230,7 @@ const AppStack = ({ navgation }) => {
   const urlHandleRef = useRef(null);
   const pushToken = useAtomValue(pushTokenAtom);
   const [usedUrl, setUsedUrl] = useAtom(linkingUrlAtom)
+  const [canCheckOptIn, setCanCheckOptIn] = useState(true)
 
   //config onesignal
   useEffect(() => {
@@ -286,17 +288,23 @@ const AppStack = ({ navgation }) => {
     if (currentUser && currentUser?.id) {
       OneSignal.login(`${NODE_ENV}_${currentUser.id}`);
       OneSignal.User.addEmail(currentUser?.email)
-      try {
-        OneSignal.User.pushSubscription.optIn()
-      } catch (error) {
-        
-      }
+      // setTimeout(() => {
+      //   checkOptIn()
+      // }, 2000);
       console.log('OneSignal login', `${NODE_ENV}_${currentUser.id}`);
     } else {
       console.log('OneSignal logout');
       OneSignal.logout();
     }
   }, [currentUser]);
+
+  const checkOptIn = async () => {
+    const isOptedIn = await OneSignal.User.pushSubscription.getOptedInAsync()
+    if(!isOptedIn && canCheckOptIn){
+      setCanCheckOptIn(false)
+      OneSignal.User.pushSubscription.optIn()
+    }
+  }
 
   // Add onesignal listeners
   useEffect(() => {
@@ -360,11 +368,10 @@ const AppStack = ({ navgation }) => {
 
     OneSignal.Notifications.addEventListener("foregroundWillDisplay", (event) => {
       const notification = event.getNotification();
-
       if (notification && notification?.additionalData) {
         try {
           const notiData = notification?.additionalData;
-
+          
           if (notiData.type === "profile_approved") {
             NavigationService.push("ProfileApprovedScreen");
           } else if (notiData.type === "profile_rejected") {
@@ -372,10 +379,36 @@ const AppStack = ({ navgation }) => {
             NavigationService.push("ProfileRejectScreen", {
               message: notification.body,
             });
+          } else {
+            if(notiData.type === "message") {
+              Toast.show({
+                text1: notification.title,
+                text2: notification.body,
+                type: "notification",
+                icon: "message",
+                onPress: () => {
+                  handleNotificationData(notiData, notification);
+                }
+              });
+            } else {
+              Toast.show({
+                text1: notification.title,
+                text2: notification.body,
+                type: "notification",
+                onPress: () => {
+                  handleNotificationData(notiData, notification);
+                }
+              });
+            }
           }
         } catch (error) { }
       }
     });
+
+    return () => {
+      OneSignal.Notifications.removeEventListener("click");
+      OneSignal.Notifications.removeEventListener("foregroundWillDisplay");
+    }
   }, []);
 
   const loadProfile = async () => {
@@ -785,6 +818,7 @@ const AppStack = ({ navgation }) => {
       <Stack.Screen name="BlurVideoScreen" component={BlurVideoScreen} />
       <Stack.Screen name="InterestVideoScreen" component={InterestVideoScreen} />
       <Stack.Screen name="InviteFriendScreen" component={InviteFriendScreen}/>
+      <Stack.Screen name="ModeratorFAQsScreen" component={ModeratorFAQsScreen}/>
     </Stack.Navigator>
   );
 };

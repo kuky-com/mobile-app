@@ -12,7 +12,7 @@ import images from '@/utils/images';
 import { StatusBar } from 'expo-status-bar';
 import Text from './Text';
 
-export const Header = ({ leftIcon, rightText, leftAction, rightIcon, rightAction, rightIconColor, leftIconColor, rightCounter = 0, showLogo = true }) => {
+export const Header = ({ leftIcon, title, rightText, leftAction, rightIcon, rightAction, rightIconColor, leftIconColor, rightCounter = 0, showLogo = true }) => {
   const insets = useSafeAreaInsets()
 
   const buttonWidth = Math.max((rightText ?? '').length * 5, 70)
@@ -28,6 +28,13 @@ export const Header = ({ leftIcon, rightText, leftAction, rightIcon, rightAction
         }
         {showLogo &&
           <Image source={images.logo_icon} style={styles.logoImage} />
+        }
+        {!showLogo && title &&
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontSize: 15, color: 'black', fontWeight: 'bold', textAlign: 'center' }}>
+              {title}
+            </Text>
+          </View>
         }
         {rightIcon &&
           <TouchableOpacity style={styles.rightButton} onPress={() => rightAction && rightAction()}>
@@ -75,6 +82,7 @@ const styles = StyleSheet.create({
     left: 0,
     width: 70,
     height: 40,
+    bottom: 5,
     alignItems: 'flex-start', justifyContent: 'center',
     zIndex: 5
   },
@@ -84,7 +92,8 @@ const styles = StyleSheet.create({
     width: 70,
     height: 40,
     alignItems: 'flex-end', justifyContent: 'center',
-    zIndex: 5
+    zIndex: 5,
+    bottom: 5,
   },
   buttonIcon: {
     width: 27, height: 27,

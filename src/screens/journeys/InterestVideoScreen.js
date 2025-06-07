@@ -105,6 +105,7 @@ const InterestVideoScreen = ({ navigation, route }) => {
     const [timer, setTimer] = useState(0);
 
     const [processing, setProcessing] = useState(false);
+    const [processingProgress, setProcessingProgress] = useState(0);
 
     const [transcription, setTranscription] = useState("");
     const [displayedBlock, setDisplayedBlock] = useState('');
@@ -396,6 +397,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
         setRecording(false);
         setProcessing(false);
         setHighlightWords([])
+        setProcessingProgress(0)
     };
 
     const handleTrim = async () => {
@@ -446,8 +448,11 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
     }
 
     const updateProfile = (video, audio) => {
+        setProcessingProgress(95)
+
         apiClient.post('users/update', { video_interests: video, audio_interests: audio, is_video_interests_blur: isBlur })
             .then((res) => {
+                setProcessingProgress(100)
                 setProcessing(false)
                 if (res && res.data && res.data.success) {
                     setUser(res.data.data)
@@ -468,6 +473,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
             .catch((error) => {
                 console.log({ error })
                 setProcessing(false)
+                setProcessingProgress(0)
                 Toast.show({ text1: error, type: 'error' })
             })
     }
@@ -524,6 +530,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
 
     const uploadFileToAws = async () => {
         try {
+            setProcessingProgress(0)
             const outputAudioUri = `${FileSystem.documentDirectory}audio.m4a`
             const commandAudio = `-y -i ${videoUrl.uri} -ss ${startPosition} -to ${endPosition} -vn -acodec aac ${outputAudioUri}`;
 
@@ -563,6 +570,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                 const returnCode = await session.getReturnCode();
                 if (returnCode.isValueSuccess()) {
                     console.log('Conversion successful');
+                    setProcessingProgress(80)
 
                     const responseVideo = await fetch(outputVideoUri);
 
@@ -577,6 +585,8 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                             accessLevel: 'public'
                         }
                     }).result
+
+                    setProcessingProgress(85)
 
                     updateProfile(`https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${videoFileName}`,
                         `https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${audioFileName}`)
@@ -593,6 +603,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
 
                     if (match) {
                         const currentTime = match[1];
+                        calculateProgress(currentTime);
                     }
                 }, (statistics) => {
 
@@ -604,6 +615,19 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
             setProcessing(false);
             showError()
         }
+    }
+
+    const calculateProgress = (currentTime) => {
+        const timeParts = currentTime.split(':');
+        const seconds =
+            parseFloat(timeParts[0]) * 3600 +
+            parseFloat(timeParts[1]) * 60 +
+            parseFloat(timeParts[2]);
+
+        const totalDuration = (endPosition - startPosition)
+
+        const progressPercent = Math.min((seconds / totalDuration) * 100, 100);
+        setProcessingProgress(Math.round(progressPercent * 0.8));
     }
 
     const retryPermission = async () => {
@@ -1051,10 +1075,19 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                                 backgroundColor: "#D11C16",
                             }}
                         >
-                            <Text style={{ fontSize: 18, fontWeight: "700", color: "white" }}>
-                                {"Continue"}
-                            </Text>
-                            {processing && <ActivityIndicator color="white" />}
+                            {!processing &&
+                                <Text style={{ fontSize: 18, fontWeight: "700", color: "white" }}>
+                                    {"Continue"}
+                                </Text>
+                            }
+                            {processing &&
+                                <ActivityIndicator size="small" color="white" />
+                            }
+                            {processing &&
+                                <Text style={{ fontSize: 18, fontWeight: "700", color: "white" }}>
+                                    {`Processing ${processingProgress}%`}
+                                </Text>
+                            }
                         </TouchableOpacity>
                     )}
                     <View style={{ height: 30, width: "100%", paddingBottom: insets.bottom + 10 }}>

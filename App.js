@@ -1,6 +1,6 @@
 import "./global.css";
 import { StatusBar } from "expo-status-bar";
-import { Dimensions, StyleSheet, View } from "react-native";
+import { Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useFonts } from "expo-font";
 import Text from "@/components/Text";
 import MainApp from "@/screens";
@@ -92,6 +92,19 @@ const toastConfig = {
         </View>
         <Text style={{ flex: 1, fontSize: 12, lineHeight: 18, color: 'white', fontWeight: 'bold' }}>{props.text1 ?? ''}</Text>
       </View>
+    </View>
+  ),
+  notification: (props) => (
+    <View style={{ width: '100%', paddingTop: 16, paddingHorizontal: 20 }}>
+      <TouchableOpacity onPress={() => props?.onPress && props?.onPress()} style={{ paddingHorizontal: 20, gap: 8, paddingVertical: 20, borderWidth: 1, borderColor: "white", backgroundColor: '#725ED4', flexDirection: 'row', borderRadius: 15, alignItems: 'center' }}>
+        <View style={{ width: 16, borderRadius: 8, height: 16, alignItems: 'center', justifyContent: "center", backgroundColor: '#FF8B8B' }}>
+          <FontAwesome6 name={props?.icon ?? 'bell'} size={12} color='white' />
+        </View>
+        <View style={{ flex: 1, gap: 3 }}>
+          <Text style={{ wdith: '100%', fontSize: 13, lineHeight: 15, color: 'white', fontWeight: 'bold' }}>{props.text1 ?? ''}</Text>
+          <Text style={{ wdith: '100%', fontSize: 11, lineHeight: 13, color: 'white' }}>{props.text2 ?? ''}</Text>
+        </View>
+      </TouchableOpacity>
     </View>
   ),
   sent: ({ text1, props, text2 }) => (

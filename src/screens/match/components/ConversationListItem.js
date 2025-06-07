@@ -1,14 +1,13 @@
-import { totalMessageCounterAtom, userAtom } from '@/actions/global'
+import { userAtom } from '@/actions/global'
 import Text from '@/components/Text'
 import colors from '@/utils/colors'
 import images from '@/utils/images'
 import dayjs from 'dayjs'
 import { Image } from 'expo-image'
-import { useAtom, useAtomValue, useSetAtom } from 'jotai'
-import React, { useEffect, useRef, useState } from 'react'
+import { useAtomValue } from 'jotai'
+import React, { useRef } from 'react'
 import { Pressable, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { SwipeRow } from 'react-native-swipe-list-view'
-import firestore from '@react-native-firebase/firestore';
 import AvatarImage from '@/components/AvatarImage'
 
 const styles = StyleSheet.create({
@@ -21,65 +20,23 @@ const styles = StyleSheet.create({
     },
 })
 
-const ConversationListItem = ({ onPress, isPremium, conversation, marginBottom, onDisconnect }) => {
+const ConversationListItem = ({ onPress, isPremium, conversation, marginBottom, onDisconnect, lastMessage: lastMessageProp, unreadCount: unreadCountProp, callIcon: callIconProp }) => {
     const openRowRef = useRef(null);
     const currentUser = useAtomValue(userAtom)
 
-    const [unreadCount, setUnreadCount] = useState(0)
-    const [lastMessageCloud, setLastMessage] = useState(conversation?.last_message)
-    const [callIcon, setCallIcon] = useState(null)
-    const [totalUnread, setTotalUnread] = useAtom(totalMessageCounterAtom)
-
-    useEffect(() => {
-        const unsubscribe = firestore()
-            .collection('conversations')
-            .doc(conversation.conversation_id)
-            .collection('messages')
-            .orderBy('createdAt', 'desc')
-            .onSnapshot(querySnapshot => {
-                if (querySnapshot.empty) {
-                    setTotalUnread((prev) => ({ ...(prev ?? {}), [conversation.conversation_id]: 1 }))
-                } else {
-                    const messagesFirestore = querySnapshot.docs.length > 0 ? querySnapshot.docs[0].data() : null
-
-                    const counter = querySnapshot.docs.length - querySnapshot.docs.filter((item) => item.data().readBy.includes(currentUser?.id)).length
-                    setUnreadCount(counter)
-                    setTotalUnread((prev) => ({ ...(prev ?? {}), [conversation.conversation_id]: counter }))
-
-                    let lastMessage = null
-                    if (messagesFirestore.type === 'missed_video_call') {
-                        lastMessage = 'Missed video call'
-                        setCallIcon((
-                            <Image source={conversation?.last_message_sender === currentUser?.id ? images.video_out_icon : images.video_in_icon} style={{ width: 16, height: 16, tintColor: "#f44336" }} />
-                        ))
-                    } else if (messagesFirestore.type === 'missed_voice_call') {
-                        lastMessage = 'Missed voice call'
-
-                        setCallIcon((
-                            <Image source={conversation?.last_message_sender === currentUser?.id ? images.call_out_icon : images.call_in_icon} style={{ width: 16, height: 16, tintColor: "#f44336" }} />
-                        ))
-                    } else if (messagesFirestore.type === 'video_call') {
-                        lastMessage = `Video call\n${messagesFirestore.text}`
-
-                        setCallIcon((
-                            <Image source={conversation?.last_message_sender === currentUser?.id ? images.video_out_icon : images.video_in_icon} style={{ width: 16, height: 16 }} />
-                        ))
-                    } else if (messagesFirestore.type === 'voice_call') {
-                        lastMessage = `Voice call\n${messagesFirestore.text}`
-                        setCallIcon((
-                            <Image source={conversation?.last_message_sender === currentUser?.id ? images.call_out_icon : images.call_in_icon} style={{ width: 16, height: 16 }} />
-                        ))
-                    } else {
-                        lastMessage = messagesFirestore ? messagesFirestore.text : null
-                        setCallIcon(null)
-                    }
-
-                    setLastMessage(lastMessage);
-                }
-            });
-
-        return () => unsubscribe();
-    }, [conversation.conversation_id]);
+    // Use props if available, otherwise fall back to conversation data
+    const unreadCount = unreadCountProp ?? 0;
+    const lastMessageCloud = lastMessageProp ?? conversation?.last_message;
+    const callIcon = callIconProp ? (
+        <Image 
+            source={callIconProp.source} 
+            style={{ 
+                width: 16, 
+                height: 16, 
+                ...(callIconProp.tintColor && { tintColor: callIconProp.tintColor })
+            }} 
+        />
+    ) : null;
 
     const openDetail = () => {
         if (openRowRef.current) {
@@ -194,7 +151,7 @@ const ConversationListItem = ({ onPress, isPremium, conversation, marginBottom, 
                     <View style={{ flex: 1, gap: 8, marginHorizontal: 12 }}>
                         <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>{conversation?.profile?.full_name}</Text>
 
-                        <View style={{flexDirection: 'row', alignItems: 'flex-start', gap: 5, width: '100%'}}>
+                        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 5, width: '100%' }}>
                             {callIcon}
                             <Text numberOfLines={2} style={{ fontSize: 12, lineHeight: 18, color: !lastMessageCloud ? colors.mainColor : '#6C6C6C', fontWeight: unreadCount > 0 || !lastMessageCloud ? 'bold' : '300' }}>{lastMessage}</Text>
                         </View>
