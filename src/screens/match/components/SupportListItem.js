@@ -23,7 +23,13 @@ const SupportListItem = ({ onPress, user, marginBottom, lastMessage: lastMessage
             if (user?.match_info?.sender?.id === currentUser?.id) {
                 lastMessage = `You have sent a connection request!`
             } else {
-                lastMessage = `${user?.match_info?.sender?.full_name} wants to connect with you!`
+                if(user?.match_info?.sender?.full_name) {
+                    lastMessage = `${user?.match_info?.sender?.full_name} wants to connect with you!`
+                } else if(user?.full_name) {
+                    lastMessage = `${user?.full_name} wants to connect with you!`
+                } else {
+                    lastMessage = 'Chat not started yet'
+                }
             }
 
         }

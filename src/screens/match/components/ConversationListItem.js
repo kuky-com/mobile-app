@@ -58,10 +58,16 @@ const ConversationListItem = ({ onPress, isPremium, conversation, marginBottom, 
     let lastDate = conversation.last_message_date
     if (!lastMessage) {
         if (conversation.status === 'sent') {
-            if (conversation.sender?.id === currentUser?.id) {
+            if (conversation.sender_id === currentUser?.id) {
                 lastMessage = `You have sent a connection request!`
             } else {
-                lastMessage = `${conversation.sender?.full_name} wants to connect with you!`
+                if(conversation.sender?.full_name) {
+                    lastMessage = `${conversation.sender?.full_name} wants to connect with you!`
+                } else if(conversation?.profile?.full_name) {
+                    lastMessage = `${conversation?.profile?.full_name} wants to connect with you!`
+                } else {
+                    lastMessage = 'Chat not started yet'
+                }
             }
 
         }
