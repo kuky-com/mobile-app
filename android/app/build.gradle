@@ -88,13 +88,13 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.kuky.android'
+    namespace 'com.kuky'
     defaultConfig {
-        applicationId 'com.kuky.android'
+        applicationId 'com.kuky'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 44
-        versionName "2.11.0"
+        versionCode 1
+        versionName "1.0.0"
     }
     signingConfigs {
         debug {

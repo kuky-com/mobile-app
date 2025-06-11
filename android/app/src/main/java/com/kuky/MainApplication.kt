@@ -1,4 +1,4 @@
-package com.kuky.android
+package com.kuky
 
 import android.app.Application
 import android.content.res.Configuration
