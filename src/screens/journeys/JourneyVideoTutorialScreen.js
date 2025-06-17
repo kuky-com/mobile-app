@@ -97,10 +97,9 @@ const JourneyVideoTutorialScreen = ({ navigation, route }) => {
             <TouchableOpacity onPress={onContinue} style={{ width: Platform.isPad ? 600 : '100%', alignSelf: 'center', height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#333333', }}>
                 <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>{'Record my reflection'}</Text>
             </TouchableOpacity>
-            {/* <View style={{ width: '100%', alignItems: 'center' }}>
+            <View style={{ width: '100%', alignItems: 'center' }}>
                 <Text style={{ padding: 8, fontSize: 14, fontWeight: 'bold', color: 'white' }} onPress={onSkip}>Not right now</Text>
-            </View> */}
-
+            </View>
         </View>
     )
 }
