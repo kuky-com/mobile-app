@@ -106,6 +106,8 @@ const MatchesScreen = ({ navigation }) => {
   }, []);
 
   // Centralized message listener for all conversation types
+
+
   useEffect(() => {
     const allUnsubscribers = {};
 
@@ -135,7 +137,7 @@ const MatchesScreen = ({ navigation }) => {
             
             // Calculate unread count based on user type
             const readByField = (currentUser?.is_support && conversationType === 'support') ? 1 : currentUser?.id;
-            const counter = querySnapshot.docs.length - querySnapshot.docs.filter((item) => 
+            const counter = querySnapshot.docs.length - querySnapshot.docs.filter((item) =>
               item.data().readBy.includes(readByField)
             ).length;
 
@@ -198,21 +200,55 @@ const MatchesScreen = ({ navigation }) => {
       allUnsubscribers[conversationId] = unsubscribe;
     };
 
-    // Set up listeners for verified matches
-    matches.forEach(conversation => {
-      createConversationListener(conversation.conversation_id, 'verified');
-    });
+    // // Set up listeners for verified matches
+    // matches.forEach(conversation => {
+    //   createConversationListener(conversation.conversation_id, 'verified');
+    // });
 
-    // Set up listeners for unverified matches
-    unverifyMatches.forEach(conversation => {
-      createConversationListener(conversation.conversation_id, 'unverified');
-    });
+    // // Set up listeners for unverified matches
+    // unverifyMatches.forEach(conversation => {
+    //   createConversationListener(conversation.conversation_id, 'unverified');
+    // });
 
-    // Set up listeners for support conversations
+    // // Set up listeners for support conversations
     const supportConversations = allUsers.filter(user => user.match_info?.conversation_id);
-    supportConversations.forEach(user => {
-      createConversationListener(user.match_info.conversation_id, 'support');
-    });
+    // supportConversations.forEach(user => {
+    //   createConversationListener(user.match_info.conversation_id, 'support');
+    // });
+
+    const MAX_LISTENERS_PER_TYPE = 10;
+    const DELAY_BETWEEN_LISTENERS_MS = 100;
+
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    const setupListenersWithDelay = async () => {
+      let count = 0;
+
+      // Verified
+      for (const conversation of matches.slice(0, MAX_LISTENERS_PER_TYPE)) {
+        await delay(count++ * DELAY_BETWEEN_LISTENERS_MS);
+        createConversationListener(conversation.conversation_id, 'verified');
+      }
+
+      // Unverified
+      for (const conversation of unverifyMatches.slice(0, MAX_LISTENERS_PER_TYPE)) {
+        await delay(count++ * DELAY_BETWEEN_LISTENERS_MS);
+        createConversationListener(conversation.conversation_id, 'unverified');
+      }
+
+      // Support
+      const supportConversations = allUsers
+        .filter(user => user.match_info?.conversation_id)
+        .slice(0, MAX_LISTENERS_PER_TYPE);
+
+      for (const user of supportConversations) {
+        await delay(count++ * DELAY_BETWEEN_LISTENERS_MS);
+        createConversationListener(user.match_info.conversation_id, 'support');
+      }
+    };
+
+    // Call this inside useEffect
+    setupListenersWithDelay();
 
     // Clean up old listeners for conversations that no longer exist
     const currentConversationIds = new Set([
@@ -246,6 +282,7 @@ const MatchesScreen = ({ navigation }) => {
     };
   }, [matches, unverifyMatches, allUsers, currentUser?.id, currentUser?.is_support]);
 
+  
   useEffect(() => {
     try {
       let counter = 0;
