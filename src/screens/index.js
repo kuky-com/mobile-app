@@ -286,14 +286,16 @@ const AppStack = ({ navgation }) => {
   // Onesignal setup for logged in user
   useEffect(() => {
     if (currentUser && currentUser?.id) {
+
+      console.log(`===============>", ${ NODE_ENV }_${ currentUser.id }`);
       OneSignal.login(`${NODE_ENV}_${currentUser.id}`);
       OneSignal.User.addEmail(currentUser?.email)
       // setTimeout(() => {
       //   checkOptIn()
       // }, 2000);
-      console.log('OneSignal login', `${NODE_ENV}_${currentUser.id}`);
+      console.log('OneSignal login ========> ', `${NODE_ENV}_${currentUser.id}`);
+
     } else {
-      console.log('OneSignal logout');
       OneSignal.logout();
     }
   }, [currentUser]);
@@ -365,9 +367,16 @@ const AppStack = ({ navgation }) => {
         }
       }
     });
+    
+    console.log('123=======>');
 
     OneSignal.Notifications.addEventListener("foregroundWillDisplay", (event) => {
+      event.getNotification();
       const notification = event.getNotification();
+      console.log('foreground notification received:', event);
+      console.log("Notification body:", notification?.body);
+      console.log("Additional Data:", notification?.additionalData);
+      
       if (notification && notification?.additionalData) {
         try {
           const notiData = notification?.additionalData;
@@ -704,6 +713,10 @@ const AppStack = ({ navgation }) => {
 
 
     getDeviceId();
+
+    OneSignal.Notifications.requestPermission(true); 
+    OneSignal.User.pushSubscription.optIn(); 
+    console.log("OneSignal push subscription:", OneSignal.User.pushSubscription);
   }, []);
 
   //update last active time

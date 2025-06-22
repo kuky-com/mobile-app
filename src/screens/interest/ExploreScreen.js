@@ -36,14 +36,25 @@ const ExploreScreen = ({ navigation }) => {
     return width > 600 ? width / 2 - 60 : width - 50;
   });
 
+  // useEffect(() => {
+  //   const resizeHandler = () => {
+  //     const width = Dimensions.get('window').width;
+  //     setItemWidth(width > 600 ? width / 2 - 60 : width - 50);
+  //   };
+  //   Dimensions.addEventListener('change', resizeHandler);
+  //   return () => Dimensions.removeEventListener('change', resizeHandler);
+  // }, []);
+
   useEffect(() => {
-    const resizeHandler = () => {
-      const width = Dimensions.get('window').width;
-      setItemWidth(width > 600 ? width / 2 - 60 : width - 50);
-    };
-    Dimensions.addEventListener('change', resizeHandler);
-    return () => Dimensions.removeEventListener('change', resizeHandler);
-  }, []);
+  const resizeHandler = () => {
+    const width = Dimensions.get('window').width;
+    setItemWidth(width > 600 ? width / 2 - 60 : width - 50);
+  };
+
+  const subscription = Dimensions.addEventListener('change', resizeHandler);
+
+  return () => subscription?.remove(); // ✅ Correct cleanup
+}, []);
 
   useEffect(() => {
     analytics().logScreenView({ screen_name: 'ExploreScreen', screen_class: 'ExploreScreen' });
