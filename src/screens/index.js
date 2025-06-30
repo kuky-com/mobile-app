@@ -182,7 +182,7 @@ try {
   SendbirdCalls.setDirectCallDialingSoundOnWhenSilentOrVibrateMode(true);
 
   SendbirdCalls.addDirectCallSound(SoundType.RINGING, 'ringing.mp3');
-  SendbirdCalls.addDirectCallSound(SoundType.DIALING, 'dialing.mp3'); 
+  // SendbirdCalls.addDirectCallSound(SoundType.DIALING, 'dialing.mp3'); 
   SendbirdCalls.addDirectCallSound(SoundType.RECONNECTED, 'reconnected.mp3');
   SendbirdCalls.addDirectCallSound(SoundType.RECONNECTING, 'reconnecting.mp3');
   console.log('Setting up Sendbird call sounds');
@@ -717,6 +717,8 @@ const AppStack = ({ navgation }) => {
     OneSignal.Notifications.requestPermission(true); 
     OneSignal.User.pushSubscription.optIn(); 
     console.log("OneSignal push subscription:", OneSignal.User.pushSubscription);
+
+    
   }, []);
 
   //update last active time

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { View, Text } from "react-native";
 import DirectCallControllerView from "@/components/DirectCallControllerView";
 import DirectCallVideoContentView from "@/components/DirectCallVideoContentView";
@@ -24,9 +24,25 @@ export const VideoCallScreen = ({ route, navigation }) => {
       staysActiveInBackground: true,
       playsInSilentModeIOS: true,
     });
-  }, [])
 
+  }, [])
+const dialingSoundRef = useRef<Audio.Sound | null>(null);
   useEffect(() => {
+if (status === 'pending') {
+    const playDialing = async () => {
+      try {
+        const { sound } = await Audio.Sound.createAsync(
+          require('../../assets/sounds/dialing.mp3'),
+          { shouldPlay: true, isLooping: true } 
+        );
+        dialingSoundRef.current = sound;
+        await sound.playAsync();
+      } catch (err) {
+        console.log('Error playing dialing sound:', err);
+      }
+    };
+    playDialing();
+  }
     if (status === "ended") {
       if(callLog && (callLog.endResult === 'DECLINED' || callLog.endResult === 'CANCELED') && route.params.onMiss) {
         route.params.onMiss()
@@ -44,7 +60,7 @@ export const VideoCallScreen = ({ route, navigation }) => {
   if (!call) {
     return null;
   }
-
+  
   return (
     <View style={{ flex: 1, backgroundColor: "#333333" }}>
       <AvatarImage
