@@ -1,9 +1,8 @@
 import Text from '@/components/Text'
 import images from '@/utils/images'
-import NavigationService from '@/utils/NavigationService'
 import { Image } from 'expo-image'
 import React, { useEffect, useState } from 'react'
-import { DeviceEventEmitter, Dimensions, Platform, StyleSheet, Switch, TouchableOpacity, View } from 'react-native'
+import { DeviceEventEmitter, Dimensions, Platform, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ImagePicker from 'react-native-image-crop-picker'
@@ -13,13 +12,15 @@ import storage from '@react-native-firebase/storage'
 import LoadingView from '@/components/LoadingView'
 import apiClient from '@/utils/apiClient'
 import Toast from 'react-native-toast-message'
-import { useAtom, useSetAtom } from 'jotai'
+import { useAtom } from 'jotai'
 import { userAtom } from '@/actions/global'
 import analytics from '@react-native-firebase/analytics'
 import constants from '../../utils/constants'
 import Purchases from 'react-native-purchases'
 import { BlurView } from 'expo-blur'
 import CustomSwitch from '../../components/CustomSwitch'
+import RNImageManipulator from 'react-native-image-manipulator'
+import ExifReader from 'react-native-exif'
 
 const imageImage = `avatar${dayjs().unix()}.png`
 
@@ -67,7 +68,6 @@ const AvatarProfileScreen = ({ navigation, route }) => {
     const loadSubscriptionInfo = async () => {
         try {
             const customerInfo = await Purchases.getCustomerInfo();
-            // console.log({ customerInfo: JSON.stringify(customerInfo) })
 
             if (
                 customerInfo &&
@@ -79,7 +79,6 @@ const AvatarProfileScreen = ({ navigation, route }) => {
                 setBlur(true)
             }
         } catch (error) {
-            console.log({ error });
         }
     };
     
@@ -95,7 +94,6 @@ const AvatarProfileScreen = ({ navigation, route }) => {
             }, 200);
         })
         .catch((error) => {
-            console.log({error})
             setTimeout(() => {
                 setAvatarLoaded(true)
             }, 200);
@@ -133,7 +131,6 @@ const AvatarProfileScreen = ({ navigation, route }) => {
                 const uploadedFile = await reference.putFile(image.uri);
 
                 const url = await storage().ref(imageImage).getDownloadURL();
-                console.log({ url });
                 setLoading(false);
                 setImageUrl(url);
                 setImage(null)
@@ -141,7 +138,6 @@ const AvatarProfileScreen = ({ navigation, route }) => {
                 onContinue()
             }
         } catch (error) {
-            console.log({ error });
             setLoading(false);
         }
     };
@@ -149,29 +145,121 @@ const AvatarProfileScreen = ({ navigation, route }) => {
     const onContinue = async () => {
         try {
             setLoading(true)
-            console.log({avatar: imageUrl, is_avatar_blur: isBlur})
             apiClient.post('users/update', { avatar: imageUrl, is_avatar_blur: isBlur })
                 .then((res) => {
                     setLoading(false)
                     if (res && res.data && res.data.success) {
                         setUser(res.data.data)
                         navigation.goBack()
-                        // Toast.show({ text1: res.data.message, type: 'success' })
                     } else {
                         Toast.show({ text1: res.data.message, type: 'error' })
                     }
                 })
                 .catch((error) => {
-                    console.log({ error })
                     setLoading(false)
                     Toast.show({ text1: error, type: 'error' })
                 })
 
         } catch (error) {
-            console.log({ error })
             setLoading(false)
         }
     }
+const correctImageOrientation = async (imagePath, imageData = null) => {
+    try {
+        let originalExifData = null;
+        if (imageData?.sourceURL) {
+            try {
+                const originalPath = imageData.sourceURL.replace('file://', '');
+                originalExifData = await ExifReader.getExif(originalPath);
+            } catch (originalExifError) {
+            }
+        }
+        
+        let exifData = null;
+        try {
+            exifData = await ExifReader.getExif(imagePath);
+        } catch (exifError) {
+        }
+        
+        let orientation = 1;
+        
+        if (originalExifData?.exif?.Orientation) {
+            orientation = originalExifData.exif.Orientation;
+        }
+        else if (originalExifData?.exif?.['{TIFF}']?.Orientation) {
+            orientation = originalExifData.exif['{TIFF}'].Orientation;
+        }
+        else if (originalExifData?.Orientation) {
+            orientation = originalExifData.Orientation;
+        }
+        else if (exifData?.exif?.Orientation) {
+            orientation = exifData.exif.Orientation;
+        }
+        else if (exifData?.exif?.['{TIFF}']?.Orientation) {
+            orientation = exifData.exif['{TIFF}'].Orientation;
+        }
+        else if (exifData?.Orientation) {
+            orientation = exifData.Orientation;
+        }
+        else if (imageData?.exif?.Orientation) {
+            orientation = imageData.exif.Orientation;
+        }
+        else if (imageData?.exif?.['{TIFF}']?.Orientation) {
+            orientation = imageData.exif['{TIFF}'].Orientation;
+        }
+        
+        const manipulationActions = [];
+        
+        switch (orientation) {
+            
+            case 3:
+                manipulationActions.push({ rotate: 180 });
+                break;
+            case 6:
+                manipulationActions.push({ rotate: 270 });
+                break;
+            case 8:
+                manipulationActions.push({ rotate: 90 });
+                break;
+            case 2:
+                manipulationActions.push({ flip: 'horizontal' });
+                break;
+            case 4:
+                manipulationActions.push({ flip: 'vertical' });
+                break;
+            case 7:
+                manipulationActions.push({ flip: 'horizontal' });
+                manipulationActions.push({ rotate: 90 });
+                break;
+            default:
+                setImage({ uri: imagePath });
+                return imagePath;
+        }
+        
+        if (manipulationActions.length > 0) {
+            try {
+                const manipulatedImage = await RNImageManipulator.manipulate(
+                    imagePath,
+                    manipulationActions,
+                    { format: 'jpeg' }
+                );
+                
+                setImage({ uri: manipulatedImage.uri });
+                return manipulatedImage.uri;
+            } catch (manipulationError) {
+                setImage({ uri: imagePath });
+                return imagePath;
+            }
+        } else {
+            setImage({ uri: imagePath });
+            return imagePath;
+        }
+        
+    } catch (error) {
+        setImage({ uri: imagePath });
+        return imagePath;
+    }
+};
 
     const openPicker = async () => {
         const options = [
@@ -182,28 +270,40 @@ const AvatarProfileScreen = ({ navigation, route }) => {
         await SheetManager.show('action-sheets', {
             payload: {
                 actions: options,
-                onPress(index) {
+                async onPress(index) {
                     if (index === 0) {
-                        ImagePicker.openCamera({
-                            width: 800,
-                            height: 1024,
-                            cropping: true,
-                        }).then(image => {
-                            setImage({ uri: image.path })
-                            setImageUrl(null)
-                            console.log(image);
-                        });
+                        try {
+                            const image = await ImagePicker.openCamera({
+                                width: 800,
+                                height: 1024,
+                                cropping: true,
+                                includeExif: true,
+                                freeStyleCropEnabled: true,
+                                showCropGuidelines: true,
+                                showCropFrame: true,
+                            });
+                            
+                            await correctImageOrientation(image.path, image);
+                            setImageUrl(null);
+                        } catch (error) {
+                        }
                     }
                     if (index === 1) {
-                        ImagePicker.openPicker({
-                            width: 800,
-                            height: 1024,
-                            cropping: true
-                        }).then(image => {
-                            setImage({ uri: image.path })
-                            setImageUrl(null)
-                            console.log(image);
-                        });
+                        try {
+                            const image = await ImagePicker.openPicker({
+                                width: 800,
+                                height: 1024,
+                                cropping: true,
+                                includeExif: true,
+                                freeStyleCropEnabled: true,
+                                showCropGuidelines: true,
+                                showCropFrame: true,
+                            });
+                            
+                            await correctImageOrientation(image.path, image);
+                            setImageUrl(null);
+                        } catch (error) {
+                        }
                     }
                 },
             },
@@ -240,7 +340,15 @@ const AvatarProfileScreen = ({ navigation, route }) => {
                     }
                     {(image || imageUrl) &&
                         <View style={styles.imageContainer}>
-                            <Image style={{ width: Platform.isPad ? 600 : Dimensions.get('screen').width - 48, height: Platform.isPad ? 600 : Dimensions.get('screen').width - 48, borderRadius: 20 }} source={image ? image : {uri: imageUrl}} contentFit='cover' />
+                            <Image 
+                                style={{ 
+                                    width: Platform.isPad ? 600 : Dimensions.get('screen').width - 48, 
+                                    height: Platform.isPad ? 600 : Dimensions.get('screen').width - 48, 
+                                    borderRadius: 20
+                                }} 
+                                source={image ? { uri: image.uri || image } : {uri: imageUrl}} 
+                                contentFit='cover' 
+                            />
                             {
                                 isBlur &&
                                 <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 20, overflow: 'hidden' }}>
