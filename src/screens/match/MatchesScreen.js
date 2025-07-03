@@ -3,6 +3,8 @@ import Text from "@/components/Text";
 import apiClient from "@/utils/apiClient";
 import colors from "@/utils/colors";
 import images from "@/utils/images";
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 import React, { useEffect, useRef, useState } from "react";
 import {
   AppState,
@@ -13,6 +15,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
+  InteractionManager
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ConversationListItem from "./components/ConversationListItem";
@@ -51,7 +54,9 @@ const MatchesScreen = ({ navigation }) => {
   const [otherUnread, setOtherUnreadCounter] = useAtom(totalOtherMessageUnreadAtom);
   const [supportUnreadCounter, setSupportUnreadCounter] = useAtom(totalSupportMessageCounterAtom);
   const [supportUnread, setSupportUnread] = useAtom(totalSupportMessageUnreadAtom);
-  
+  const [hasPromptedPremium, setHasPromptedPremium] = useState(false);
+  const lastPromptTimeRef = useRef(null);
+
   const [isPremium, setIsPremium] = useState(true);
   const [freeTotal, setFreeTotal] = useState(0);
   const [freeCount, setFreeCount] = useState(0);
@@ -386,29 +391,79 @@ const MatchesScreen = ({ navigation }) => {
     }
   }
 
+  // const onRefresh = () => {
+  //   setFetching(true);
+  //   loadSubscriptionInfo()
+  //   apiClient
+  //     .get("matches/matches-with-preminum")
+  //     .then((res) => {
+  //       setFetching(false);
+  //       console.log({ matches: res.data });
+  //       if (res && res.data && res.data.success) {
+
+  //         setMatches(res.data.data.matches ?? []);
+  //         setUnverifyMatches(res.data.data.unverifyMatches ?? []);
+  //         setFreeTotal(res.data.data.freeTotal ?? 0);
+  //         setFreeCount(res.data.data.freeCount ?? 0);
+  //       } else {
+  //         setMatches([]);
+  //       }
+  //     })
+  //     .catch((error) => {
+  //       setFetching(false);
+  //       console.log({ error });
+  //       setMatches([]);
+  //     });
+
+  //   apiClient
+  //     .get("matches/recent-matches")
+  //     .then((res) => {
+  //       setFetching(false);
+  //       console.log({ matches: res.data });
+  //       if (res && res.data && res.data.success) {
+  //         setRecentMatches(res.data.data);
+  //       } else {
+  //         setRecentMatches([]);
+  //       }
+  //     })
+  //     .catch((error) => {
+  //       setFetching(false);
+  //       console.log({ error });
+  //       setRecentMatches([]);
+  //     });
+
+  //   loadAllUsers()
+  // };
+
   const onRefresh = () => {
     setFetching(true);
     loadSubscriptionInfo()
     apiClient
-      .get("matches/matches-with-preminum")
-      .then((res) => {
-        setFetching(false);
-        console.log({ matches: res.data });
-        if (res && res.data && res.data.success) {
+    .get("matches/matches-with-preminum")
+    .then((res) => {
+      setFetching(false);
+      if (res && res.data && res.data.success) {
+        const allMatches = res.data.data.matches ?? [];
+        const allUnverify = res.data.data.unverifyMatches ?? [];
 
-          setMatches(res.data.data.matches ?? []);
-          setUnverifyMatches(res.data.data.unverifyMatches ?? []);
-          setFreeTotal(res.data.data.freeTotal ?? 0);
-          setFreeCount(res.data.data.freeCount ?? 0);
-        } else {
-          setMatches([]);
-        }
-      })
-      .catch((error) => {
-        setFetching(false);
-        console.log({ error });
+        const movedToUnverify = allMatches.filter(user => user.profile?.profile_approved === "partially_approved");
+        const approvedMatches = allMatches.filter(user => user.profile?.profile_approved !== "partially_approved");
+
+        setMatches(approvedMatches);
+        setUnverifyMatches([...allUnverify, ...movedToUnverify]);
+        setFreeTotal(res.data.data.freeTotal ?? 0);
+        setFreeCount(res.data.data.freeCount ?? 0);
+      } else {
         setMatches([]);
-      });
+        setUnverifyMatches([]);
+      }
+    })
+    .catch((error) => {
+      setFetching(false);
+      console.log({ error });
+      setMatches([]);
+      setUnverifyMatches([]);
+    });
 
     apiClient
       .get("matches/recent-matches")
@@ -429,6 +484,7 @@ const MatchesScreen = ({ navigation }) => {
 
     loadAllUsers()
   };
+
 
   const openChat = (item) => {
     navigation.push("MessageScreen", { conversation: item });
@@ -575,7 +631,70 @@ const MatchesScreen = ({ navigation }) => {
     return true;
   }
   );
+    const shouldShowPremiumPopup = !isPremium && freeCount >= freeTotal;
+  console.log("shouldShowPremiumPopup=====>", shouldShowPremiumPopup);
+const promptCountRef = useRef(0);
+const MAX_PROMPTS = 4;
 
+// useFocusEffect(
+//   useCallback(() => {
+//     const isRegularUser = !currentUser?.is_moderators && !currentUser?.is_support;
+
+//     if (
+//       isRegularUser &&
+//       !isPremium &&
+//       freeTotal > 0 &&
+//       freeCount >= freeTotal &&
+//       promptCountRef.current < MAX_PROMPTS
+//     ) {
+//       promptCountRef.current += 1;
+
+//       InteractionManager.runAfterInteractions(() => {
+//         navigation.navigate('PremiumRequestScreen');
+//       });
+//     }
+//   }, [currentUser, isPremium, freeTotal, freeCount])
+// );
+
+//   useFocusEffect(
+//   useCallback(() => {
+//     const isFreeUser = !isPremium && !currentUser?.is_moderators && !currentUser?.is_support;
+//     const hasReachedLimit = freeTotal > 0 && freeCount >= 3;
+
+//     const shouldPrompt = isFreeUser && hasReachedLimit;
+
+//     if (shouldPrompt && promptCountRef.current < MAX_PROMPTS) {
+//       promptCountRef.current += 1;
+
+//       InteractionManager.runAfterInteractions(() => {
+//         navigation.navigate('PremiumRequestScreen');
+//       });
+//     }
+//   }, [currentUser, isPremium, freeCount, freeTotal])
+// );
+
+useFocusEffect(
+  useCallback(() => {
+    const isFreeUser = !isPremium && !currentUser?.is_moderators && !currentUser?.is_support;
+    const hasReachedLimit = freeTotal > 0 && freeCount >= 3;
+
+    let timeoutId;
+
+    if (isFreeUser && hasReachedLimit) {
+      InteractionManager.runAfterInteractions(() => {
+        timeoutId = setTimeout(() => {
+          navigation.navigate('PremiumRequestScreen');
+        }, 5000); // 5 seconds delay
+      });
+    }
+
+    // Clean up timeout when screen loses focus
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [currentUser, isPremium, freeCount, freeTotal])
+);
+  
   const recentMatchesFilter = !isPremium ? recentMatches.filter(conversation => conversation.is_free) : recentMatches
 
   const renderHeader = () => {
@@ -597,6 +716,7 @@ const MatchesScreen = ({ navigation }) => {
       </View>
     )
   }
+
 
   return (
     <View style={styles.container}>

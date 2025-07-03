@@ -294,7 +294,8 @@ const AppStack = ({ navgation }) => {
       //   checkOptIn()
       // }, 2000);
       console.log('OneSignal login ========> ', `${NODE_ENV}_${currentUser.id}`);
-
+      OneSignal.Notifications.requestPermission(true);
+      OneSignal.User.pushSubscription.optIn();
     } else {
       OneSignal.logout();
     }
@@ -601,7 +602,11 @@ const AppStack = ({ navgation }) => {
   }
 
   const checkPushToken = () => {
-    if (pushToken) {
+    if (
+    pushToken &&
+    currentUser &&
+    currentUser.profile_approved !== 'partially_approved'
+    ) {
       apiClient
         .post("users/update-token", { session_token: pushToken })
         .then((res) => {
