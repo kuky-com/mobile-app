@@ -158,6 +158,7 @@ const MatchesScreen = ({ navigation }) => {
             // Process message content and call icons
             let lastMessage = null;
             let callIcon = null;
+            const createdAt = messagesFirestore?.createdAt?.toDate?.() ?? new Date();
 
             if (messagesFirestore?.type === 'missed_video_call') {
               lastMessage = 'Missed video call';
@@ -189,7 +190,7 @@ const MatchesScreen = ({ navigation }) => {
             // Update conversation messages state
             setConversationMessages(prev => ({
               ...prev,
-              [conversationId]: { lastMessage, unreadCount: counter }
+              [conversationId]: { lastMessage, unreadCount: counter, createdAt }
             }));
             
             // Update call icons (only for non-support conversations)
@@ -610,28 +611,66 @@ const MatchesScreen = ({ navigation }) => {
     );
   };
 
-  const filterMatches = viewMode === 'connections' ? matches.filter(match => {
-    if (keyword.length > 0) {
-      return match.profile.full_name.toLowerCase().includes(keyword.toLowerCase())
-    }
-    return true;
-  }
-  ) : unverifyMatches.filter(match => {
-    if (keyword.length > 0) {
-      return match.profile.full_name.toLowerCase().includes(keyword.toLowerCase())
-    }
+  // const filterMatches = viewMode === 'connections' ? matches.filter(match => {
+  //   if (keyword.length > 0) {
+  //     return match.profile.full_name.toLowerCase().includes(keyword.toLowerCase())
+  //   }
+  //   return true;
+  // }
+  // ) : unverifyMatches.filter(match => {
+  //   if (keyword.length > 0) {
+  //     return match.profile.full_name.toLowerCase().includes(keyword.toLowerCase())
+  //   }
 
+  //   return true;
+  // });
+
+
+  const getSortedMatches = (matchList) => {
+  return [...matchList]
+    .map(match => {
+      const convId = match.conversation_id;
+      const createdAt = conversationMessages[convId]?.createdAt ?? new Date(0);
+      return { match, createdAt };
+    })
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .map(item => item.match)
+    .filter(match => {
+      if (keyword.length > 0) {
+        return match.profile.full_name.toLowerCase().includes(keyword.toLowerCase());
+      }
+      return true;
+    });
+};
+
+const filterMatches = viewMode === 'connections'
+  ? getSortedMatches(matches)
+  : getSortedMatches(unverifyMatches);
+
+  // const filterUsers = allUsers.filter(user => {
+  //   if (keyword.length > 0) {
+  //     return user.full_name.toLowerCase().includes(keyword.toLowerCase())
+  //   }
+  //   return true;
+  // }
+  // );
+
+const filterUsers = [...allUsers]
+  .map(user => {
+    const convId = user?.match_info?.conversation_id;
+    const createdAt = conversationMessages[convId]?.createdAt ?? new Date(0);
+    return { user, createdAt };
+  })
+  .sort((a, b) => b.createdAt - a.createdAt)
+  .map(item => item.user)
+  .filter(user => {
+    if (keyword.length > 0) {
+      return user.full_name.toLowerCase().includes(keyword.toLowerCase());
+    }
     return true;
   });
 
-  const filterUsers = allUsers.filter(user => {
-    if (keyword.length > 0) {
-      return user.full_name.toLowerCase().includes(keyword.toLowerCase())
-    }
-    return true;
-  }
-  );
-    const shouldShowPremiumPopup = !isPremium && freeCount >= freeTotal;
+  const shouldShowPremiumPopup = !isPremium && freeCount >= freeTotal;
   console.log("shouldShowPremiumPopup=====>", shouldShowPremiumPopup);
 const promptCountRef = useRef(0);
 const MAX_PROMPTS = 4;

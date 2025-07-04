@@ -284,23 +284,38 @@ const AppStack = ({ navgation }) => {
   }, [currentUser]);
 
   // Onesignal setup for logged in user
+  // useEffect(() => {
+  //   if (currentUser && currentUser?.id) {
+
+  //     console.log(`===============>", ${ NODE_ENV }_${ currentUser.id }`);
+  //     OneSignal.login(`${NODE_ENV}_${currentUser.id}`);
+  //     OneSignal.User.addEmail(currentUser?.email)
+  //     // setTimeout(() => {
+  //     //   checkOptIn()
+  //     // }, 2000);
+  //     console.log('OneSignal login ========> ', `${NODE_ENV}_${currentUser.id}`);
+  //     OneSignal.Notifications.requestPermission(true);
+  //     OneSignal.User.pushSubscription.optIn();
+  //   } else {
+  //     OneSignal.logout();
+  //   }
+  // }, [currentUser]);
+
+
   useEffect(() => {
-    if (currentUser && currentUser?.id) {
+  if (currentUser && currentUser?.id) {
+    console.log(`===============>", ${ NODE_ENV }_${ currentUser.id }`);
+    console.log('Current Push Token ======> ', pushToken);
+    OneSignal.login(`${NODE_ENV}_${currentUser.id}`);
+    OneSignal.User.addEmail(currentUser?.email);
+    OneSignal.Notifications.requestPermission(true);
+    OneSignal.User.pushSubscription.optIn();
+  } else {
+    OneSignal.logout();
+  }
+}, [currentUser]);
 
-      console.log(`===============>", ${ NODE_ENV }_${ currentUser.id }`);
-      OneSignal.login(`${NODE_ENV}_${currentUser.id}`);
-      OneSignal.User.addEmail(currentUser?.email)
-      // setTimeout(() => {
-      //   checkOptIn()
-      // }, 2000);
-      console.log('OneSignal login ========> ', `${NODE_ENV}_${currentUser.id}`);
-      OneSignal.Notifications.requestPermission(true);
-      OneSignal.User.pushSubscription.optIn();
-    } else {
-      OneSignal.logout();
-    }
-  }, [currentUser]);
-
+  
   const checkOptIn = async () => {
     const isOptedIn = await OneSignal.User.pushSubscription.getOptedInAsync()
     if(!isOptedIn && canCheckOptIn){
@@ -601,22 +616,19 @@ const AppStack = ({ navgation }) => {
       });
   }
 
-  const checkPushToken = () => {
-    if (
-    pushToken &&
-    currentUser &&
-    currentUser.profile_approved !== 'partially_approved'
-    ) {
-      apiClient
-        .post("users/update-token", { session_token: pushToken })
-        .then((res) => {
-          console.log({ res });
-        })
-        .catch((error) => {
-          console.log({ error });
-        });
-    }
-  };
+const checkPushToken = () => {
+  if (pushToken && currentUser) {
+    apiClient
+      .post("users/update-token", { session_token: pushToken })
+      .then((res) => {
+        console.log({ res });
+      })
+      .catch((error) => {
+        console.log({ error });
+      });
+  }
+};
+  
 
   // config app review
   useEffect(() => {
