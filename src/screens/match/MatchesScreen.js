@@ -4,7 +4,7 @@ import apiClient from "@/utils/apiClient";
 import colors from "@/utils/colors";
 import images from "@/utils/images";
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import React, { useEffect, useRef, useState } from "react";
 import {
   AppState,
@@ -55,7 +55,6 @@ const MatchesScreen = ({ navigation }) => {
   const [supportUnreadCounter, setSupportUnreadCounter] = useAtom(totalSupportMessageCounterAtom);
   const [supportUnread, setSupportUnread] = useAtom(totalSupportMessageUnreadAtom);
   const [hasPromptedPremium, setHasPromptedPremium] = useState(false);
-  const lastPromptTimeRef = useRef(null);
 
   const [isPremium, setIsPremium] = useState(true);
   const [freeTotal, setFreeTotal] = useState(0);
@@ -67,9 +66,8 @@ const MatchesScreen = ({ navigation }) => {
   const [viewMode, setViewMode] = useState("connections");
   const [recentMatches, setRecentMatches] = useState([]);
   
-  // Message management state
-  const [conversationMessages, setConversationMessages] = useState({});
-  const [conversationCallIcons, setConversationCallIcons] = useState({});
+  // Simplified message management state - combine into single object
+  const [conversationData, setConversationData] = useState({});
 
   useEffect(() => {
     analytics().logScreenView({
@@ -110,16 +108,33 @@ const MatchesScreen = ({ navigation }) => {
     };
   }, []);
 
-  // Centralized message listener for all conversation types
-
-
+  // Optimized Firestore listener with better performance
   useEffect(() => {
-    const allUnsubscribers = {};
+    const activeListeners = new Map();
+    
+    // Helper to safely get timestamp
+    const getMessageTimestamp = (firebaseTimestamp) => {
+      if (!firebaseTimestamp) return new Date(0);
+      
+      if (firebaseTimestamp.toDate && typeof firebaseTimestamp.toDate === 'function') {
+        try {
+          return firebaseTimestamp.toDate();
+        } catch (error) {
+          console.warn('Error converting Firebase timestamp:', error);
+          return new Date(0);
+        }
+      }
+      
+      if (firebaseTimestamp.seconds) {
+        return new Date(firebaseTimestamp.seconds * 1000);
+      }
+      
+      return new Date(firebaseTimestamp);
+    };
 
-    // Helper function to create a listener for a conversation
     const createConversationListener = (conversationId, conversationType) => {
-      if (allUnsubscribers[conversationId]) {
-        return; // Already listening to this conversation
+      if (activeListeners.has(conversationId)) {
+        return;
       }
 
       const unsubscribe = firestore()
@@ -127,168 +142,157 @@ const MatchesScreen = ({ navigation }) => {
         .doc(conversationId)
         .collection('messages')
         .orderBy('createdAt', 'desc')
-        .onSnapshot(querySnapshot => {
-          if (querySnapshot.empty) {
-            // Update appropriate unread counter atom based on conversation type
-            if (conversationType === 'verified') {
-              setTotalCounterUnread((prev) => ({ ...(prev ?? {}), [conversationId]: 0 }));
-            } else if (conversationType === 'unverified') {
-              setTotalOtherUnread((prev) => ({ ...(prev ?? {}), [conversationId]: 0 }));
-            } else if (conversationType === 'support') {
-              setSupportUnreadCounter((prev) => ({ ...(prev ?? {}), [conversationId]: 0 }));
-            }
-          } else {
-            const messagesFirestore = querySnapshot.docs.length > 0 ? querySnapshot.docs[0].data() : null;
-            
-            // Calculate unread count based on user type
-            const readByField = (currentUser?.is_support && conversationType === 'support') ? 1 : currentUser?.id;
-            const counter = querySnapshot.docs.length - querySnapshot.docs.filter((item) =>
-              item.data().readBy.includes(readByField)
-            ).length;
-
-            // Update appropriate unread counter atom
-            if (conversationType === 'verified') {
-              setTotalCounterUnread((prev) => ({ ...(prev ?? {}), [conversationId]: counter }));
-            } else if (conversationType === 'unverified') {
-              setTotalOtherUnread((prev) => ({ ...(prev ?? {}), [conversationId]: counter }));
-            } else if (conversationType === 'support') {
-              setSupportUnreadCounter((prev) => ({ ...(prev ?? {}), [conversationId]: counter }));
-            }
-
-            // Process message content and call icons
-            let lastMessage = null;
-            let callIcon = null;
-            const createdAt = messagesFirestore?.createdAt?.toDate?.() ?? new Date();
-
-            if (messagesFirestore?.type === 'missed_video_call') {
-              lastMessage = 'Missed video call';
-              callIcon = {
-                source: messagesFirestore?.sendBy === currentUser?.id ? images.video_out_icon : images.video_in_icon,
-                tintColor: "#f44336"
-              };
-            } else if (messagesFirestore?.type === 'missed_voice_call') {
-              lastMessage = 'Missed voice call';
-              callIcon = {
-                source: messagesFirestore?.sendBy === currentUser?.id ? images.call_out_icon : images.call_in_icon,
-                tintColor: "#f44336"
-              };
-            } else if (messagesFirestore?.type === 'video_call') {
-              lastMessage = `Video call\n${messagesFirestore.text}`;
-              callIcon = {
-                source: messagesFirestore?.sendBy === currentUser?.id ? images.video_out_icon : images.video_in_icon
-              };
-            } else if (messagesFirestore?.type === 'voice_call') {
-              lastMessage = `Voice call\n${messagesFirestore.text}`;
-              callIcon = {
-                source: messagesFirestore?.sendBy === currentUser?.id ? images.call_out_icon : images.call_in_icon
-              };
-            } else {
-              lastMessage = messagesFirestore ? messagesFirestore.text : null;
-              callIcon = null;
-            }
-
-            // Update conversation messages state
-            setConversationMessages(prev => ({
-              ...prev,
-              [conversationId]: { lastMessage, unreadCount: counter, createdAt }
-            }));
-            
-            // Update call icons (only for non-support conversations)
-            if (conversationType !== 'support') {
-              setConversationCallIcons(prev => ({
+        .limit(1) // Only get the latest message for performance
+        .onSnapshot(
+          querySnapshot => {
+            if (querySnapshot.empty) {
+              setConversationData(prev => ({
                 ...prev,
-                [conversationId]: callIcon
+                [conversationId]: {
+                  ...prev[conversationId],
+                  unreadCount: 0,
+                  lastMessage: null,
+                  lastMessageTime: new Date(0),
+                  callIcon: null
+                }
               }));
+              return;
             }
+
+            const latestDoc = querySnapshot.docs[0];
+            const messageData = latestDoc.data();
+            const messageTimestamp = getMessageTimestamp(messageData.createdAt);
+
+            // Get full conversation for unread count
+            firestore()
+              .collection('conversations')
+              .doc(conversationId)
+              .collection('messages')
+              .get()
+              .then(fullSnapshot => {
+                const readByField = (currentUser?.is_support && conversationType === 'support') ? 1 : currentUser?.id;
+                const unreadCount = fullSnapshot.docs.length - fullSnapshot.docs.filter(doc =>
+                  doc.data().readBy?.includes(readByField)
+                ).length;
+
+                // Process message content
+                let lastMessage = null;
+                let callIcon = null;
+
+                if (messageData.type === 'missed_video_call') {
+                  lastMessage = 'Missed video call';
+                  callIcon = {
+                    source: messageData.sendBy === currentUser?.id ? images.video_out_icon : images.video_in_icon,
+                    tintColor: "#f44336"
+                  };
+                } else if (messageData.type === 'missed_voice_call') {
+                  lastMessage = 'Missed voice call';
+                  callIcon = {
+                    source: messageData.sendBy === currentUser?.id ? images.call_out_icon : images.call_in_icon,
+                    tintColor: "#f44336"
+                  };
+                } else if (messageData.type === 'video_call') {
+                  lastMessage = `Video call\n${messageData.text || ''}`;
+                  callIcon = {
+                    source: messageData.sendBy === currentUser?.id ? images.video_out_icon : images.video_in_icon
+                  };
+                } else if (messageData.type === 'voice_call') {
+                  lastMessage = `Voice call\n${messageData.text || ''}`;
+                  callIcon = {
+                    source: messageData.sendBy === currentUser?.id ? images.call_out_icon : images.call_in_icon
+                  };
+                } else {
+                  lastMessage = messageData.text || null;
+                  callIcon = null;
+                }
+
+                // Single state update with all data
+                setConversationData(prev => ({
+                  ...prev,
+                  [conversationId]: {
+                    lastMessage,
+                    unreadCount,
+                    lastMessageTime: messageTimestamp,
+                    callIcon: conversationType !== 'support' ? callIcon : null,
+                    conversationType
+                  }
+                }));
+
+                // Update appropriate unread counter atoms
+                if (conversationType === 'verified') {
+                  setTotalCounterUnread(prev => ({ ...(prev ?? {}), [conversationId]: unreadCount }));
+                } else if (conversationType === 'unverified') {
+                  setTotalOtherUnread(prev => ({ ...(prev ?? {}), [conversationId]: unreadCount }));
+                } else if (conversationType === 'support') {
+                  setSupportUnreadCounter(prev => ({ ...(prev ?? {}), [conversationId]: unreadCount }));
+                }
+              })
+              .catch(error => {
+                console.warn('Error getting full conversation:', error);
+              });
+          },
+          error => {
+            console.warn('Firestore listener error:', error);
           }
-        });
+        );
 
-      allUnsubscribers[conversationId] = unsubscribe;
+      activeListeners.set(conversationId, unsubscribe);
     };
 
-    // // Set up listeners for verified matches
-    // matches.forEach(conversation => {
-    //   createConversationListener(conversation.conversation_id, 'verified');
-    // });
+    const setupListeners = async () => {
+      const MAX_LISTENERS = 30;
+      let totalListeners = 0;
 
-    // // Set up listeners for unverified matches
-    // unverifyMatches.forEach(conversation => {
-    //   createConversationListener(conversation.conversation_id, 'unverified');
-    // });
+      // Clear old listeners
+      const currentConversationIds = new Set([
+        ...matches.map(m => m.conversation_id),
+        ...unverifyMatches.map(m => m.conversation_id),
+        ...allUsers.filter(u => u.match_info?.conversation_id).map(u => u.match_info.conversation_id)
+      ]);
 
-    // // Set up listeners for support conversations
-    const supportConversations = allUsers.filter(user => user.match_info?.conversation_id);
-    // supportConversations.forEach(user => {
-    //   createConversationListener(user.match_info.conversation_id, 'support');
-    // });
-
-    const MAX_LISTENERS_PER_TYPE = 10;
-    const DELAY_BETWEEN_LISTENERS_MS = 100;
-
-    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-    const setupListenersWithDelay = async () => {
-      let count = 0;
-
-      // Verified
-      for (const conversation of matches.slice(0, MAX_LISTENERS_PER_TYPE)) {
-        await delay(count++ * DELAY_BETWEEN_LISTENERS_MS);
-        createConversationListener(conversation.conversation_id, 'verified');
+      // Remove obsolete listeners
+      for (const [conversationId, unsubscribe] of activeListeners.entries()) {
+        if (!currentConversationIds.has(conversationId)) {
+          unsubscribe?.();
+          activeListeners.delete(conversationId);
+          
+          setConversationData(prev => {
+            const newState = { ...prev };
+            delete newState[conversationId];
+            return newState;
+          });
+        }
       }
 
-      // Unverified
-      for (const conversation of unverifyMatches.slice(0, MAX_LISTENERS_PER_TYPE)) {
-        await delay(count++ * DELAY_BETWEEN_LISTENERS_MS);
-        createConversationListener(conversation.conversation_id, 'unverified');
-      }
+      // Add new listeners with rate limiting
+      const conversationsToListen = [
+        ...matches.slice(0, 10).map(m => ({ id: m.conversation_id, type: 'verified' })),
+        ...unverifyMatches.slice(0, 10).map(m => ({ id: m.conversation_id, type: 'unverified' })),
+        ...allUsers.filter(u => u.match_info?.conversation_id).slice(0, 10)
+          .map(u => ({ id: u.match_info.conversation_id, type: 'support' }))
+      ];
 
-      // Support
-      const supportConversations = allUsers
-        .filter(user => user.match_info?.conversation_id)
-        .slice(0, MAX_LISTENERS_PER_TYPE);
-
-      for (const user of supportConversations) {
-        await delay(count++ * DELAY_BETWEEN_LISTENERS_MS);
-        createConversationListener(user.match_info.conversation_id, 'support');
+      for (const { id, type } of conversationsToListen) {
+        if (totalListeners >= MAX_LISTENERS) break;
+        if (!activeListeners.has(id)) {
+          createConversationListener(id, type);
+          totalListeners++;
+          // Small delay to prevent overwhelming Firestore
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
       }
     };
 
-    // Call this inside useEffect
-    setupListenersWithDelay();
+    setupListeners();
 
-    // Clean up old listeners for conversations that no longer exist
-    const currentConversationIds = new Set([
-      ...matches.map(m => m.conversation_id),
-      ...unverifyMatches.map(m => m.conversation_id),
-      ...supportConversations.map(u => u.match_info.conversation_id)
-    ]);
-
-    Object.keys(allUnsubscribers).forEach(conversationId => {
-      if (!currentConversationIds.has(conversationId)) {
-        allUnsubscribers[conversationId]?.();
-        delete allUnsubscribers[conversationId];
-        
-        // Clean up state for removed conversations
-        setConversationMessages(prev => {
-          const newState = { ...prev };
-          delete newState[conversationId];
-          return newState;
-        });
-        setConversationCallIcons(prev => {
-          const newState = { ...prev };
-          delete newState[conversationId];
-          return newState;
-        });
-      }
-    });
-
-    // Store unsubscribers for cleanup in the return function
     return () => {
-      Object.values(allUnsubscribers).forEach(unsubscribe => unsubscribe?.());
+      for (const unsubscribe of activeListeners.values()) {
+        unsubscribe?.();
+      }
+      activeListeners.clear();
     };
   }, [matches, unverifyMatches, allUsers, currentUser?.id, currentUser?.is_support]);
 
-  
   useEffect(() => {
     try {
       let counter = 0;
@@ -392,50 +396,6 @@ const MatchesScreen = ({ navigation }) => {
     }
   }
 
-  // const onRefresh = () => {
-  //   setFetching(true);
-  //   loadSubscriptionInfo()
-  //   apiClient
-  //     .get("matches/matches-with-preminum")
-  //     .then((res) => {
-  //       setFetching(false);
-  //       console.log({ matches: res.data });
-  //       if (res && res.data && res.data.success) {
-
-  //         setMatches(res.data.data.matches ?? []);
-  //         setUnverifyMatches(res.data.data.unverifyMatches ?? []);
-  //         setFreeTotal(res.data.data.freeTotal ?? 0);
-  //         setFreeCount(res.data.data.freeCount ?? 0);
-  //       } else {
-  //         setMatches([]);
-  //       }
-  //     })
-  //     .catch((error) => {
-  //       setFetching(false);
-  //       console.log({ error });
-  //       setMatches([]);
-  //     });
-
-  //   apiClient
-  //     .get("matches/recent-matches")
-  //     .then((res) => {
-  //       setFetching(false);
-  //       console.log({ matches: res.data });
-  //       if (res && res.data && res.data.success) {
-  //         setRecentMatches(res.data.data);
-  //       } else {
-  //         setRecentMatches([]);
-  //       }
-  //     })
-  //     .catch((error) => {
-  //       setFetching(false);
-  //       console.log({ error });
-  //       setRecentMatches([]);
-  //     });
-
-  //   loadAllUsers()
-  // };
-
   const onRefresh = () => {
     setFetching(true);
     loadSubscriptionInfo()
@@ -485,7 +445,6 @@ const MatchesScreen = ({ navigation }) => {
 
     loadAllUsers()
   };
-
 
   const openChat = (item) => {
     navigation.push("MessageScreen", { conversation: item });
@@ -576,164 +535,97 @@ const MatchesScreen = ({ navigation }) => {
     });
   };
 
+  // Memoized sorted and filtered matches
+  const sortedFilteredMatches = useMemo(() => {
+    const matchList = viewMode === 'connections' ? matches : unverifyMatches;
+    
+    return [...matchList]
+      .map(match => ({
+        ...match,
+        lastMessageTime: conversationData[match.conversation_id]?.lastMessageTime || new Date(0)
+      }))
+      .sort((a, b) => b.lastMessageTime - a.lastMessageTime)
+      .filter(match => {
+        if (keyword.length === 0) return true;
+        return match.profile?.full_name?.toLowerCase().includes(keyword.toLowerCase());
+      });
+  }, [viewMode, matches, unverifyMatches, conversationData, keyword]);
+
+  // Memoized sorted and filtered users
+  const sortedFilteredUsers = useMemo(() => {
+    return [...allUsers]
+      .map(user => ({
+        ...user,
+        lastMessageTime: user.match_info?.conversation_id 
+          ? conversationData[user.match_info.conversation_id]?.lastMessageTime || new Date(0)
+          : new Date(0)
+      }))
+      .sort((a, b) => b.lastMessageTime - a.lastMessageTime)
+      .filter(user => {
+        if (keyword.length === 0) return true;
+        return user.full_name?.toLowerCase().includes(keyword.toLowerCase());
+      });
+  }, [allUsers, conversationData, keyword]);
+
   const renderItem = ({ item, index }) => {
-    const messageData = conversationMessages[item.conversation_id];
-    const callIcon = conversationCallIcons[item.conversation_id];
+    const convData = conversationData[item.conversation_id] || {};
     
     return (
       <ConversationListItem
         onPress={() => openChat(item)}
         key={`conversation-${item.id}`}
         conversation={item}
-        marginBottom={index === matches.length - 1 ? insets.bottom + 70 : 0}
+        marginBottom={index === sortedFilteredMatches.length - 1 ? insets.bottom + 70 : 0}
         onDisconnect={() => onDisconnect(item)}
         isPremium={isPremium}
-        lastMessage={messageData?.lastMessage}
-        unreadCount={messageData?.unreadCount || 0}
-        callIcon={callIcon}
+        lastMessage={convData.lastMessage}
+        unreadCount={convData.unreadCount || 0}
+        callIcon={convData.callIcon}
       />
     );
   };
 
   const renderSupportItem = ({ item, index }) => {
     const conversationId = item.match_info?.conversation_id;
-    const messageData = conversationId ? conversationMessages[conversationId] : null;
+    const convData = conversationId ? conversationData[conversationId] || {} : {};
     
     return (
       <SupportListItem
         onPress={() => openSupportChat(item)}
         key={`support-conversation-${item.id}`}
         user={item}
-        marginBottom={index === allUsers.length - 1 ? insets.bottom + 70 : 0}
-        lastMessage={messageData?.lastMessage}
-        unreadCount={messageData?.unreadCount || 0}
+        marginBottom={index === sortedFilteredUsers.length - 1 ? insets.bottom + 70 : 0}
+        lastMessage={convData.lastMessage}
+        unreadCount={convData.unreadCount || 0}
       />
     );
   };
 
-  // const filterMatches = viewMode === 'connections' ? matches.filter(match => {
-  //   if (keyword.length > 0) {
-  //     return match.profile.full_name.toLowerCase().includes(keyword.toLowerCase())
-  //   }
-  //   return true;
-  // }
-  // ) : unverifyMatches.filter(match => {
-  //   if (keyword.length > 0) {
-  //     return match.profile.full_name.toLowerCase().includes(keyword.toLowerCase())
-  //   }
-
-  //   return true;
-  // });
-
-
-  const getSortedMatches = (matchList) => {
-  return [...matchList]
-    .map(match => {
-      const convId = match.conversation_id;
-      const createdAt = conversationMessages[convId]?.createdAt ?? new Date(0);
-      return { match, createdAt };
-    })
-    .sort((a, b) => b.createdAt - a.createdAt)
-    .map(item => item.match)
-    .filter(match => {
-      if (keyword.length > 0) {
-        return match.profile.full_name.toLowerCase().includes(keyword.toLowerCase());
-      }
-      return true;
-    });
-};
-
-const filterMatches = viewMode === 'connections'
-  ? getSortedMatches(matches)
-  : getSortedMatches(unverifyMatches);
-
-  // const filterUsers = allUsers.filter(user => {
-  //   if (keyword.length > 0) {
-  //     return user.full_name.toLowerCase().includes(keyword.toLowerCase())
-  //   }
-  //   return true;
-  // }
-  // );
-
-const filterUsers = [...allUsers]
-  .map(user => {
-    const convId = user?.match_info?.conversation_id;
-    const createdAt = conversationMessages[convId]?.createdAt ?? new Date(0);
-    return { user, createdAt };
-  })
-  .sort((a, b) => b.createdAt - a.createdAt)
-  .map(item => item.user)
-  .filter(user => {
-    if (keyword.length > 0) {
-      return user.full_name.toLowerCase().includes(keyword.toLowerCase());
-    }
-    return true;
-  });
-
   const shouldShowPremiumPopup = !isPremium && freeCount >= freeTotal;
   console.log("shouldShowPremiumPopup=====>", shouldShowPremiumPopup);
-const promptCountRef = useRef(0);
-const MAX_PROMPTS = 4;
 
-// useFocusEffect(
-//   useCallback(() => {
-//     const isRegularUser = !currentUser?.is_moderators && !currentUser?.is_support;
+  useFocusEffect(
+    useCallback(() => {
+      const isFreeUser = !isPremium && !currentUser?.is_moderators && !currentUser?.is_support;
+      const hasReachedLimit = freeTotal > 0 && freeCount >= 3;
 
-//     if (
-//       isRegularUser &&
-//       !isPremium &&
-//       freeTotal > 0 &&
-//       freeCount >= freeTotal &&
-//       promptCountRef.current < MAX_PROMPTS
-//     ) {
-//       promptCountRef.current += 1;
+      let timeoutId;
 
-//       InteractionManager.runAfterInteractions(() => {
-//         navigation.navigate('PremiumRequestScreen');
-//       });
-//     }
-//   }, [currentUser, isPremium, freeTotal, freeCount])
-// );
+      if (isFreeUser && hasReachedLimit) {
+        InteractionManager.runAfterInteractions(() => {
+          timeoutId = setTimeout(() => {
+            navigation.navigate('PremiumRequestScreen');
+          }, 5000); // 5 seconds delay
+        });
+      }
 
-//   useFocusEffect(
-//   useCallback(() => {
-//     const isFreeUser = !isPremium && !currentUser?.is_moderators && !currentUser?.is_support;
-//     const hasReachedLimit = freeTotal > 0 && freeCount >= 3;
+      // Clean up timeout when screen loses focus
+      return () => {
+        if (timeoutId) clearTimeout(timeoutId);
+      };
+    }, [currentUser, isPremium, freeCount, freeTotal, navigation])
+  );
 
-//     const shouldPrompt = isFreeUser && hasReachedLimit;
-
-//     if (shouldPrompt && promptCountRef.current < MAX_PROMPTS) {
-//       promptCountRef.current += 1;
-
-//       InteractionManager.runAfterInteractions(() => {
-//         navigation.navigate('PremiumRequestScreen');
-//       });
-//     }
-//   }, [currentUser, isPremium, freeCount, freeTotal])
-// );
-
-useFocusEffect(
-  useCallback(() => {
-    const isFreeUser = !isPremium && !currentUser?.is_moderators && !currentUser?.is_support;
-    const hasReachedLimit = freeTotal > 0 && freeCount >= 3;
-
-    let timeoutId;
-
-    if (isFreeUser && hasReachedLimit) {
-      InteractionManager.runAfterInteractions(() => {
-        timeoutId = setTimeout(() => {
-          navigation.navigate('PremiumRequestScreen');
-        }, 5000); // 5 seconds delay
-      });
-    }
-
-    // Clean up timeout when screen loses focus
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [currentUser, isPremium, freeCount, freeTotal])
-);
-  
   const recentMatchesFilter = !isPremium ? recentMatches.filter(conversation => conversation.is_free) : recentMatches
 
   const renderHeader = () => {
@@ -833,7 +725,7 @@ useFocusEffect(
         {
           (viewMode === 'connections' || viewMode === 'others') &&
           <FlatList
-            data={filterMatches}
+            data={sortedFilteredMatches}
             renderItem={renderItem}
             style={{ width: Platform.isPad ? 600 : '100%', flex: 1 }}
             ListEmptyComponent={renderEmpty}
@@ -841,18 +733,26 @@ useFocusEffect(
             refreshing={isFetching}
             showsVerticalScrollIndicator={false}
             ListHeaderComponent={renderHeader}
+            keyExtractor={(item) => `conversation-${item.id}`}
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={10}
+            windowSize={10}
           />
         }
         {
           (viewMode === 'support') &&
           <FlatList
-            data={filterUsers}
+            data={sortedFilteredUsers}
             renderItem={renderSupportItem}
             style={{ width: Platform.isPad ? 600 : '100%', flex: 1 }}
             onRefresh={onRefresh}
             refreshing={isFetching}
             showsVerticalScrollIndicator={false}
             ListHeaderComponent={renderHeader}
+            keyExtractor={(item) => `support-conversation-${item.id}`}
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={10}
+            windowSize={10}
           />
         }
       </View>

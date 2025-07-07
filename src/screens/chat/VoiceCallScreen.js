@@ -28,21 +28,21 @@ export const VoiceCallScreen = ({ route, navigation }) => {
 const dialingSoundRef = useRef<Audio.Sound | null>(null);
 
   useEffect(() => {
-    if (status === 'pending') {
-    const playDialing = async () => {
-      try {
-        const { sound } = await Audio.Sound.createAsync(
-          require('../../assets/sounds/dialing.mp3'),
-          { shouldPlay: true, isLooping: true } 
-        );
-        dialingSoundRef.current = sound;
-        await sound.playAsync();
-      } catch (err) {
-        console.log('Error playing dialing sound:', err);
-      }
-    };
-    playDialing();
-  }
+  //   if (status === 'pending') {
+  //   const playDialing = async () => {
+  //     try {
+  //       const { sound } = await Audio.Sound.createAsync(
+  //         require('../../assets/sounds/dialing.mp3'),
+  //         { shouldPlay: true, isLooping: true } 
+  //       );
+  //       dialingSoundRef.current = sound;
+  //       await sound.playAsync();
+  //     } catch (err) {
+  //       console.log('Error playing dialing sound:', err);
+  //     }
+  //   };
+  //   playDialing();
+  // }
     if (status === "ended") {
       if(callLog && (callLog.endResult === 'DECLINED' || callLog.endResult === 'CANCELED') && route.params.onMiss) {
         route.params.onMiss()

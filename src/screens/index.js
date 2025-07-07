@@ -181,11 +181,25 @@ SendbirdCalls.setListener({
 try {
   SendbirdCalls.setDirectCallDialingSoundOnWhenSilentOrVibrateMode(true);
 
-  SendbirdCalls.addDirectCallSound(SoundType.RINGING, 'ringing.mp3');
-  // SendbirdCalls.addDirectCallSound(SoundType.DIALING, 'dialing.mp3'); 
-  SendbirdCalls.addDirectCallSound(SoundType.RECONNECTED, 'reconnected.mp3');
-  SendbirdCalls.addDirectCallSound(SoundType.RECONNECTING, 'reconnecting.mp3');
-  console.log('Setting up Sendbird call sounds');
+  // For iOS, ensure files are in the main bundle and use proper file extensions
+  if (Platform.OS === 'ios') {
+    // iOS requires files to be in the main bundle, use just filename without path
+    SendbirdCalls.addDirectCallSound(SoundType.RINGING, 'ringing.mp3');
+    SendbirdCalls.addDirectCallSound(SoundType.DIALING, 'dialing.mp3'); 
+    SendbirdCalls.addDirectCallSound(SoundType.RECONNECTED, 'reconnected.mp3');
+    SendbirdCalls.addDirectCallSound(SoundType.RECONNECTING, 'reconnecting.mp3');
+    
+    // Enable sound even when device is in silent mode
+    SendbirdCalls.setDirectCallDialingSoundOnWhenSilentOrVibrateMode(true);
+  } else {
+    // Android can use asset paths
+    SendbirdCalls.addDirectCallSound(SoundType.RINGING, 'ringing.mp3');
+    SendbirdCalls.addDirectCallSound(SoundType.DIALING, 'dialing.mp3'); 
+    SendbirdCalls.addDirectCallSound(SoundType.RECONNECTED, 'reconnected.mp3');
+    SendbirdCalls.addDirectCallSound(SoundType.RECONNECTING, 'reconnecting.mp3');
+  }
+  
+  console.log('Setting up Sendbird call sounds for platform:', Platform.OS);
 } catch (error) {
   console.log('Error setting up Sendbird call sounds:', error);
 }
@@ -245,8 +259,7 @@ const AppStack = ({ navgation }) => {
         .catch(() => { });
     } else {
       Purchases.logOut()
-        .then(() => { })
-        .catch(() => { });
+        .then(() => { });
     }
   }, [currentUser]);
 
@@ -255,6 +268,10 @@ const AppStack = ({ navgation }) => {
       allowsRecordingIOS: false,
       staysActiveInBackground: false,
       playsInSilentModeIOS: true,
+      shouldDuckAndroid: false,
+      playThroughEarpieceAndroid: false,
+      interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
+      interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
     });
   }, []);
 

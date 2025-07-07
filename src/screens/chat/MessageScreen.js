@@ -15,6 +15,7 @@ import {
   Pressable,
   StyleSheet,
   TouchableOpacity,
+  KeyboardAvoidingView,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -638,7 +639,9 @@ const MessageScreen = ({ navigation, route }) => {
 
     const unsubscribe = typingRef.onSnapshot((doc) => {
       if (doc.exists) {
-        const isUserTyping = doc.data().isTyping;
+        //const isUserTyping = doc.data().isTyping;
+        const data = doc.data();
+        const isUserTyping = data?.isTyping ?? false;
         setIsTyping(isUserTyping);
 
         if (isUserTyping) {
@@ -669,6 +672,12 @@ const MessageScreen = ({ navigation, route }) => {
 
   const renderMessage = (props) => {
     const { currentMessage, previousMessage } = props
+    
+    // Add null check for currentMessage
+    if (!currentMessage) {
+      return null;
+    }
+    
     // if (currentMessage.type === 'missed_voice_call' || currentMessage.type === 'missed_video_call' || currentMessage.type === 'voice_call' || currentMessage.type === 'video_call') {
     let contentView = null
     let extraStyle = {}
@@ -1521,6 +1530,11 @@ const MessageScreen = ({ navigation, route }) => {
   console.log({ keyboardHeight })
   if (!isPremium && !currentConversation?.is_free) {
     return (
+      <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} // tùy chỉnh nếu có header
+      >
       <View style={styles.container}>
         <StatusBar translucent style="dark" />
         <View
@@ -1573,7 +1587,8 @@ const MessageScreen = ({ navigation, route }) => {
           listViewProps={{ contentContainerStyle: { flexGrow: 1, justifyContent: "flex-end" } }}
           forceGetKeyboardDismissed={() => false}
         />
-      </View>
+        </View>
+        </KeyboardAvoidingView>
     )
   }
 
