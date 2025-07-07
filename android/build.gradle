@@ -65,4 +65,16 @@ allprojects {
             url "$rootDir/../node_modules/@notifee/react-native/android/libs" 
      }   
     }
+    
+    // Fix compilation issues with outdated React Native libraries
+    afterEvaluate { project ->
+        if (project.hasProperty("android")) {
+            android {
+                compileSdkVersion rootProject.ext.compileSdkVersion
+                if (project.hasProperty("buildToolsVersion")) {
+                    buildToolsVersion rootProject.ext.buildToolsVersion
+                }
+            }
+        }
+    }
 }
