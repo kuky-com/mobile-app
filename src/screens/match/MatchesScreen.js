@@ -603,6 +603,28 @@ const MatchesScreen = ({ navigation }) => {
 
   const shouldShowPremiumPopup = !isPremium && freeCount >= freeTotal;
   console.log("shouldShowPremiumPopup=====>", shouldShowPremiumPopup);
+  const hasShownPopupRef = useRef(false);
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     const isFreeUser = !isPremium && !currentUser?.is_moderators && !currentUser?.is_support;
+  //     const hasReachedLimit = freeTotal > 0 && freeCount >= 3;
+
+  //     let timeoutId;
+
+  //     if (isFreeUser && hasReachedLimit) {
+  //       InteractionManager.runAfterInteractions(() => {
+  //         timeoutId = setTimeout(() => {
+  //           navigation.navigate('PremiumRequestScreen');
+  //         }, 5000); // 5 seconds delay
+  //       });
+  //     }
+
+  //     // Clean up timeout when screen loses focus
+  //     return () => {
+  //       if (timeoutId) clearTimeout(timeoutId);
+  //     };
+  //   }, [currentUser, isPremium, freeCount, freeTotal, navigation])
+  // );
 
   useFocusEffect(
     useCallback(() => {
@@ -611,21 +633,22 @@ const MatchesScreen = ({ navigation }) => {
 
       let timeoutId;
 
-      if (isFreeUser && hasReachedLimit) {
+      if (!hasShownPopupRef.current && isFreeUser && hasReachedLimit) {
+        hasShownPopupRef.current = true; // mark as shown
+
         InteractionManager.runAfterInteractions(() => {
           timeoutId = setTimeout(() => {
-            navigation.navigate('PremiumRequestScreen');
-          }, 5000); // 5 seconds delay
+            navigation.navigate("PremiumRequestScreen");
+          }, 5000);
         });
       }
 
-      // Clean up timeout when screen loses focus
       return () => {
         if (timeoutId) clearTimeout(timeoutId);
       };
     }, [currentUser, isPremium, freeCount, freeTotal, navigation])
   );
-
+  
   const recentMatchesFilter = !isPremium ? recentMatches.filter(conversation => conversation.is_free) : recentMatches
 
   const renderHeader = () => {
