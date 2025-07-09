@@ -153,6 +153,7 @@ const MatchesScreen = ({ navigation }) => {
                   unreadCount: 0,
                   lastMessage: null,
                   lastMessageTime: new Date(0),
+                  lastMessageTimestamp: Date.now(), // Add current timestamp for real-time updates
                   callIcon: null
                 }
               }));
@@ -201,6 +202,9 @@ const MatchesScreen = ({ navigation }) => {
                   callIcon = {
                     source: messageData.sendBy === currentUser?.id ? images.call_out_icon : images.call_in_icon
                   };
+                } else if (messageData.type === 'image') {
+                  lastMessage = messageData.text?.length > 1 ? 'Sent images' : 'Sent an image';
+                  callIcon = null;
                 } else {
                   lastMessage = messageData.text || null;
                   callIcon = null;
@@ -213,6 +217,7 @@ const MatchesScreen = ({ navigation }) => {
                     lastMessage,
                     unreadCount,
                     lastMessageTime: messageTimestamp,
+                    lastMessageTimestamp: messageTimestamp.getTime(), // Add timestamp for sorting and updates
                     callIcon: conversationType !== 'support' ? callIcon : null,
                     conversationType
                   }
@@ -540,11 +545,18 @@ const MatchesScreen = ({ navigation }) => {
     const matchList = viewMode === 'connections' ? matches : unverifyMatches;
     
     return [...matchList]
-      .map(match => ({
-        ...match,
-        lastMessageTime: conversationData[match.conversation_id]?.lastMessageTime || new Date(0)
-      }))
-      .sort((a, b) => b.lastMessageTime - a.lastMessageTime)
+      .map(match => {
+        const convData = conversationData[match.conversation_id] || {};
+        return {
+          ...match,
+          lastMessageTime: convData.lastMessageTime || new Date(0),
+          lastMessageTimestamp: convData.lastMessageTimestamp || 0,
+          lastMessage: convData.lastMessage,
+          unreadCount: convData.unreadCount || 0,
+          callIcon: convData.callIcon
+        };
+      })
+      .sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp)
       .filter(match => {
         if (keyword.length === 0) return true;
         return match.profile?.full_name?.toLowerCase().includes(keyword.toLowerCase());
@@ -554,13 +566,19 @@ const MatchesScreen = ({ navigation }) => {
   // Memoized sorted and filtered users
   const sortedFilteredUsers = useMemo(() => {
     return [...allUsers]
-      .map(user => ({
-        ...user,
-        lastMessageTime: user.match_info?.conversation_id 
-          ? conversationData[user.match_info.conversation_id]?.lastMessageTime || new Date(0)
-          : new Date(0)
-      }))
-      .sort((a, b) => b.lastMessageTime - a.lastMessageTime)
+      .map(user => {
+        const convData = user.match_info?.conversation_id 
+          ? conversationData[user.match_info.conversation_id] || {}
+          : {};
+        return {
+          ...user,
+          lastMessageTime: convData.lastMessageTime || new Date(0),
+          lastMessageTimestamp: convData.lastMessageTimestamp || 0,
+          lastMessage: convData.lastMessage,
+          unreadCount: convData.unreadCount || 0
+        };
+      })
+      .sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp)
       .filter(user => {
         if (keyword.length === 0) return true;
         return user.full_name?.toLowerCase().includes(keyword.toLowerCase());
@@ -568,8 +586,6 @@ const MatchesScreen = ({ navigation }) => {
   }, [allUsers, conversationData, keyword]);
 
   const renderItem = ({ item, index }) => {
-    const convData = conversationData[item.conversation_id] || {};
-    
     return (
       <ConversationListItem
         onPress={() => openChat(item)}
@@ -578,25 +594,24 @@ const MatchesScreen = ({ navigation }) => {
         marginBottom={index === sortedFilteredMatches.length - 1 ? insets.bottom + 70 : 0}
         onDisconnect={() => onDisconnect(item)}
         isPremium={isPremium}
-        lastMessage={convData.lastMessage}
-        unreadCount={convData.unreadCount || 0}
-        callIcon={convData.callIcon}
+        lastMessage={item.lastMessage}
+        unreadCount={item.unreadCount || 0}
+        callIcon={item.callIcon}
+        lastMessageTime={item.lastMessageTime}
       />
     );
   };
 
   const renderSupportItem = ({ item, index }) => {
-    const conversationId = item.match_info?.conversation_id;
-    const convData = conversationId ? conversationData[conversationId] || {} : {};
-    
     return (
       <SupportListItem
         onPress={() => openSupportChat(item)}
         key={`support-conversation-${item.id}`}
         user={item}
         marginBottom={index === sortedFilteredUsers.length - 1 ? insets.bottom + 70 : 0}
-        lastMessage={convData.lastMessage}
-        unreadCount={convData.unreadCount || 0}
+        lastMessage={item.lastMessage}
+        unreadCount={item.unreadCount || 0}
+        lastMessageTime={item.lastMessageTime}
       />
     );
   };
@@ -650,7 +665,7 @@ const MatchesScreen = ({ navigation }) => {
   );
   
   const recentMatchesFilter = !isPremium ? recentMatches.filter(conversation => conversation.is_free) : recentMatches
-
+  console.log("recentMatchesFilter=====>", recentMatchesFilter);
   const renderHeader = () => {
     if (viewMode === 'others' || viewMode === 'support') return null
     if(recentMatches.length === 0) return null

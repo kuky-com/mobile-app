@@ -3,12 +3,16 @@ import Text from '@/components/Text'
 import colors from '@/utils/colors'
 import images from '@/utils/images'
 import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
 import { Image } from 'expo-image'
 import { useAtomValue } from 'jotai'
-import React, { useRef } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import { Pressable, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { SwipeRow } from 'react-native-swipe-list-view'
 import AvatarImage from '@/components/AvatarImage'
+
+// Add the relativeTime plugin
+dayjs.extend(relativeTime)
 
 const styles = StyleSheet.create({
     standaloneRowBack: {
@@ -20,10 +24,23 @@ const styles = StyleSheet.create({
     },
 })
 
-const ConversationListItem = ({ onPress, isPremium, conversation, marginBottom, onDisconnect, lastMessage: lastMessageProp, unreadCount: unreadCountProp, callIcon: callIconProp }) => {
+const ConversationListItem = ({ onPress, isPremium, conversation, marginBottom, onDisconnect, lastMessage: lastMessageProp, unreadCount: unreadCountProp, callIcon: callIconProp, lastMessageTime }) => {
     const openRowRef = useRef(null);
     const currentUser = useAtomValue(userAtom)
+    // const [currentTime, setCurrentTime] = useState(Date.now());
+    
 
+    // // Update current time every minute for real-time "time ago" updates
+    // useEffect(() => {
+    //     const interval = setInterval(() => {
+    //         setCurrentTime(Date.now());
+    //     }, 60000); // Update every minute
+
+    //     return () => clearInterval(interval);
+    // }, []);
+
+    // console.log('conversation', conversation);
+    
     // Use props if available, otherwise fall back to conversation data
     const unreadCount = unreadCountProp ?? 0;
     const lastMessageCloud = lastMessageProp ?? conversation?.last_message;
@@ -55,7 +72,26 @@ const ConversationListItem = ({ onPress, isPremium, conversation, marginBottom, 
     }
 
     let lastMessage = lastMessageCloud
-    let lastDate = conversation.last_message_date
+    let lastDate = null;
+    
+    // Format time based on priority: lastMessageTime > conversation dates
+    if (lastMessageTime && lastMessageTime instanceof Date && lastMessageTime.getTime() > 0) {
+        // Use the timestamp from Firestore messages (most accurate)
+        lastDate = dayjs(lastMessageTime).fromNow();
+    } else if (conversation.last_message_date) {
+        // Fallback to conversation last message date
+        lastDate = dayjs(conversation.last_message_date).fromNow();
+    } else if (conversation.response_date) {
+        // Fallback to response date
+        lastDate = dayjs(conversation.response_date).fromNow();
+    } else if (conversation.sent_date) {
+        // Fallback to sent date
+        lastDate = dayjs(conversation.sent_date).fromNow();
+    } else {
+        // Default fallback
+        lastDate = 'Just now';
+    }
+
     if (!lastMessage) {
         if (conversation.status === 'sent') {
             if (conversation.sender_id === currentUser?.id) {
@@ -69,20 +105,10 @@ const ConversationListItem = ({ onPress, isPremium, conversation, marginBottom, 
                     lastMessage = 'Chat not started yet'
                 }
             }
-
         }
         if (conversation.status === 'accepted') {
             lastMessage = `New match!`
         }
-    }
-    if (!lastDate) {
-        if (conversation.response_date) {
-            lastDate = dayjs(conversation.response_date).fromNow(true)
-        } else if (conversation.sent_date) {
-            lastDate = dayjs(conversation.sent_date).fromNow(true)
-        }
-    } else {
-        lastDate = dayjs(lastDate).fromNow(true)
     }
 
     if (!isPremium && !conversation.is_free) {
@@ -177,8 +203,6 @@ const ConversationListItem = ({ onPress, isPremium, conversation, marginBottom, 
             </SwipeRow>
         )
     }
-
-
 }
 
 export default ConversationListItem

@@ -1042,6 +1042,23 @@ const MessageScreen = ({ navigation, route }) => {
 
   const calling = async (isVideoCall) => {
     Keyboard.dismiss()
+    
+    // Check if user is approved
+    if (!currentUser?.profile_approved || currentUser?.profile_approved !== 'approved') {
+      showAlert(
+        "Account Approval Required",
+        "You need to have an approved account to make voice and video calls. Please wait for your account to be approved.",
+        [
+          {
+            text: "OK",
+            onPress: () => {},
+          },
+        ],
+        () => {},
+      );
+      return;
+    }
+
     if (messages.length < 3) {
       showAlert(
         "Unlock Calls by Chatting First",
@@ -1676,13 +1693,15 @@ const MessageScreen = ({ navigation, route }) => {
             <>
               <TouchableOpacity
                 onPress={() => calling(false)}
-                style={{ width: 30, height: 30, alignItems: "center", justifyContent: "center" }}
+              style={{ width: 30, height: 30, alignItems: "center", justifyContent: "center" }}
+              // disabled={currentUser?.profile_approved === 'approved'}
               >
                 <CallIcon />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => calling(true)}
-                style={{ width: 30, height: 30, alignItems: "center", justifyContent: "center" }}
+              style={{ width: 30, height: 30, alignItems: "center", justifyContent: "center" }}
+              // disabled={currentUser?.profile_approved === 'approved'}
               >
                 <VideoIcon />
               </TouchableOpacity>

@@ -184,10 +184,27 @@ try {
   // For iOS, ensure files are in the main bundle and use proper file extensions
   if (Platform.OS === 'ios') {
     // iOS requires files to be in the main bundle, use just filename without path
-    SendbirdCalls.addDirectCallSound(SoundType.RINGING, 'ringing.mp3');
-    SendbirdCalls.addDirectCallSound(SoundType.DIALING, 'dialing.mp3'); 
-    SendbirdCalls.addDirectCallSound(SoundType.RECONNECTED, 'reconnected.mp3');
-    SendbirdCalls.addDirectCallSound(SoundType.RECONNECTING, 'reconnecting.mp3');
+    // Try different approaches for iOS sound loading
+    try {
+      // First try with bundle path
+      SendbirdCalls.addDirectCallSound(SoundType.DIALING, 'dialing.mp3');
+      SendbirdCalls.addDirectCallSound(SoundType.RINGING, 'ringing.mp3');
+      SendbirdCalls.addDirectCallSound(SoundType.RECONNECTED, 'reconnected.mp3');
+      SendbirdCalls.addDirectCallSound(SoundType.RECONNECTING, 'reconnecting.mp3');
+      
+      console.log('Successfully added iOS call sounds');
+    } catch (soundError) {
+      console.log('Error adding iOS call sounds:', soundError);
+      
+      // Fallback: try with different file extensions or paths
+      try {
+        SendbirdCalls.addDirectCallSound(SoundType.DIALING, 'dialing.wav');
+        SendbirdCalls.addDirectCallSound(SoundType.RINGING, 'ringing.wav');
+        console.log('Successfully added iOS call sounds with .wav extension');
+      } catch (fallbackError) {
+        console.log('Fallback iOS sound loading also failed:', fallbackError);
+      }
+    }
     
     // Enable sound even when device is in silent mode
     SendbirdCalls.setDirectCallDialingSoundOnWhenSilentOrVibrateMode(true);
