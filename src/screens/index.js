@@ -128,9 +128,51 @@ import VideoManager from "../components/VideoManager";
 import { NODE_ENV } from "../utils/apiClient";
 import ModeratorFAQsScreen from "./profile/ModeratorFAQsScreen";
 
+try {
+  SendbirdCalls.setDirectCallDialingSoundOnWhenSilentOrVibrateMode(true);
+
+  // For iOS, ensure files are in the main bundle and use proper file extensions
+  if (Platform.OS === 'ios') {
+    // iOS requires files to be in the main bundle, use just filename without path
+    // Try different approaches for iOS sound loading
+    try {
+      // First try with bundle path
+      SendbirdCalls.addDirectCallSound(SoundType.DIALING, 'dialing.mp3');
+      SendbirdCalls.addDirectCallSound(SoundType.RINGING, 'ringing.mp3');
+      SendbirdCalls.addDirectCallSound(SoundType.RECONNECTED, 'reconnected.mp3');
+      SendbirdCalls.addDirectCallSound(SoundType.RECONNECTING, 'reconnecting.mp3');
+      
+      console.log('Successfully added iOS call sounds');
+    } catch (soundError) {
+      console.log('Error adding iOS call sounds:', soundError);
+      
+      // Fallback: try with different file extensions or paths
+      try {
+        SendbirdCalls.addDirectCallSound(SoundType.DIALING, 'dialing.wav');
+        SendbirdCalls.addDirectCallSound(SoundType.RINGING, 'ringing.wav');
+        console.log('Successfully added iOS call sounds with .wav extension');
+      } catch (fallbackError) {
+        console.log('Fallback iOS sound loading also failed:', fallbackError);
+      }
+    }
+    
+    // Enable sound even when device is in silent mode
+    SendbirdCalls.setDirectCallDialingSoundOnWhenSilentOrVibrateMode(true);
+  } else {
+    // Android can use asset paths
+    SendbirdCalls.addDirectCallSound(SoundType.RINGING, 'ringing.mp3');
+    SendbirdCalls.addDirectCallSound(SoundType.DIALING, 'dialing.mp3'); 
+    SendbirdCalls.addDirectCallSound(SoundType.RECONNECTED, 'reconnected.mp3');
+    SendbirdCalls.addDirectCallSound(SoundType.RECONNECTING, 'reconnecting.mp3');
+  }
+  
+  console.log('Setting up Sendbird call sounds for platform:', Platform.OS);
+} catch (error) {
+  console.log('Error setting up Sendbird call sounds:', error);
+}
+
 SendbirdCalls.setListener({
   onRinging: async (callProps) => {
-    console.log("calll --------------\n------------\n---------------------");
     const directCall = await SendbirdCalls.getDirectCall(callProps.callId);
 
     if (!SendbirdCalls.currentUser) {
@@ -178,48 +220,7 @@ SendbirdCalls.setListener({
 // Need to import SoundType from @sendbird/calls-react-native
 // Need to ensure sound files are in the correct assets directory
 // Wrap in try-catch to handle potential errors
-try {
-  SendbirdCalls.setDirectCallDialingSoundOnWhenSilentOrVibrateMode(true);
 
-  // For iOS, ensure files are in the main bundle and use proper file extensions
-  if (Platform.OS === 'ios') {
-    // iOS requires files to be in the main bundle, use just filename without path
-    // Try different approaches for iOS sound loading
-    try {
-      // First try with bundle path
-      SendbirdCalls.addDirectCallSound(SoundType.DIALING, 'dialing.mp3');
-      SendbirdCalls.addDirectCallSound(SoundType.RINGING, 'ringing.mp3');
-      SendbirdCalls.addDirectCallSound(SoundType.RECONNECTED, 'reconnected.mp3');
-      SendbirdCalls.addDirectCallSound(SoundType.RECONNECTING, 'reconnecting.mp3');
-      
-      console.log('Successfully added iOS call sounds');
-    } catch (soundError) {
-      console.log('Error adding iOS call sounds:', soundError);
-      
-      // Fallback: try with different file extensions or paths
-      try {
-        SendbirdCalls.addDirectCallSound(SoundType.DIALING, 'dialing.wav');
-        SendbirdCalls.addDirectCallSound(SoundType.RINGING, 'ringing.wav');
-        console.log('Successfully added iOS call sounds with .wav extension');
-      } catch (fallbackError) {
-        console.log('Fallback iOS sound loading also failed:', fallbackError);
-      }
-    }
-    
-    // Enable sound even when device is in silent mode
-    SendbirdCalls.setDirectCallDialingSoundOnWhenSilentOrVibrateMode(true);
-  } else {
-    // Android can use asset paths
-    SendbirdCalls.addDirectCallSound(SoundType.RINGING, 'ringing.mp3');
-    SendbirdCalls.addDirectCallSound(SoundType.DIALING, 'dialing.mp3'); 
-    SendbirdCalls.addDirectCallSound(SoundType.RECONNECTED, 'reconnected.mp3');
-    SendbirdCalls.addDirectCallSound(SoundType.RECONNECTING, 'reconnecting.mp3');
-  }
-  
-  console.log('Setting up Sendbird call sounds for platform:', Platform.OS);
-} catch (error) {
-  console.log('Error setting up Sendbird call sounds:', error);
-}
 
 if (Platform.OS === "android") {
   setFirebaseMessageHandlers();
@@ -338,8 +339,6 @@ const AppStack = ({ navgation }) => {
 
   useEffect(() => {
   if (currentUser && currentUser?.id) {
-    console.log(`===============>", ${ NODE_ENV }_${ currentUser.id }`);
-    console.log('Current Push Token ======> ', pushToken);
     OneSignal.login(`${NODE_ENV}_${currentUser.id}`);
     OneSignal.User.addEmail(currentUser?.email);
     OneSignal.Notifications.requestPermission(true);
@@ -418,7 +417,6 @@ const AppStack = ({ navgation }) => {
       }
     });
     
-    console.log('123=======>');
 
     OneSignal.Notifications.addEventListener("foregroundWillDisplay", (event) => {
       event.getNotification();
