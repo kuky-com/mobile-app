@@ -279,7 +279,6 @@ const MessageScreen = ({ navigation, route }) => {
 
   const loadSubscriptionInfo = async () => {
     try {
-      console.log({ currentConversation })
       if (currentUser?.is_premium_user || currentUser?.is_moderators) {
         return;
       }

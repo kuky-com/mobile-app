@@ -617,7 +617,6 @@ const MatchesScreen = ({ navigation }) => {
   };
 
   const shouldShowPremiumPopup = !isPremium && freeCount >= freeTotal;
-  console.log("shouldShowPremiumPopup=====>", shouldShowPremiumPopup);
   const hasShownPopupRef = useRef(false);
   // useFocusEffect(
   //   useCallback(() => {
@@ -665,7 +664,6 @@ const MatchesScreen = ({ navigation }) => {
   );
   
   const recentMatchesFilter = !isPremium ? recentMatches.filter(conversation => conversation.is_free) : recentMatches
-  console.log("recentMatchesFilter=====>", recentMatchesFilter);
   const renderHeader = () => {
     if (viewMode === 'others' || viewMode === 'support') return null
     if(recentMatches.length === 0) return null
