@@ -118,7 +118,7 @@ const video_out_icon = require("../assets/images/video_out.png");
 const video_missed_icon = require("../assets/images/video_miss.png");
 
 const report_flag = require("../assets/images/report_flag.png");
-
+const tick_icon = require("../assets/images/tick_icon.png");
 export default {
   logo_text,
   get_start_bg,
@@ -230,5 +230,6 @@ export default {
   call_missed_icon,
   video_in_icon,
   video_out_icon,
-  video_missed_icon
+  video_missed_icon,
+  tick_icon
 };

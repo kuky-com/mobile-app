@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState,useCallback, useMemo  } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Tabbar from "@/components/Tabbar";
 import { createStackNavigator, TransitionPresets } from "@react-navigation/stack";
@@ -20,6 +20,7 @@ import AvatarUpdateScreen from "./onboarding/AvatarUpdateScreen";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import VerificationSuccessScreen from "./auth/VerificationSuccessScreen";
 import PremiumRequestScreen from "./chat/PremiumRequestScreen";
+import PremiumScreen from "./chat/PremiumScreen";
 import InterestSelectScreen from "./interest/InterestSelectScreen";
 import DislikeSelectScreen from "./interest/DislikeSelectScreen";
 import GetMatchScreen from "./match/GetMatchScreen";
@@ -127,6 +128,7 @@ import InviteFriendScreen from "./match/InviteFriendScreen";
 import VideoManager from "../components/VideoManager";
 import { NODE_ENV } from "../utils/apiClient";
 import ModeratorFAQsScreen from "./profile/ModeratorFAQsScreen";
+import { useFocusEffect } from '@react-navigation/native';
 
 try {
   SendbirdCalls.setDirectCallDialingSoundOnWhenSilentOrVibrateMode(true);
@@ -264,10 +266,157 @@ const AppStack = ({ navgation }) => {
   const [usedUrl, setUsedUrl] = useAtom(linkingUrlAtom)
   const [canCheckOptIn, setCanCheckOptIn] = useState(true)
 
+  // Premium popup state
+  const [isPremium, setIsPremium] = useState(true);
+  const [freeTotal, setFreeTotal] = useState(0);
+  const [freeCount, setFreeCount] = useState(0);
+  const hasShownPopupRef = useRef(false);
+  const [lastPremiumPopupDate, setLastPremiumPopupDate] = useState(null);
+
   //config onesignal
   useEffect(() => {
     OneSignal.initialize(ONESIGNAL_APP_ID);
   }, []);
+
+  // Load last premium popup date from storage
+  useEffect(() => {
+    const loadLastPopupDate = async () => {
+      try {
+        const lastDate = await AsyncStorage.getItem('LAST_PREMIUM_POPUP_DATE');
+        if (lastDate) {
+          setLastPremiumPopupDate(lastDate);
+        }
+      } catch (error) {
+        console.log('Error loading last popup date:', error);
+      }
+    };
+
+    loadLastPopupDate();
+  }, []);
+
+  // Check subscription status
+  useEffect(() => {
+    console.log('currentUser', currentUser);
+    const checkSubscriptionStatus = async () => {
+      try {
+        if (currentUser?.is_premium_user || currentUser?.is_moderators || currentUser?.is_support) {
+          setIsPremium(true);
+          return;
+        }
+
+        const customerInfo = await Purchases.getCustomerInfo();
+        console.log('customerInfo', customerInfo);
+        
+        if (
+          customerInfo &&
+          customerInfo.entitlements &&
+          customerInfo.entitlements.active &&
+          (
+            customerInfo.entitlements.active["pro"] ||
+            customerInfo.entitlements.active["pro_3month"]
+          )
+        ) {
+          setIsPremium(true);
+        } else {
+          setIsPremium(false);
+        }
+      } catch (error) {
+        console.log('Error checking subscription:', error);
+        setIsPremium(false);
+      }
+    };
+
+    if (currentUser) {
+      checkSubscriptionStatus();
+    }
+  }, [currentUser]);
+
+  console.log('isPremium', isPremium);
+  // Function to check if popup should be shown today
+  const shouldShowPremiumPopup = useCallback(() => {
+    if (!currentUser) return false;
+    if (currentUser.is_moderators || currentUser.is_support) return false;
+    if (isPremium) return false;
+    
+    const today = dayjs().format('YYYY-MM-DD');
+    
+    // If no last popup date or last popup was on a different day
+    if (!lastPremiumPopupDate || lastPremiumPopupDate !== today) {
+      return true;
+    }
+    
+    return false;
+  }, [currentUser, isPremium, lastPremiumPopupDate]);
+
+  // Function to mark popup as shown today
+  const markPremiumPopupShown = useCallback(async () => {
+    try {
+      const today = dayjs().format('YYYY-MM-DD');
+      await AsyncStorage.setItem('LAST_PREMIUM_POPUP_DATE', today);
+      setLastPremiumPopupDate(today);
+      hasShownPopupRef.current = true;
+    } catch (error) {
+      console.log('Error saving popup date:', error);
+    }
+  }, []);
+
+  // Show premium popup logic
+  useFocusEffect(
+    useCallback(() => {
+      console.log('shouldShowPremiumPopup', shouldShowPremiumPopup());
+      if (!shouldShowPremiumPopup()) {
+        return;
+      }
+
+      // Don't show if already shown in this session
+      if (hasShownPopupRef.current) {
+        return;
+      }
+
+      let timeoutId;
+
+      // Show popup after 3 seconds delay
+      timeoutId = setTimeout(async () => {
+        try {
+          await markPremiumPopupShown();
+          NavigationService.navigate("PremiumScreen");
+        } catch (error) {
+          console.log('Error showing premium popup:', error);
+        }
+      }, 3000);
+
+      return () => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+      };
+    }, [shouldShowPremiumPopup, markPremiumPopupShown])
+  );
+
+  // Reset popup flag when app becomes active (new day check)
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", async (nextAppState) => {
+      if (
+        appState.current &&
+        appState.current.match(/inactive|background/) &&
+        nextAppState === "active"
+      ) {
+        loadProfile();
+        
+        // Reset popup flag if it's a new day
+        const today = dayjs().format('YYYY-MM-DD');
+        if (lastPremiumPopupDate && lastPremiumPopupDate !== today) {
+          hasShownPopupRef.current = false;
+        }
+      }
+
+      appState.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [currentUser, lastPremiumPopupDate]);
 
   // config purchase status
   useEffect(() => {
@@ -492,6 +641,12 @@ const AppStack = ({ navgation }) => {
         nextAppState === "active"
       ) {
         loadProfile();
+        
+        // Reset popup flag if it's a new day
+        const today = dayjs().format('YYYY-MM-DD');
+        if (lastPremiumPopupDate && lastPremiumPopupDate !== today) {
+          hasShownPopupRef.current = false;
+        }
       }
 
       appState.current = nextAppState;
@@ -500,7 +655,7 @@ const AppStack = ({ navgation }) => {
     return () => {
       subscription.remove();
     };
-  }, [currentUser]);
+  }, [currentUser, lastPremiumPopupDate]);
 
   useEffect(() => {
     const getVersion = () => {
@@ -809,6 +964,11 @@ const checkPushToken = () => {
       <Stack.Screen
         name="PremiumRequestScreen"
         component={PremiumRequestScreen}
+        options={{ ...TransitionPresets.ModalSlideFromBottomIOS }}
+      />
+      <Stack.Screen
+        name="PremiumScreen"
+        component={PremiumScreen}
         options={{ ...TransitionPresets.ModalSlideFromBottomIOS }}
       />
       <Stack.Screen name="InterestSelectScreen" component={InterestSelectScreen} />
