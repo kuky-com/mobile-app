@@ -669,6 +669,30 @@ const MessageScreen = ({ navigation, route }) => {
     return () => unsubscribe();
   }, [currentConversation, currentUserId]);
 
+
+  useEffect(() => { 
+    if (currentUser?.is_moderators && currentConversation?.profile?.is_moderators) {
+      showAlert(
+        "Hold on",
+        "Time spent on a call with another moderator is not included in your paid session time.",
+        [
+          {
+            text: "Continue",
+            onPress: () => {
+            },
+          },
+          {
+            text: "Cancel",
+            onPress: () => {
+            },
+          },
+        ],
+        () => {
+        },
+      );
+    }
+    }, []);
+  
   const renderMessage = (props) => {
     const { currentMessage, previousMessage } = props
     

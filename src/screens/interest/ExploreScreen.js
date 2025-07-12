@@ -30,6 +30,11 @@ const ExploreScreen = ({ navigation }) => {
   const [finalKeyword, setFinalKeyword] = useState('');
   const [journeys, setJourneys] = useState([]);
   const [selectedJourney, setSelectedJourney] = useState(null);
+  
+  // Add sorting state
+  const [sortBy, setSortBy] = useState('relevance'); // relevance, distance, latest_registration
+  const [sortDirection, setSortDirection] = useState('ASC'); // ASC, DESC
+  
   const keywordTimeout = useRef(null);
   const [itemWidth, setItemWidth] = useState(() => {
     const width = Dimensions.get('window').width;
@@ -64,8 +69,12 @@ const ExploreScreen = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    loadMatches(1);
-  }, [selectedJourney, finalKeyword]);
+    try {
+      loadMatches(1);
+    } catch (error) {
+      console.log('Error loading matches:', error);
+    }
+  }, [selectedJourney, finalKeyword, sortBy, sortDirection]);
 
   const loadJourneys = useCallback(() => {
     apiClient.get('journeys/active-journeys')
@@ -79,45 +88,56 @@ const ExploreScreen = ({ navigation }) => {
     let query = '';
     if (selectedJourney) query += `journey_id=${selectedJourney.id}&`;
     if (finalKeyword) query += `keyword=${finalKeyword}&`;
+    
+    // Add sorting parameters
+    query += `sort_by=${sortBy}&`;
+    query += `sort_direction=${sortDirection}&`;
+    
     return query;
   };
 
-  const loadMatches = (resetPage = 1) => {
-    if (resetPage === 1) {
-      setFetching(true);
-      setPage(1);
-      apiClient.get(`matches/match-by-journey?${buildQuery()}offset=0&limit=${PAGE_SIZE}`)
-        .then(res => {
-          setFetching(false);
-          if (res?.data?.success) {
-            setSuggestions(res.data.data);
-            setCanLoadMore(res.data.data.length === PAGE_SIZE);
-          } else {
-            setSuggestions([]);
-            setCanLoadMore(false);
-          }
-        })
-        .catch(err => {
-          setFetching(false);
-          console.error(err);
-        });
-    } else if (canLoadMore && !loadingMore) {
-      setLoadingMore(true);
-      apiClient.get(`matches/match-by-journey?${buildQuery()}offset=${(resetPage - 1) * PAGE_SIZE}&limit=${PAGE_SIZE}`)
-        .then(res => {
-          setLoadingMore(false);
-          if (res?.data?.success) {
-            setSuggestions(prev => [...prev, ...res.data.data]);
-            setCanLoadMore(res.data.data.length === PAGE_SIZE);
-            setPage(resetPage);
-          } else setCanLoadMore(false);
-        })
-        .catch(err => {
-          setLoadingMore(false);
-          console.error(err);
-        });
+  const loadMatches = useCallback((resetPage = 1) => {
+    try {
+      if (resetPage === 1) {
+        setFetching(true);
+        setPage(1);
+        apiClient.get(`matches/match-by-journey?${buildQuery()}offset=0&limit=${PAGE_SIZE}`)
+          .then(res => {
+            setFetching(false);
+            if (res?.data?.success) {
+              setSuggestions(res.data.data);
+              setCanLoadMore(res.data.data.length === PAGE_SIZE);
+            } else {
+              setSuggestions([]);
+              setCanLoadMore(false);
+            }
+          })
+          .catch(err => {
+            setFetching(false);
+            console.error(err);
+          });
+      } else if (canLoadMore && !loadingMore) {
+        setLoadingMore(true);
+        apiClient.get(`matches/match-by-journey?${buildQuery()}offset=${(resetPage - 1) * PAGE_SIZE}&limit=${PAGE_SIZE}`)
+          .then(res => {
+            setLoadingMore(false);
+            if (res?.data?.success) {
+              setSuggestions(prev => [...prev, ...res.data.data]);
+              setCanLoadMore(res.data.data.length === PAGE_SIZE);
+              setPage(resetPage);
+            } else setCanLoadMore(false);
+          })
+          .catch(err => {
+            setLoadingMore(false);
+            console.error(err);
+          });
+      }
+    } catch (error) {
+      console.log('Error in loadMatches:', error);
+      setFetching(false);
+      setLoadingMore(false);
     }
-  };
+  }, [buildQuery, canLoadMore, loadingMore, page]);
 
   const onLoadMore = () => {
     if (canLoadMore && !loadingMore) loadMatches(page + 1);
@@ -149,6 +169,40 @@ const ExploreScreen = ({ navigation }) => {
     });
   };
 
+  const openSortPicker = async () => {
+    const sortOptions = [
+      { text: 'Relevance (Best Match)', value: { sortBy: 'relevance', sortDirection: 'ASC' } },
+      { text: 'Distance (Nearest First)', value: { sortBy: 'distance', sortDirection: 'ASC' } },
+      { text: 'Distance (Farthest First)', value: { sortBy: 'distance', sortDirection: 'DESC' } },
+      { text: 'Latest Registration (Newest)', value: { sortBy: 'latest_registration', sortDirection: 'DESC' } },
+      { text: 'Latest Registration (Oldest)', value: { sortBy: 'latest_registration', sortDirection: 'ASC' } },
+    ];
+
+    await SheetManager.show('action-sheets', {
+      payload: {
+        actions: sortOptions,
+        onPress(index) {
+          const selected = sortOptions[index].value;
+          setSortBy(selected.sortBy);
+          setSortDirection(selected.sortDirection);
+        },
+      },
+    });
+  };
+
+  const getSortDisplayText = () => {
+    switch (sortBy) {
+      case 'relevance':
+        return 'Best Match';
+      case 'distance':
+        return sortDirection === 'ASC' ? 'Nearest' : 'Farthest';
+      case 'latest_registration':
+        return sortDirection === 'DESC' ? 'Newest' : 'Oldest';
+      default:
+        return 'Best Match';
+    }
+  };
+
   const renderItem = ({ item }) => (
     <DynamicLikeItem key={`profile-${item.id}`} onPress={() => navigation.push('ConnectProfileScreen', { profile: item })} item={item} itemWidth={itemWidth} />
   );
@@ -163,10 +217,17 @@ const ExploreScreen = ({ navigation }) => {
     <View style={[styles.container, { paddingTop: insets.top }]}> 
       <View style={styles.headerRow}>
         <Text style={styles.headerText}>Explore</Text>
-        <TouchableOpacity onPress={openJourneyPicker} style={styles.journeyButton}>
-          <Text numberOfLines={1} style={styles.journeyText}>{selectedJourney ? selectedJourney.name : 'All Journeys'}</Text>
-          <FontAwesome6 name='chevron-down' size={15} color='black' />
-        </TouchableOpacity>
+        <View style={styles.headerControls}>
+          <TouchableOpacity onPress={openSortPicker} style={styles.sortButton}>
+            <FontAwesome6 name='sort' size={12} color='black' />
+            <Text numberOfLines={1} style={styles.sortText}>{getSortDisplayText()}</Text>
+            <FontAwesome6 name='chevron-down' size={12} color='black' />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={openJourneyPicker} style={styles.journeyButton}>
+            <Text numberOfLines={1} style={styles.journeyText}>{selectedJourney ? selectedJourney.name : 'All Journeys'}</Text>
+            <FontAwesome6 name='chevron-down' size={15} color='black' />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.searchBoxWrapper}>
@@ -211,6 +272,25 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: 'black'
+  },
+  headerControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  sortButton: {
+    paddingHorizontal: 8,
+    height: 30,
+    borderRadius: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#CDB8E2',
+    gap: 4,
+  },
+  sortText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: 'black',
   },
   journeyButton: {
     paddingHorizontal: 12,
