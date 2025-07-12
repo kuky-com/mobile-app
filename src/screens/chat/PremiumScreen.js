@@ -280,7 +280,7 @@ const PremiumScreen = ({ navigation, route }) => {
   {/* Slide Free */}
                 <View style={styles.slide}>
                   
-    <TouchableOpacity
+    {/* <TouchableOpacity
         onPress={() => navigation.goBack()}
         style={{
           position: "absolute",
@@ -294,7 +294,7 @@ const PremiumScreen = ({ navigation, route }) => {
           source={images.close_icon}
           style={{ width: getUnit(15), height: getUnit(15), tintColor: "#ffffff" }}
         />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     <Text style={styles.title}>Free Plan</Text>
     {[
       'Up to 3 connections',
