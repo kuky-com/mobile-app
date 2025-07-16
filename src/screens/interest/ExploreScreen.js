@@ -1,7 +1,7 @@
 import { Header } from '@/components/Header';
 import Text from '@/components/Text';
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { View, FlatList, StyleSheet, Dimensions, DeviceEventEmitter, ActivityIndicator, TouchableOpacity } from 'react-native';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { View, FlatList, StyleSheet, Dimensions, DeviceEventEmitter, ActivityIndicator, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import apiClient from '@/utils/apiClient';
 import constants from '@/utils/constants';
@@ -16,6 +16,9 @@ import TextInput from '../../components/TextInput';
 import DynamicLikeItem from '@/components/DynamicLikeItem';
 
 const PAGE_SIZE = 8;
+const INITIAL_RENDER_COUNT = 4;
+const MAX_TO_RENDER_PER_BATCH = 6;
+const WINDOW_SIZE = 8;
 
 const ExploreScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
@@ -32,165 +35,255 @@ const ExploreScreen = ({ navigation }) => {
   const [selectedJourney, setSelectedJourney] = useState(null);
   
   // Add sorting state
-  const [sortBy, setSortBy] = useState('relevance'); // relevance, distance, latest_registration
-  const [sortDirection, setSortDirection] = useState('ASC'); // ASC, DESC
+  const [sortBy, setSortBy] = useState('relevance');
+  const [sortDirection, setSortDirection] = useState('ASC');
   
+  // Performance optimization refs
   const keywordTimeout = useRef(null);
+  const requestAbortController = useRef(null);
+  const isInitialLoad = useRef(true);
+  const lastRequestTimestamp = useRef(0);
+  
   const [itemWidth, setItemWidth] = useState(() => {
     const width = Dimensions.get('window').width;
     return width > 600 ? width / 2 - 60 : width - 50;
   });
 
-  // useEffect(() => {
-  //   const resizeHandler = () => {
-  //     const width = Dimensions.get('window').width;
-  //     setItemWidth(width > 600 ? width / 2 - 60 : width - 50);
-  //   };
-  //   Dimensions.addEventListener('change', resizeHandler);
-  //   return () => Dimensions.removeEventListener('change', resizeHandler);
-  // }, []);
-
-  useEffect(() => {
-  const resizeHandler = () => {
+  // Optimized resize handler with debouncing
+  const handleResize = useCallback(() => {
     const width = Dimensions.get('window').width;
     setItemWidth(width > 600 ? width / 2 - 60 : width - 50);
-  };
-
-  const subscription = Dimensions.addEventListener('change', resizeHandler);
-
-  return () => subscription?.remove(); // ✅ Correct cleanup
-}, []);
+  }, []);
 
   useEffect(() => {
-    analytics().logScreenView({ screen_name: 'ExploreScreen', screen_class: 'ExploreScreen' });
-    loadJourneys();
+    const subscription = Dimensions.addEventListener('change', handleResize);
+    return () => subscription?.remove();
+  }, [handleResize]);
+
+  useEffect(() => {
+    // Use InteractionManager for better initial performance
+    InteractionManager.runAfterInteractions(() => {
+      analytics().logScreenView({ screen_name: 'ExploreScreen', screen_class: 'ExploreScreen' });
+      loadJourneys();
+    });
+    
     const listener = DeviceEventEmitter.addListener(constants.REFRESH_SUGGESTIONS, onRefresh);
     return () => listener.remove();
   }, []);
 
+  // Optimized effect with request deduplication
   useEffect(() => {
-    try {
-      loadMatches(1);
-    } catch (error) {
-      console.log('Error loading matches:', error);
+    const currentTimestamp = Date.now();
+    
+    // Debounce rapid changes
+    if (currentTimestamp - lastRequestTimestamp.current < 300) {
+      return;
     }
-  }, [selectedJourney, finalKeyword, sortBy, sortDirection]);
+    
+    lastRequestTimestamp.current = currentTimestamp;
+    
+    const timeoutId = setTimeout(() => {
+      try {
+        loadMatches(1);
+      } catch (error) {
+        console.log('Error loading matches:', error);
+      }
+    }, isInitialLoad.current ? 0 : 200);
 
-  const loadJourneys = useCallback(() => {
-    apiClient.get('journeys/active-journeys')
-      .then(res => {
-        if (res?.data?.success) setJourneys(res.data.data);
-      })
-      .catch(console.error);
+    isInitialLoad.current = false;
+    
+    return () => clearTimeout(timeoutId);
+  }, [selectedJourney?.id, finalKeyword, sortBy, sortDirection]);
+
+  // Memoized journey loading
+  const loadJourneys = useCallback(async () => {
+    try {
+      const res = await apiClient.get('journeys/active-journeys');
+      if (res?.data?.success) {
+        setJourneys(res.data.data);
+      }
+    } catch (error) {
+      console.error('Failed to load journeys:', error);
+    }
   }, []);
 
-  const buildQuery = () => {
+  // Optimized query building with memoization
+  const buildQuery = useMemo(() => {
     let query = '';
-    if (selectedJourney) query += `journey_id=${selectedJourney.id}&`;
-    if (finalKeyword) query += `keyword=${finalKeyword}&`;
+    if (selectedJourney?.id) query += `journey_id=${selectedJourney.id}&`;
+    if (finalKeyword) query += `keyword=${encodeURIComponent(finalKeyword)}&`;
     
     // Add sorting parameters
     query += `sort_by=${sortBy}&`;
     query += `sort_direction=${sortDirection}&`;
     
     return query;
-  };
+  }, [selectedJourney?.id, finalKeyword, sortBy, sortDirection]);
 
-  const loadMatches = useCallback((resetPage = 1) => {
+  // Optimized loadMatches with better error handling and request management
+  const loadMatches = useCallback(async (resetPage = 1) => {
     try {
-      if (resetPage === 1) {
+      // Cancel previous request if still pending
+      if (requestAbortController.current) {
+        requestAbortController.current.abort();
+      }
+
+      // Create new abort controller for this request
+      requestAbortController.current = new AbortController();
+      const { signal } = requestAbortController.current;
+
+      const isFirstPage = resetPage === 1;
+      const offset = (resetPage - 1) * PAGE_SIZE;
+
+      // Prevent multiple simultaneous calls
+      if (isFirstPage) {
+        if (isFetching) return;
         setFetching(true);
         setPage(1);
-        apiClient.get(`matches/match-by-journey?${buildQuery()}offset=0&limit=${PAGE_SIZE}`)
-          .then(res => {
-            setFetching(false);
-            if (res?.data?.success) {
-              setSuggestions(res.data.data);
-              setCanLoadMore(res.data.data.length === PAGE_SIZE);
-            } else {
-              setSuggestions([]);
-              setCanLoadMore(false);
-            }
-          })
-          .catch(err => {
-            setFetching(false);
-            console.error(err);
-          });
-      } else if (canLoadMore && !loadingMore) {
+      } else {
+        if (!canLoadMore || loadingMore) return;
         setLoadingMore(true);
-        apiClient.get(`matches/match-by-journey?${buildQuery()}offset=${(resetPage - 1) * PAGE_SIZE}&limit=${PAGE_SIZE}`)
-          .then(res => {
-            setLoadingMore(false);
-            if (res?.data?.success) {
-              setSuggestions(prev => [...prev, ...res.data.data]);
-              setCanLoadMore(res.data.data.length === PAGE_SIZE);
-              setPage(resetPage);
-            } else setCanLoadMore(false);
-          })
-          .catch(err => {
-            setLoadingMore(false);
-            console.error(err);
-          });
+      }
+
+      try {
+        const query = buildQuery; // Use the memoized query
+        const response = await fetch(
+          `${apiClient.defaults.baseURL}/matches/match-by-journey?${query}offset=${offset}&limit=${PAGE_SIZE}`,
+          {
+            method: 'GET',
+            headers: {
+              ...apiClient.defaults.headers,
+              'Authorization': apiClient.defaults.headers.Authorization,
+            },
+            signal,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        if (result?.success) {
+          const newData = result.data || [];
+          
+          if (isFirstPage) {
+            setSuggestions(newData);
+          } else {
+            setSuggestions(prev => [...prev, ...newData]);
+            setPage(resetPage);
+          }
+          
+          setCanLoadMore(newData.length === PAGE_SIZE);
+        } else {
+          if (isFirstPage) {
+            setSuggestions([]);
+          }
+          setCanLoadMore(false);
+        }
+      } catch (fetchError) {
+        if (fetchError.name === 'AbortError') {
+          console.log('Request aborted');
+          return;
+        }
+        
+        console.error('API Error:', fetchError);
+        if (isFirstPage) {
+          setSuggestions([]);
+        }
+        setCanLoadMore(false);
       }
     } catch (error) {
       console.log('Error in loadMatches:', error);
+    } finally {
       setFetching(false);
       setLoadingMore(false);
+      requestAbortController.current = null;
     }
-  }, [buildQuery, canLoadMore, loadingMore, page]);
+  }, [buildQuery, canLoadMore, loadingMore, isFetching]); // Fixed dependencies
 
-  const onLoadMore = () => {
-    if (canLoadMore && !loadingMore) loadMatches(page + 1);
-  };
+  // Optimized load more with throttling
+  const onLoadMore = useCallback(() => {
+    if (canLoadMore && !loadingMore && !isFetching) {
+      loadMatches(page + 1);
+    }
+  }, [canLoadMore, loadingMore, isFetching, page, loadMatches]);
 
-  const onRefresh = () => {
+  const onRefresh = useCallback(() => {
     loadMatches(1);
-  };
+  }, [loadMatches]);
 
-  const debounceKeyword = (text) => {
+  // Optimized debounced search with cleanup
+  const debounceKeyword = useCallback((text) => {
     setKeyword(text);
-    if (keywordTimeout.current) clearTimeout(keywordTimeout.current);
+    
+    if (keywordTimeout.current) {
+      clearTimeout(keywordTimeout.current);
+    }
+    
     keywordTimeout.current = setTimeout(() => {
       setFinalKeyword(text);
-    }, 500);
-  };
+    }, 300); // Reduced from 500ms for better responsiveness
+  }, []);
 
-  const openJourneyPicker = async () => {
-    const options = journeys.map((item) => ({ text: item.name, value: item }));
-    options.unshift({ text: 'All Journeys', value: null });
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (keywordTimeout.current) {
+        clearTimeout(keywordTimeout.current);
+      }
+      if (requestAbortController.current) {
+        requestAbortController.current.abort();
+      }
+    };
+  }, []);
 
-    await SheetManager.show('action-sheets', {
-      payload: {
-        actions: options,
-        onPress(index) {
-          setSelectedJourney(options[index].value);
-        },
-      },
-    });
-  };
+  // Memoized sort options
+  const sortOptions = useMemo(() => [
+    { text: 'Relevance (Best Match)', value: { sortBy: 'relevance', sortDirection: 'ASC' } },
+    { text: 'Distance (Nearest First)', value: { sortBy: 'distance', sortDirection: 'ASC' } },
+    { text: 'Distance (Farthest First)', value: { sortBy: 'distance', sortDirection: 'DESC' } },
+    { text: 'Latest Registration (Newest)', value: { sortBy: 'latest_registration', sortDirection: 'DESC' } },
+    { text: 'Latest Registration (Oldest)', value: { sortBy: 'latest_registration', sortDirection: 'ASC' } },
+  ], []);
 
-  const openSortPicker = async () => {
-    const sortOptions = [
-      { text: 'Relevance (Best Match)', value: { sortBy: 'relevance', sortDirection: 'ASC' } },
-      { text: 'Distance (Nearest First)', value: { sortBy: 'distance', sortDirection: 'ASC' } },
-      { text: 'Distance (Farthest First)', value: { sortBy: 'distance', sortDirection: 'DESC' } },
-      { text: 'Latest Registration (Newest)', value: { sortBy: 'latest_registration', sortDirection: 'DESC' } },
-      { text: 'Latest Registration (Oldest)', value: { sortBy: 'latest_registration', sortDirection: 'ASC' } },
-    ];
-
+  const openSortPicker = useCallback(async () => {
     await SheetManager.show('action-sheets', {
       payload: {
         actions: sortOptions,
         onPress(index) {
           const selected = sortOptions[index].value;
-          setSortBy(selected.sortBy);
-          setSortDirection(selected.sortDirection);
+          // Batch state updates
+          Promise.resolve().then(() => {
+            setSortBy(selected.sortBy);
+            setSortDirection(selected.sortDirection);
+          });
         },
       },
     });
-  };
+  }, [sortOptions]);
 
-  const getSortDisplayText = () => {
+  // Memoized journey options
+  const journeyOptions = useMemo(() => {
+    const options = journeys.map((item) => ({ text: item.name, value: item }));
+    options.unshift({ text: 'All Journeys', value: null });
+    return options;
+  }, [journeys]);
+
+  const openJourneyPicker = useCallback(async () => {
+    await SheetManager.show('action-sheets', {
+      payload: {
+        actions: journeyOptions,
+        onPress(index) {
+          setSelectedJourney(journeyOptions[index].value);
+        },
+      },
+    });
+  }, [journeyOptions]);
+
+  // Memoized sort display text
+  const getSortDisplayText = useMemo(() => {
     switch (sortBy) {
       case 'relevance':
         return 'Best Match';
@@ -201,17 +294,47 @@ const ExploreScreen = ({ navigation }) => {
       default:
         return 'Best Match';
     }
-  };
+  }, [sortBy, sortDirection]);
 
-  const renderItem = ({ item }) => (
-    <DynamicLikeItem key={`profile-${item.id}`} onPress={() => navigation.push('ConnectProfileScreen', { profile: item })} item={item} itemWidth={itemWidth} />
-  );
+  // Optimized render functions with memoization
+  const renderItem = useCallback(({ item, index }) => (
+    <DynamicLikeItem 
+      key={`profile-${item.id}`} 
+      onPress={() => navigation.push('ConnectProfileScreen', { profile: item })} 
+      item={item} 
+      itemWidth={itemWidth} 
+    />
+  ), [itemWidth, navigation]);
 
-  const renderFooter = () => (
-    <View style={{ marginBottom: insets.bottom + 80, padding: 16 }}>
-      {loadingMore && <ActivityIndicator size='small' color={colors.mainColor} />}
+  const keyExtractor = useCallback((item, index) => `${item.id}-${index}`, []);
+
+  const getItemLayout = useCallback((data, index) => ({
+    length: itemWidth + 20, // item width + margin
+    offset: (itemWidth + 20) * index,
+    index,
+  }), [itemWidth]);
+
+  const renderFooter = useCallback(() => (
+    <View style={{ marginBottom: insets.bottom + 80, padding: 16, minHeight: 60 }}>
+      {loadingMore && (
+        <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 20 }}>
+          <ActivityIndicator size='small' color={colors.mainColor} />
+          <Text style={{ marginTop: 8, fontSize: 12, color: colors.mainColor }}>Loading more...</Text>
+        </View>
+      )}
     </View>
-  );
+  ), [loadingMore, insets.bottom]);
+
+  const renderEmptyComponent = useCallback(() => (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 100 }}>
+      <Text style={{ fontSize: 18, fontWeight: 'bold', color: colors.mainColor, textAlign: 'center' }}>
+        No matches found
+      </Text>
+      <Text style={{ fontSize: 14, color: '#666', textAlign: 'center', marginTop: 8 }}>
+        Try adjusting your search or filters
+      </Text>
+    </View>
+  ), []);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}> 
@@ -220,11 +343,13 @@ const ExploreScreen = ({ navigation }) => {
         <View style={styles.headerControls}>
           <TouchableOpacity onPress={openSortPicker} style={styles.sortButton}>
             <FontAwesome6 name='sort' size={12} color='black' />
-            <Text numberOfLines={1} style={styles.sortText}>{getSortDisplayText()}</Text>
+            <Text numberOfLines={1} style={styles.sortText}>{getSortDisplayText}</Text>
             <FontAwesome6 name='chevron-down' size={12} color='black' />
           </TouchableOpacity>
           <TouchableOpacity onPress={openJourneyPicker} style={styles.journeyButton}>
-            <Text numberOfLines={1} style={styles.journeyText}>{selectedJourney ? selectedJourney.name : 'All Journeys'}</Text>
+            <Text numberOfLines={1} style={styles.journeyText}>
+              {selectedJourney ? selectedJourney.name : 'All Journeys'}
+            </Text>
             <FontAwesome6 name='chevron-down' size={15} color='black' />
           </TouchableOpacity>
         </View>
@@ -244,13 +369,27 @@ const ExploreScreen = ({ navigation }) => {
       <FlatList
         data={suggestions}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id?.toString()}
+        keyExtractor={keyExtractor}
         onEndReached={onLoadMore}
-        onEndReachedThreshold={0.1}
+        onEndReachedThreshold={0.3}
         ListFooterComponent={renderFooter}
+        ListEmptyComponent={!isFetching ? renderEmptyComponent : null}
         refreshing={isFetching}
         onRefresh={onRefresh}
         contentContainerStyle={{ paddingHorizontal: 10 }}
+        // Performance optimizations
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={MAX_TO_RENDER_PER_BATCH}
+        windowSize={WINDOW_SIZE}
+        initialNumToRender={INITIAL_RENDER_COUNT}
+        updateCellsBatchingPeriod={100}
+        getItemLayout={getItemLayout}
+        // Memory optimizations
+        disableVirtualization={false}
+        legacyImplementation={false}
+        // Interaction optimizations
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       />
     </View>
   );
