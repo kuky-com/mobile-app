@@ -2,6 +2,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NavigationService from './NavigationService'
 import Toast from "react-native-toast-message";
+import { addIPHeaders } from './ipDetection';
 
 const apiClient = axios.create({
   // baseURL: 'http://192.168.1.168:8000/api',
@@ -19,9 +20,18 @@ apiClient.interceptors.request.use(
     const token = await AsyncStorage.getItem("ACCESS_TOKEN");
     const deviceId = await AsyncStorage.getItem("DEVICE_ID");
     console.log({ token, deviceId });
+    
+    // Add authentication headers
     if (token && deviceId) {
       config.headers["Authorization"] = `Bearer ${token}`;
       config.headers["Device-Id"] = `${deviceId}`;
+    }
+
+    // Add IP and network information headers
+    try {
+      config.headers = await addIPHeaders(config.headers);
+    } catch (error) {
+      console.warn('Failed to add IP headers to request:', error);
     }
 
     return config;
