@@ -35,9 +35,9 @@ const ExploreScreen = ({ navigation }) => {
   const [selectedJourney, setSelectedJourney] = useState(null);
   
   // Add sorting state
-  const [sortBy, setSortBy] = useState('relevance');
-  const [sortDirection, setSortDirection] = useState('ASC');
+  const [sortBy, setSortBy] = useState({ sortBy: 'relevance', sortDirection: 'ASC' } );
   
+
   // Performance optimization refs
   const keywordTimeout = useRef(null);
   const requestAbortController = useRef(null);
@@ -93,7 +93,7 @@ const ExploreScreen = ({ navigation }) => {
     isInitialLoad.current = false;
     
     return () => clearTimeout(timeoutId);
-  }, [selectedJourney?.id, finalKeyword, sortBy, sortDirection]);
+  }, [selectedJourney?.id, finalKeyword, sortBy]);
 
   // Memoized journey loading
   const loadJourneys = useCallback(async () => {
@@ -114,30 +114,22 @@ const ExploreScreen = ({ navigation }) => {
     if (finalKeyword) query += `keyword=${encodeURIComponent(finalKeyword)}&`;
     
     // Add sorting parameters
-    query += `sort_by=${sortBy}&`;
-    query += `sort_direction=${sortDirection}&`;
-    
+    query += `sort_by=${sortBy.sortBy}&`;
+    query += `sort_direction=${sortBy.sortDirection}&`;
     return query;
-  }, [selectedJourney?.id, finalKeyword, sortBy, sortDirection]);
+  }, [selectedJourney?.id, finalKeyword, sortBy]);
 
   // Optimized loadMatches with better error handling and request management
   const loadMatches = useCallback(async (resetPage = 1) => {
     try {
-      // Cancel previous request if still pending
-      if (requestAbortController.current) {
-        requestAbortController.current.abort();
-      }
-
-      // Create new abort controller for this request
-      requestAbortController.current = new AbortController();
-      const { signal } = requestAbortController.current;
-
       const isFirstPage = resetPage === 1;
       const offset = (resetPage - 1) * PAGE_SIZE;
 
       // Prevent multiple simultaneous calls
       if (isFirstPage) {
-        if (isFetching) return;
+        if (isFetching) {
+          return;
+        }
         setFetching(true);
         setPage(1);
       } else {
@@ -147,25 +139,12 @@ const ExploreScreen = ({ navigation }) => {
 
       try {
         const query = buildQuery; // Use the memoized query
-        const response = await fetch(
-          `${apiClient.defaults.baseURL}/matches/match-by-journey?${query}offset=${offset}&limit=${PAGE_SIZE}`,
-          {
-            method: 'GET',
-            headers: {
-              ...apiClient.defaults.headers,
-              'Authorization': apiClient.defaults.headers.Authorization,
-            },
-            signal,
-          }
-        );
-
-        if (!response.ok) {
+        const response = await apiClient.get(`/matches/match-by-journey?${query}offset=${offset}&limit=${PAGE_SIZE}`)
+        if (!response.data) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-
-        const result = await response.json();
-        
-        if (result?.success) {
+        const result = response.data
+        if (result?.data) {
           const newData = result.data || [];
           
           if (isFirstPage) {
@@ -254,11 +233,7 @@ const ExploreScreen = ({ navigation }) => {
         actions: sortOptions,
         onPress(index) {
           const selected = sortOptions[index].value;
-          // Batch state updates
-          Promise.resolve().then(() => {
-            setSortBy(selected.sortBy);
-            setSortDirection(selected.sortDirection);
-          });
+          setSortBy(selected);
         },
       },
     });
@@ -284,17 +259,17 @@ const ExploreScreen = ({ navigation }) => {
 
   // Memoized sort display text
   const getSortDisplayText = useMemo(() => {
-    switch (sortBy) {
+    switch (sortBy.sortBy) {
       case 'relevance':
         return 'Best Match';
       case 'distance':
-        return sortDirection === 'ASC' ? 'Nearest' : 'Farthest';
+        return sortBy.sortDirection === 'ASC' ? 'Nearest' : 'Farthest';
       case 'latest_registration':
-        return sortDirection === 'DESC' ? 'Newest' : 'Oldest';
+        return sortBy.sortDirection === 'DESC' ? 'Newest' : 'Oldest';
       default:
         return 'Best Match';
     }
-  }, [sortBy, sortDirection]);
+  }, [sortBy, sortBy.sortDirection]);
 
   // Optimized render functions with memoization
   const renderItem = useCallback(({ item, index }) => (
