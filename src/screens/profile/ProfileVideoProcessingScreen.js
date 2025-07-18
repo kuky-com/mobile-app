@@ -7,6 +7,7 @@ import { Dimensions, Platform, StyleSheet, TouchableOpacity, View, } from 'react
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
 import dayjs from 'dayjs'
+import Toast from 'react-native-toast-message'
 import apiClient from '@/utils/apiClient'
 import { capitalize, getAuthenScreen } from '@/utils/utils'
 import { ResizeMode, Video } from 'expo-av'
@@ -109,6 +110,8 @@ const ProfileVideoProcessingScreen = ({ navigation, route }) => {
                             accessLevel: 'public'
                         }
                     }).result
+
+                    Toast.show({ text1: 'Your video uploaded successfully!', type: 'success' })
 
                     setVideoIntro({
                         https: `https://kuky-video.s3.ap-southeast-1.amazonaws.com/public/${videoFileName}`,

@@ -425,6 +425,9 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
           setUser(res.data.data)
           console.log({ user: res.data.data })
 
+          // Show success message
+          Toast.show({ text1: 'Your video uploaded successfully!', type: 'success' })
+
           if (res.data.data.video_intro && res.data.data.video_purpose) {
             NavigationService.reset('OnboardingVideoResultScreen')
           } else {
