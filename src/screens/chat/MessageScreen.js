@@ -407,14 +407,14 @@ const MessageScreen = ({ navigation, route }) => {
   }, []);
 
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser?.is_moderators && !currentConversation?.profile?.is_moderators) {
       createSession()
     }
 
     return () => {
       stopSessionUpdater()
     }
-  }, [currentUser])
+  }, [currentUser, currentConversation])
 
   const createSession = async () => {
     const res = await apiClient.post(`users/sessions`, {
@@ -445,7 +445,7 @@ const MessageScreen = ({ navigation, route }) => {
 
       if (currentUser) {
         console.log({ nextAppState })
-        if (nextAppState === 'active') {
+        if (nextAppState === 'active' && currentUser?.is_moderators && !currentConversation?.profile?.is_moderators) {
           await createSession()
         } else if (nextAppState.match(/inactive|background/)) {
           await stopSessionUpdater()
