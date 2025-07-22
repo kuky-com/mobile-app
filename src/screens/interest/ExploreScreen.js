@@ -225,6 +225,7 @@ const ExploreScreen = ({ navigation }) => {
     { text: 'Distance (Farthest First)', value: { sortBy: 'distance', sortDirection: 'DESC' } },
     { text: 'Latest Registration (Newest)', value: { sortBy: 'latest_registration', sortDirection: 'DESC' } },
     { text: 'Latest Registration (Oldest)', value: { sortBy: 'latest_registration', sortDirection: 'ASC' } },
+    { text: 'Last Online', value: { sortBy: 'last_active_time', sortDirection: 'DESC' } },
   ], []);
 
   const openSortPicker = useCallback(async () => {
@@ -266,6 +267,8 @@ const ExploreScreen = ({ navigation }) => {
         return sortBy.sortDirection === 'ASC' ? 'Nearest' : 'Farthest';
       case 'latest_registration':
         return sortBy.sortDirection === 'DESC' ? 'Newest' : 'Oldest';
+      case 'last_active_time':
+        return 'Last Online';
       default:
         return 'Best Match';
     }
