@@ -412,9 +412,15 @@ const MatchesScreen = ({ navigation }) => {
         const allMatches = res.data.data.matches ?? [];
         const allUnverify = res.data.data.unverifyMatches ?? [];
 
-        const movedToUnverify = allMatches.filter(user => user.profile?.profile_approved === "partially_approved");
-        const approvedMatches = allMatches.filter(user => user.profile?.profile_approved !== "partially_approved");
-
+        // Moderators: keep partially_approved in Connections
+        let approvedMatches = allMatches;
+        let movedToUnverify = [];
+        if (!currentUser?.is_moderators) {
+          // Non-moderators: move partially_approved to Others
+          movedToUnverify = allMatches.filter(user => user.profile?.profile_approved === "partially_approved");
+          approvedMatches = allMatches.filter(user => user.profile?.profile_approved !== "partially_approved");
+        }
+        // Moderators see all matches in Connections, non-moderators see partially_approved in Others
         setMatches(approvedMatches);
         setUnverifyMatches([...allUnverify, ...movedToUnverify]);
         setFreeTotal(res.data.data.freeTotal ?? 0);
