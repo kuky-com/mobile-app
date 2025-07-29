@@ -592,19 +592,76 @@ const MatchesScreen = ({ navigation }) => {
   }, [allUsers, conversationData, keyword]);
 
   const renderItem = ({ item, index }) => {
+    console.log('Note---->', item?.profile?.user_note);
     return (
-      <ConversationListItem
-        onPress={() => openChat(item)}
-        key={`conversation-${item.id}`}
-        conversation={item}
-        marginBottom={index === sortedFilteredMatches.length - 1 ? insets.bottom + 70 : 0}
-        onDisconnect={() => onDisconnect(item)}
-        isPremium={isPremium}
-        lastMessage={item.lastMessage}
-        unreadCount={item.unreadCount || 0}
-        callIcon={item.callIcon}
-        lastMessageTime={item.lastMessageTime}
-      />
+      <View>
+        {/* Show story on top of user profile */}
+        {item?.profile?.user_note && (
+          // <View style={{ marginBottom: 8, padding: 8, backgroundColor: "#F7F6FF", borderRadius: 10 }}>
+          //   <Text style={{ color: "#725ED4", fontSize: 13, fontWeight: "500" }}>
+          //     {item?.profile?.user_note}
+          //   </Text>
+          // </View>
+          <View style={{ alignItems: "flex-start", marginBottom: 0, marginTop:10 }}>
+  {/* Bubble */}
+  <View
+    style={{
+      backgroundColor: "#7160e1ff",
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 16,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 3,
+      elevation: 2,
+    }}
+  >
+    <Text
+      style={{
+        color: "#ffffff",
+        fontSize: 13,
+        fontWeight: "600",
+        lineHeight: 18,
+      }}
+    >
+      {item?.profile?.user_note}
+    </Text>
+  </View>
+
+  {/* Downward Arrow */}
+  <View
+    style={{
+      width: 0,
+      height: 0,
+      left: 10,
+      top: -1,
+      // position: "absolute",
+      alignSelf: "flex-start",
+      borderLeftWidth: 6,
+      borderRightWidth: 6,
+      borderTopWidth: 6,
+      borderLeftColor: "transparent",
+      borderRightColor: "transparent",
+      borderTopColor: "#7160e1ff", // same as bubble background
+    }}
+  />
+</View>
+
+        )}
+        <ConversationListItem
+          onPress={() => openChat(item)}
+          key={`conversation-${item.id}`}
+          conversation={item}
+          marginBottom={index === sortedFilteredMatches.length - 1 ? insets.bottom + 70 : 0}
+          onDisconnect={() => onDisconnect(item)}
+          isPremium={isPremium}
+          lastMessage={item.lastMessage}
+          unreadCount={item.unreadCount || 0}
+          callIcon={item.callIcon}
+          lastMessageTime={item.lastMessageTime}
+        />
+      </View>
     );
   };
 
