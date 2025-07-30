@@ -75,7 +75,10 @@ const styles = StyleSheet.create({
     paddingBottom: 16
   },
   logoImage: {
-    width: 30, height: 30
+    width: 32,
+    height: 32,
+    resizeMode: "contain", // Ensures the logo fits without being cut
+    marginHorizontal: 8,   // Adds space to prevent side cropping
   },
   leftButton: {
     position: 'absolute',
