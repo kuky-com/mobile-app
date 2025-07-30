@@ -5,6 +5,7 @@ import colors from "@/utils/colors";
 import images from "@/utils/images";
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo } from 'react';
+import { useAlert } from "@/components/AlertProvider";
 import React, { useEffect, useRef, useState } from "react";
 import {
   AppState,
@@ -32,6 +33,7 @@ import AvatarImage from "../../components/AvatarImage";
 import SupportListItem from "./components/SupportListItem";
 import { totalOtherMessageCounterAtom, totalOtherMessageUnreadAtom, totalSupportMessageCounterAtom, totalSupportMessageUnreadAtom } from "../../actions/global";
 import firestore from '@react-native-firebase/firestore';
+import NavigationService from "@/utils/NavigationService";
 
 const styles = StyleSheet.create({
   container: {
@@ -46,7 +48,7 @@ const MatchesScreen = ({ navigation }) => {
   const [matches, setMatches] = useState([]);
   const [unverifyMatches, setUnverifyMatches] = useState([]);
   const [isFetching, setFetching] = useState(false);
-  
+  const showAlert = useAlert();
   // Message counter atoms
   const [unreadCounterMessage, setTotalCounterUnread] = useAtom(totalMessageCounterAtom);
   const [unreadMessage, setUnreadMessage] = useAtom(totalMessageUnreadAtom);
@@ -65,7 +67,8 @@ const MatchesScreen = ({ navigation }) => {
 
   const [viewMode, setViewMode] = useState("connections");
   const [recentMatches, setRecentMatches] = useState([]);
-  
+  const [noteStories, setNoteStories] = useState([]);
+  const [loading, setLoading] = useState(false);
   // Simplified message management state - combine into single object
   const [conversationData, setConversationData] = useState({});
 
@@ -458,6 +461,7 @@ const MatchesScreen = ({ navigation }) => {
   };
 
   const openChat = (item) => {
+    console.log("Opening chat for item:", item);
     navigation.push("MessageScreen", { conversation: item });
   };
 
@@ -592,63 +596,9 @@ const MatchesScreen = ({ navigation }) => {
   }, [allUsers, conversationData, keyword]);
 
   const renderItem = ({ item, index }) => {
-    console.log('Note---->', item?.profile?.user_note);
+    //console.log('Note---->', item?.profile?.user_note);
     return (
       <View>
-        {/* Show story on top of user profile */}
-        {item?.profile?.user_note && (
-          // <View style={{ marginBottom: 8, padding: 8, backgroundColor: "#F7F6FF", borderRadius: 10 }}>
-          //   <Text style={{ color: "#725ED4", fontSize: 13, fontWeight: "500" }}>
-          //     {item?.profile?.user_note}
-          //   </Text>
-          // </View>
-          <View style={{ alignItems: "flex-start", marginBottom: 0, marginTop:10 }}>
-  {/* Bubble */}
-  <View
-    style={{
-      backgroundColor: "#7160e1ff",
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 16,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.05,
-      shadowRadius: 3,
-      elevation: 2,
-    }}
-  >
-    <Text
-      style={{
-        color: "#ffffff",
-        fontSize: 13,
-        fontWeight: "600",
-        lineHeight: 18,
-      }}
-    >
-      {item?.profile?.user_note}
-    </Text>
-  </View>
-
-  {/* Downward Arrow */}
-  <View
-    style={{
-      width: 0,
-      height: 0,
-      left: 10,
-      top: -1,
-      // position: "absolute",
-      alignSelf: "flex-start",
-      borderLeftWidth: 6,
-      borderRightWidth: 6,
-      borderTopWidth: 6,
-      borderLeftColor: "transparent",
-      borderRightColor: "transparent",
-      borderTopColor: "#7160e1ff", // same as bubble background
-    }}
-  />
-</View>
-
-        )}
         <ConversationListItem
           onPress={() => openChat(item)}
           key={`conversation-${item.id}`}
@@ -747,6 +697,51 @@ const MatchesScreen = ({ navigation }) => {
     )
   }
 
+  const fetchNoteStories = async () => {
+  try {
+    const res = await apiClient.get("matches/note-recent-update");
+    if (res?.data?.success) {
+      setNoteStories(res.data.data ?? []);
+    } else {
+      setNoteStories([]);
+    }
+  } catch (err) {
+    console.log("Error fetching note stories", err);
+    setNoteStories([]);
+  }
+};
+
+useEffect(() => {
+  fetchNoteStories();
+}, []);
+  
+console.log('Note Stories', noteStories);
+
+const likeAction = (item) => {
+  analytics().logEvent('send_connect_request')
+
+  // NavigationService.push('GetMatchScreen', { match: matchInfo })
+  // return
+  console.log("Like action for item:", item);
+  try {
+    setLoading(true);
+    apiClient
+      .post("matches/accept", { friend_id: item.id })
+      .then((res) => {
+        console.log("Accept match response:", res);
+        console.log({ resData: res.data });
+        setLoading(false);
+        DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS);
+
+        navigation.push("MessageScreen", { conversation: res.data.data });
+      })
+      .catch((error) => {
+        console.log("Error accepting match:", error);
+      });
+  } catch (error) {
+    setLoading(false);
+  }
+};
 
   return (
     <View style={styles.container}>
@@ -765,6 +760,164 @@ const MatchesScreen = ({ navigation }) => {
           />
         </View>
       </View>
+
+      {/* {noteStories?.length > 0 && (
+        <View style={{ paddingVertical: 10, paddingHorizontal: 16, backgroundColor: '#fff' }}>
+          <FlatList
+            horizontal
+            data={noteStories}
+            keyExtractor={(item) => `note-${item.id}`}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingRight: 8 }}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                // onPress={() => {
+                //   navigation.navigate('NoteStoryScreen', { user: item });
+                // }}
+                onPress={() => {
+                  if (!item?.id) {
+                    Toast.show({
+                      text1: "This chat has ended. You can start a new match!",
+                      type: "error"
+                    });
+                  } else {
+                    likeAction(item);
+                  }
+                }}
+                style={{ marginRight: 12, alignItems: 'center', width: 70 }}
+              >
+                
+              
+                <View>
+                  <Text>{item?.user_note}</Text>
+                </View>
+                <AvatarImage
+                  avatar={item?.avatar}
+                  full_name={item?.full_name}
+                  style={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: 30,
+                    borderWidth: 2,
+                    borderColor: colors.mainColor,
+                  }}
+                />
+                <Text numberOfLines={1} style={{ fontSize: 12, textAlign: 'center', marginTop: 5 }}>
+                  {item?.full_name?.split(" ")[0] || "User"}
+                </Text>
+                
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      )} */}
+
+      {noteStories?.length > 0 && (
+  <View style={{ paddingVertical: 10, paddingLeft: 16, backgroundColor: '#fff' }}>
+    <FlatList
+      horizontal
+      data={noteStories}
+      keyExtractor={(item) => `note-${item.id}`}
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={{ paddingRight: 8 }}
+      snapToInterval={Dimensions.get("window").width / 3}
+      decelerationRate="fast"
+      renderItem={({ item }) => (
+        <TouchableOpacity
+          onPress={() => {
+            if (!item?.id) {
+              Toast.show({
+                text1: "This chat has ended. You can start a new match!",
+                type: "error"
+              });
+            } else {
+              likeAction(item);
+            }
+          }}
+          style={{
+            width: Dimensions.get("window").width / 3 - 24,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginRight: 8,
+          }}
+        >
+          {/* Note bubble (absolute) */}
+          <View style={{ position: 'absolute', top: 0, alignItems: 'center', zIndex: 2 }}>
+            <View
+              style={{
+                backgroundColor: '#F7F6FF',
+                paddingVertical: 6,
+                paddingHorizontal: 10,
+                borderRadius: 10,
+                maxWidth: 100,
+              }}
+            >
+              <Text
+                style={{
+                  color: '#725ED4',
+                  fontSize: 11,
+                  textAlign: 'center',
+                  lineHeight: 14,
+                }}
+                numberOfLines={4}
+                ellipsizeMode="tail"
+              >
+                {item?.user_note}
+              </Text>
+            </View>
+
+            {/* Down arrow */}
+            <View
+              style={{
+                width: 0,
+                height: 0,
+                borderLeftWidth: 6,
+                borderRightWidth: 6,
+                borderTopWidth: 6,
+                borderStyle: 'solid',
+                backgroundColor: 'transparent',
+                borderLeftColor: 'transparent',
+                borderRightColor: 'transparent',
+                borderTopColor: '#F7F6FF',
+              }}
+            />
+          </View>
+
+          {/* Spacer for absolute note bubble */}
+          <View style={{ height: 60 }} />
+
+          {/* Avatar */}
+          <AvatarImage
+            avatar={item?.avatar}
+            full_name={item?.full_name}
+            style={{
+              width: 60,
+              height: 60,
+              borderRadius: 30,
+              borderWidth: 2,
+              borderColor: '#725ED4',
+            }}
+          />
+
+          {/* Name */}
+          <Text
+            numberOfLines={1}
+            style={{
+              fontSize: 12,
+              textAlign: 'center',
+              marginTop: 6,
+              color: '#333'
+            }}
+          >
+            {item?.full_name?.split(" ")[0] || "User"}
+          </Text>
+        </TouchableOpacity>
+      )}
+    />
+  </View>
+)}
+
+      
       <View style={{ flexDirection: 'row', paddingVertical: 8, paddingHorizontal: 16, backgroundColor: 'white' }}>
         <TouchableOpacity onPress={() => setViewMode('connections')} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 8, borderBottomWidth: viewMode === 'connections' ? 2 : 0, borderBottomColor: colors.mainColor }}>
           <Text style={{ fontSize: 14, color: "#79797A", fontWeight: 'bold' }}>Connections</Text>
