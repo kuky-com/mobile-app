@@ -52,8 +52,9 @@ const styles = StyleSheet.create({
     },
     textInput: {
         fontWeight: 'bold',
-        fontSize: 18,
+        fontSize: 16,
         width: '100%',
+        lineHeight: 24,
         backgroundColor: '#00000000',
         color: '#333333',
         flex: 1
@@ -132,8 +133,8 @@ const UserNoteScreen = ({ navigation, route }) => {
             <KeyboardAwareScrollView style={{ flex: 1, width: '100%' }}>
                 <View style={{ flex: 1, gap: 16, width: Platform.isPad ? 600 : '100%', alignSelf: 'center' }}>
                     <Image source={images.logo_icon} style={{ width: 40, height: 40, marginBottom: 8 }} contentFit='contain' />
-                    <Text style={{ fontSize: 24, lineHeight: 40, maxWidth: '80%', fontWeight: 'bold', color: 'black' }}>{`Let’s complete your profile!`}</Text>
-                    <Text style={{ fontSize: 13, fontWeight: '600', color: 'black' }}>{`What do you thought?`}</Text>
+                    <Text style={{ fontSize: 24, lineHeight: 30, maxWidth: '80%', fontWeight: 'bold', color: 'black' }}>{`Let others understand what you’re going through`}</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: 'black', lineHeight: 20 }}>{`What’s something you're currently navigating or want support with?`}</Text>
                     <View style={{ flex: 1, paddingVertical: 16, gap: 10, width: '100%', alignItems: 'center', justifyContent: 'flex-start' }}>
                         <View style={styles.itemContainer}>
                             <TextInput
@@ -141,7 +142,7 @@ const UserNoteScreen = ({ navigation, route }) => {
                                 underlineColorAndroid={'#00000000'}
                                 value={user_note}
                                 onChangeText={setNote}
-                                placeholder='Enter your note'
+                                placeholder='I’ve been feeling anxious lately and want to connect with someone about relationships.'
                                 autoFocus
                                 multiline={true}
                             />
