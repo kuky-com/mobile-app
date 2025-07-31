@@ -717,31 +717,147 @@ useEffect(() => {
   
 console.log('Note Stories', noteStories);
 
-const likeAction = (item) => {
-  analytics().logEvent('send_connect_request')
+// const likeAction = (item) => {
+//   analytics().logEvent('send_connect_request')
 
-  // NavigationService.push('GetMatchScreen', { match: matchInfo })
-  // return
-  console.log("Like action for item:", item);
+//   // NavigationService.push('GetMatchScreen', { match: matchInfo })
+//   // return
+//   console.log("Like action for item:", item);
+//   try {
+//     setLoading(true);
+//     apiClient
+//       .post("matches/accept", { friend_id: item.id })
+//       .then((res) => {
+//         console.log("Accept match response:", res);
+//         console.log({ resData: res.data });
+//         setLoading(false);
+//         DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS);
+
+//         navigation.push("MessageScreen", { conversation: res.data.data });
+//       })
+//       .catch((error) => {
+//         console.log("Error accepting match:", error);
+//       });
+//   } catch (error) {
+//     setLoading(false);
+//   }
+// };
+const lastTapRef = useRef(0);
+const likeAction = (item) => {
+  const now = Date.now();
+  if (now - lastTapRef.current < 1000) return; // 1 second throttle
+  lastTapRef.current = now;
+
+  analytics().logEvent('send_connect_request');
+
   try {
     setLoading(true);
     apiClient
       .post("matches/accept", { friend_id: item.id })
       .then((res) => {
         console.log("Accept match response:", res);
-        console.log({ resData: res.data });
         setLoading(false);
-        DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS);
-
-        navigation.push("MessageScreen", { conversation: res.data.data });
+        //DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS);
+        // navigation.push("MessageScreen", { conversation: res.data.data });
+        InteractionManager.runAfterInteractions(() => {
+          navigation.push("MessageScreen", { conversation: res.data.data  });
+        });
       })
       .catch((error) => {
+        setLoading(false);
         console.log("Error accepting match:", error);
+        Toast.show({ text1: "Failed to connect", type: "error" });
       });
   } catch (error) {
     setLoading(false);
   }
 };
+
+  
+  const renderNoteStoryItem = useCallback(({ item }) => (
+  <TouchableOpacity
+    onPress={() => {
+      if (!item?.id) {
+        Toast.show({
+          text1: "This chat has ended. You can start a new match!",
+          type: "error"
+        });
+      } else {
+        likeAction(item);
+      }
+    }}
+    style={{
+      width: Dimensions.get("window").width / 3 - 24,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 8,
+    }}
+  >
+    {/* Note Bubble */}
+    <View style={{ position: 'absolute', top: 0, alignItems: 'center', zIndex: 2 }}>
+      <View
+        style={{
+          backgroundColor: '#F7F6FF',
+          paddingVertical: 6,
+          paddingHorizontal: 10,
+          borderRadius: 10,
+          maxWidth: 100,
+        }}
+      >
+        <Text
+          style={{
+            color: '#725ED4',
+            fontSize: 11,
+            textAlign: 'center',
+            lineHeight: 14,
+          }}
+          numberOfLines={4}
+          ellipsizeMode="tail"
+        >
+          {item?.user_note}
+        </Text>
+      </View>
+      {/* Arrow */}
+      <View
+        style={{
+          width: 0,
+          height: 0,
+          borderLeftWidth: 6,
+          borderRightWidth: 6,
+          borderTopWidth: 6,
+          borderStyle: 'solid',
+          backgroundColor: 'transparent',
+          borderLeftColor: 'transparent',
+          borderRightColor: 'transparent',
+          borderTopColor: '#F7F6FF',
+        }}
+      />
+    </View>
+    <View style={{ height: 60 }} />
+    <AvatarImage
+      avatar={item?.avatar}
+      full_name={item?.full_name}
+      style={{
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        borderWidth: 2,
+        borderColor: '#725ED4',
+      }}
+    />
+    <Text
+      numberOfLines={1}
+      style={{
+        fontSize: 12,
+        textAlign: 'center',
+        marginTop: 6,
+        color: '#333'
+      }}
+    >
+      {item?.full_name?.split(" ")[0] || "User"}
+    </Text>
+  </TouchableOpacity>
+), [likeAction]);
 
   return (
     <View style={styles.container}>
@@ -814,106 +930,22 @@ const likeAction = (item) => {
 
       {noteStories?.length > 0 && (
   <View style={{ paddingVertical: 10, paddingLeft: 16, backgroundColor: '#fff' }}>
-    <FlatList
-      horizontal
-      data={noteStories}
-      keyExtractor={(item) => `note-${item.id}`}
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ paddingRight: 8 }}
-      snapToInterval={Dimensions.get("window").width / 3}
-      decelerationRate="fast"
-      renderItem={({ item }) => (
-        <TouchableOpacity
-          onPress={() => {
-            if (!item?.id) {
-              Toast.show({
-                text1: "This chat has ended. You can start a new match!",
-                type: "error"
-              });
-            } else {
-              likeAction(item);
-            }
-          }}
-          style={{
-            width: Dimensions.get("window").width / 3 - 24,
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginRight: 8,
-          }}
-        >
-          {/* Note bubble (absolute) */}
-          <View style={{ position: 'absolute', top: 0, alignItems: 'center', zIndex: 2 }}>
-            <View
-              style={{
-                backgroundColor: '#F7F6FF',
-                paddingVertical: 6,
-                paddingHorizontal: 10,
-                borderRadius: 10,
-                maxWidth: 100,
-              }}
-            >
-              <Text
-                style={{
-                  color: '#725ED4',
-                  fontSize: 11,
-                  textAlign: 'center',
-                  lineHeight: 14,
-                }}
-                numberOfLines={4}
-                ellipsizeMode="tail"
-              >
-                {item?.user_note}
-              </Text>
-            </View>
+<FlatList
+  horizontal
+  data={noteStories}
+  keyExtractor={(item) => `note-${item.id}`}
+  showsHorizontalScrollIndicator={false}
+  contentContainerStyle={{ paddingRight: 8 }}
+  snapToAlignment="start"
+  snapToInterval={Dimensions.get("window").width / 3}
+  decelerationRate="fast"
+  initialNumToRender={6}
+  maxToRenderPerBatch={6}
+  windowSize={5}
+  removeClippedSubviews={true}
+  renderItem={renderNoteStoryItem}
+/>
 
-            {/* Down arrow */}
-            <View
-              style={{
-                width: 0,
-                height: 0,
-                borderLeftWidth: 6,
-                borderRightWidth: 6,
-                borderTopWidth: 6,
-                borderStyle: 'solid',
-                backgroundColor: 'transparent',
-                borderLeftColor: 'transparent',
-                borderRightColor: 'transparent',
-                borderTopColor: '#F7F6FF',
-              }}
-            />
-          </View>
-
-          {/* Spacer for absolute note bubble */}
-          <View style={{ height: 60 }} />
-
-          {/* Avatar */}
-          <AvatarImage
-            avatar={item?.avatar}
-            full_name={item?.full_name}
-            style={{
-              width: 60,
-              height: 60,
-              borderRadius: 30,
-              borderWidth: 2,
-              borderColor: '#725ED4',
-            }}
-          />
-
-          {/* Name */}
-          <Text
-            numberOfLines={1}
-            style={{
-              fontSize: 12,
-              textAlign: 'center',
-              marginTop: 6,
-              color: '#333'
-            }}
-          >
-            {item?.full_name?.split(" ")[0] || "User"}
-          </Text>
-        </TouchableOpacity>
-      )}
-    />
   </View>
 )}
 
