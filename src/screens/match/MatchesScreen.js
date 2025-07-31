@@ -7,6 +7,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo } from 'react';
 import { useAlert } from "@/components/AlertProvider";
 import React, { useEffect, useRef, useState } from "react";
+import { ScrollView, RefreshControl } from 'react-native';
+
 import {
   AppState,
   DeviceEventEmitter,
@@ -600,7 +602,7 @@ const MatchesScreen = ({ navigation }) => {
     return (
       <View>
         <ConversationListItem
-          onPress={() => openChat(item)}
+          onPress={() => handleOpenChat(item)}
           key={`conversation-${item.id}`}
           conversation={item}
           marginBottom={index === sortedFilteredMatches.length - 1 ? insets.bottom + 70 : 0}
@@ -631,27 +633,6 @@ const MatchesScreen = ({ navigation }) => {
 
   const shouldShowPremiumPopup = !isPremium && freeCount >= freeTotal;
   const hasShownPopupRef = useRef(false);
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     const isFreeUser = !isPremium && !currentUser?.is_moderators && !currentUser?.is_support;
-  //     const hasReachedLimit = freeTotal > 0 && freeCount >= 3;
-
-  //     let timeoutId;
-
-  //     if (isFreeUser && hasReachedLimit) {
-  //       InteractionManager.runAfterInteractions(() => {
-  //         timeoutId = setTimeout(() => {
-  //           navigation.navigate('PremiumRequestScreen');
-  //         }, 5000); // 5 seconds delay
-  //       });
-  //     }
-
-  //     // Clean up timeout when screen loses focus
-  //     return () => {
-  //       if (timeoutId) clearTimeout(timeoutId);
-  //     };
-  //   }, [currentUser, isPremium, freeCount, freeTotal, navigation])
-  // );
 
   useFocusEffect(
     useCallback(() => {
@@ -697,7 +678,7 @@ const MatchesScreen = ({ navigation }) => {
     )
   }
 
-  const fetchNoteStories = async () => {
+ const fetchNoteStories = async () => {
   try {
     const res = await apiClient.get("matches/note-recent-update");
     if (res?.data?.success) {
@@ -715,33 +696,10 @@ useEffect(() => {
   fetchNoteStories();
 }, []);
   
-console.log('Note Stories', noteStories);
-
-// const likeAction = (item) => {
-//   analytics().logEvent('send_connect_request')
-
-//   // NavigationService.push('GetMatchScreen', { match: matchInfo })
-//   // return
-//   console.log("Like action for item:", item);
-//   try {
-//     setLoading(true);
-//     apiClient
-//       .post("matches/accept", { friend_id: item.id })
-//       .then((res) => {
-//         console.log("Accept match response:", res);
-//         console.log({ resData: res.data });
-//         setLoading(false);
-//         DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS);
-
-//         navigation.push("MessageScreen", { conversation: res.data.data });
-//       })
-//       .catch((error) => {
-//         console.log("Error accepting match:", error);
-//       });
-//   } catch (error) {
-//     setLoading(false);
-//   }
-// };
+const handleOpenChat = useCallback((item) => {
+  openChat(item);
+}, [openChat]);
+  
 const lastTapRef = useRef(0);
 const likeAction = (item) => {
   const now = Date.now();
@@ -775,6 +733,7 @@ const likeAction = (item) => {
 
   
   const renderNoteStoryItem = useCallback(({ item }) => (
+
   <TouchableOpacity
     onPress={() => {
       if (!item?.id) {
@@ -787,10 +746,10 @@ const likeAction = (item) => {
       }
     }}
     style={{
-      width: Dimensions.get("window").width / 3 - 24,
+      width: Dimensions.get("window").width / 4,
       alignItems: 'center',
       justifyContent: 'center',
-      marginRight: 8,
+      marginRight: 15,
     }}
   >
     {/* Note Bubble */}
@@ -856,8 +815,89 @@ const likeAction = (item) => {
     >
       {item?.full_name?.split(" ")[0] || "User"}
     </Text>
-  </TouchableOpacity>
-), [likeAction]);
+    </TouchableOpacity>
+  ), [likeAction]);
+  
+
+const recentMatchesHeader = useMemo(() => {
+  if (!(recentMatchesFilter?.length > 0 && viewMode === 'connections')) return null;
+
+  return (
+    <View style={{ paddingTop: 8, paddingBottom: 3, gap: 8, borderBottomColor: "#78787977", borderBottomWidth: 1, marginBottom: 25 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Text style={{ fontSize: 15, fontWeight: "700", color: "black", flex: 1 }}>Recent Matches</Text>
+      </View>
+
+      <FlatList
+        horizontal
+        data={recentMatchesFilter}
+        keyExtractor={(item) => `recent-${item.id}`}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingVertical: 8 }}
+        initialNumToRender={6}
+        maxToRenderPerBatch={6}
+        windowSize={5}
+        removeClippedSubviews
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={{ marginRight: 8 }}
+            onPress={() => openChat(item)}
+          >
+            <AvatarImage
+              avatar={item?.profile?.avatar}
+              full_name={item?.profile?.full_name}
+              style={{
+                width: 70,
+                height: 70,
+                borderRadius: 35,
+                borderWidth: 1,
+                borderColor: colors.mainColor
+              }}
+            />
+          </TouchableOpacity>
+        )}
+      />
+    </View>
+  );
+}, [recentMatchesFilter, viewMode]);
+
+  
+
+  const renderCombinedHeader = () => {
+  return (
+    <View style={{ backgroundColor: 'transparent', paddingBottom: 16, paddingTop: 8 }}>
+      
+      {noteStories?.length > 0 || viewMode !== 'others' && (
+            <View style={{ paddingVertical: 10, marginBottom: 8}}>
+              <FlatList
+                horizontal
+                data={noteStories}
+                keyExtractor={(item) => `note-${item.id}`}
+                showsHorizontalScrollIndicator={false}
+                snapToAlignment="start"
+                snapToInterval={Dimensions.get("window").width / 3}
+                decelerationRate="fast"
+                initialNumToRender={6}
+                maxToRenderPerBatch={6}
+                windowSize={5}
+                removeClippedSubviews={true}
+                renderItem={renderNoteStoryItem}
+                borderBottomColor="#78787977"
+                borderBottomWidth={1}
+                contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8 }}
+              />
+
+          </View>
+        )}
+
+        {/* renderListHeader content */}
+        {recentMatchesHeader}
+
+        {/* renderHeader content */}
+        {renderHeader?.()}
+    </View>
+  );
+};
 
   return (
     <View style={styles.container}>
@@ -877,77 +917,7 @@ const likeAction = (item) => {
         </View>
       </View>
 
-      {/* {noteStories?.length > 0 && (
-        <View style={{ paddingVertical: 10, paddingHorizontal: 16, backgroundColor: '#fff' }}>
-          <FlatList
-            horizontal
-            data={noteStories}
-            keyExtractor={(item) => `note-${item.id}`}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingRight: 8 }}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                // onPress={() => {
-                //   navigation.navigate('NoteStoryScreen', { user: item });
-                // }}
-                onPress={() => {
-                  if (!item?.id) {
-                    Toast.show({
-                      text1: "This chat has ended. You can start a new match!",
-                      type: "error"
-                    });
-                  } else {
-                    likeAction(item);
-                  }
-                }}
-                style={{ marginRight: 12, alignItems: 'center', width: 70 }}
-              >
-                
-              
-                <View>
-                  <Text>{item?.user_note}</Text>
-                </View>
-                <AvatarImage
-                  avatar={item?.avatar}
-                  full_name={item?.full_name}
-                  style={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: 30,
-                    borderWidth: 2,
-                    borderColor: colors.mainColor,
-                  }}
-                />
-                <Text numberOfLines={1} style={{ fontSize: 12, textAlign: 'center', marginTop: 5 }}>
-                  {item?.full_name?.split(" ")[0] || "User"}
-                </Text>
-                
-              </TouchableOpacity>
-            )}
-          />
-        </View>
-      )} */}
-
-      {noteStories?.length > 0 && (
-  <View style={{ paddingVertical: 10, paddingLeft: 16, backgroundColor: '#fff' }}>
-<FlatList
-  horizontal
-  data={noteStories}
-  keyExtractor={(item) => `note-${item.id}`}
-  showsHorizontalScrollIndicator={false}
-  contentContainerStyle={{ paddingRight: 8 }}
-  snapToAlignment="start"
-  snapToInterval={Dimensions.get("window").width / 3}
-  decelerationRate="fast"
-  initialNumToRender={6}
-  maxToRenderPerBatch={6}
-  windowSize={5}
-  removeClippedSubviews={true}
-  renderItem={renderNoteStoryItem}
-/>
-
-  </View>
-)}
+      
 
       
       <View style={{ flexDirection: 'row', paddingVertical: 8, paddingHorizontal: 16, backgroundColor: 'white' }}>
@@ -979,7 +949,7 @@ const likeAction = (item) => {
           </TouchableOpacity>
         }
       </View>
-      <View style={{ paddingHorizontal: 16, paddingBottom: 8, backgroundColor: 'transparent' }}>
+      {/* <View style={{ paddingHorizontal: 16, paddingBottom: 8, backgroundColor: 'transparent' }}>
         {
           recentMatchesFilter && recentMatchesFilter.length > 0 && viewMode === 'connections' &&
           <View style={{ paddingTop: 8, paddingBottom: 3, gap: 8, backgounrcColor: 'transparent' }}>
@@ -1004,24 +974,33 @@ const likeAction = (item) => {
             />
           </View>
         }
-      </View>
+      </View> */}
+
       <View style={{ paddingHorizontal: 16, flex: 1, alignItems: 'center' }}>
         {
           (viewMode === 'connections' || viewMode === 'others') &&
-          <FlatList
-            data={sortedFilteredMatches}
-            renderItem={renderItem}
+          
+          <ScrollView
             style={{ width: Platform.isPad ? 600 : '100%', flex: 1 }}
-            ListEmptyComponent={renderEmpty}
-            onRefresh={onRefresh}
-            refreshing={isFetching}
             showsVerticalScrollIndicator={false}
-            ListHeaderComponent={renderHeader}
-            keyExtractor={(item) => `conversation-${item.id}`}
-            removeClippedSubviews={true}
-            maxToRenderPerBatch={10}
-            windowSize={10}
-          />
+            refreshControl={
+              <RefreshControl refreshing={isFetching} onRefresh={onRefresh} />
+            }
+          >
+            {/* Header (recent matches, stories, etc.) */}
+            {renderCombinedHeader?.()}
+
+          {/* List content */}
+          {sortedFilteredMatches.length > 0 ? (
+            sortedFilteredMatches.map((item) => (
+              <View key={`conversation-${item.id}`}>
+                {renderItem({ item })}
+              </View>
+            ))
+          ) : (
+            renderEmpty?.()
+          )}
+        </ScrollView>
         }
         {
           (viewMode === 'support') &&
