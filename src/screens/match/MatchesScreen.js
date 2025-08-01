@@ -867,7 +867,7 @@ const recentMatchesHeader = useMemo(() => {
   return (
     <View style={{ backgroundColor: 'transparent', paddingBottom: 16, paddingTop: 8 }}>
       
-      {noteStories?.length > 0 || viewMode !== 'others' && (
+      {noteStories?.length > 0 && (
             <View style={{ paddingVertical: 10, marginBottom: 8}}>
               <FlatList
                 horizontal
