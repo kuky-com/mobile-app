@@ -669,6 +669,7 @@ const MessageScreen = ({ navigation, route }) => {
     return () => unsubscribe();
   }, [currentConversation, currentUserId]);
 
+  console.log("currentConversation ==> 1", currentConversation?.profile?.is_moderators);
   useEffect(() => {
     if (currentUser?.is_moderators && currentConversation?.profile?.is_moderators) {
       showAlert(
