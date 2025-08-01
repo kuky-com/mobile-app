@@ -669,8 +669,7 @@ const MessageScreen = ({ navigation, route }) => {
     return () => unsubscribe();
   }, [currentConversation, currentUserId]);
 
-
-  useEffect(() => { 
+  useEffect(() => {
     if (currentUser?.is_moderators && currentConversation?.profile?.is_moderators) {
       showAlert(
         "Hold on",
@@ -678,20 +677,17 @@ const MessageScreen = ({ navigation, route }) => {
         [
           {
             text: "Continue",
-            onPress: () => {
-            },
+            onPress: () => {},
           },
           {
             text: "Cancel",
-            onPress: () => {
-            },
+            onPress: () => {},
           },
         ],
-        () => {
-        },
+        () => {},
       );
     }
-    }, []);
+  }, [currentUser?.is_moderators, currentConversation?.profile?.is_moderators]);
   
   const renderMessage = (props) => {
     const { currentMessage, previousMessage } = props
@@ -1572,8 +1568,9 @@ const MessageScreen = ({ navigation, route }) => {
     return (
       <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} // tùy chỉnh nếu có header
+          behavior={Platform.OS === 'padding' ? 'padding' : 'height'}
+        // keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} 
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 60 : 0}
       >
       <View style={styles.container}>
         <StatusBar translucent style="dark" />
@@ -1779,6 +1776,7 @@ const MessageScreen = ({ navigation, route }) => {
           },
         }}
       />
+      
       {loading && (
         <LoadingView />
       )}
@@ -1789,8 +1787,7 @@ const MessageScreen = ({ navigation, route }) => {
         visible={imageViewList.length > 0}
         onRequestClose={() => setImageViewList([])}
       />
-    </View>
+      </View>
   );
 };
-
 export default MessageScreen;
