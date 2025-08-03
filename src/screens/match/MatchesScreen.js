@@ -458,6 +458,23 @@ const MatchesScreen = ({ navigation }) => {
         console.log({ error });
         setRecentMatches([]);
       });
+    
+      apiClient
+      .get("matches/note-recent-update")
+      .then((res) => {
+        setFetching(false);
+        console.log({ matches: res.data });
+        if (res && res.data && res.data.success) {
+         setNoteStories(res.data.data ?? []);
+        } else {
+          setNoteStories([]);
+        }
+      })
+      .catch((error) => {
+        setFetching(false);
+        console.log({ error });
+        setNoteStories([]);
+      });
 
     loadAllUsers()
   };
@@ -692,33 +709,35 @@ const MatchesScreen = ({ navigation }) => {
   }
 };
 
-useEffect(() => {
-  fetchNoteStories();
-}, []);
+// useEffect(() => {
+//   fetchNoteStories();
+// }, []);
   
 const handleOpenChat = useCallback((item) => {
   openChat(item);
 }, [openChat]);
   
 const lastTapRef = useRef(0);
+  
 const likeAction = (item) => {
   const now = Date.now();
   if (now - lastTapRef.current < 1000) return; // 1 second throttle
   lastTapRef.current = now;
 
-  analytics().logEvent('send_connect_request');
+  // analytics().logEvent('send_connect_request');
 
   try {
     setLoading(true);
     apiClient
       .post("matches/accept", { friend_id: item.id })
       .then((res) => {
-        console.log("Accept match response:", res);
+        console.log("Accept match response:", res.data.data);
         setLoading(false);
         //DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS);
         // navigation.push("MessageScreen", { conversation: res.data.data });
         InteractionManager.runAfterInteractions(() => {
-          navigation.push("MessageScreen", { conversation: res.data.data  });
+          //navigation.push("MessageScreen", { conversation: res.data.data});
+          handleOpenChat(res.data.data);
         });
       })
       .catch((error) => {
@@ -897,7 +916,9 @@ const recentMatchesHeader = useMemo(() => {
         {renderHeader?.()}
     </View>
   );
-};
+  };
+
+  console.log('currentUser:', currentUser);
 
   return (
     <View style={styles.container}>
@@ -963,7 +984,7 @@ const recentMatchesHeader = useMemo(() => {
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={{ marginRight: 8 }}
-                  onPress={() => openChat(item)}>
+                  onPress={() => xf(item)}>
                   <AvatarImage avatar={item?.profile?.avatar} full_name={item?.profile?.full_name} style={{ width: 70, height: 70, borderRadius: 35, borderWidth: 1, borderColor: colors.mainColor }} />
                 </TouchableOpacity>
               )}

@@ -1565,6 +1565,10 @@ const MessageScreen = ({ navigation, route }) => {
   const isRecentOnline = currentConversation?.profile && currentConversation?.profile.last_active_time ? dayjs().diff(dayjs(currentConversation?.profile.last_active_time), 'minute') < 60 : false
 
   console.log({ keyboardHeight })
+
+  console.log("isPremium", isPremium);
+  console.log("currentConversation123123", currentConversation);
+
   if (!isPremium && !currentConversation?.is_free) {
     return (
       <KeyboardAvoidingView
