@@ -737,6 +737,21 @@ const likeAction = (item) => {
         // navigation.push("MessageScreen", { conversation: res.data.data });
         InteractionManager.runAfterInteractions(() => {
           //navigation.push("MessageScreen", { conversation: res.data.data});
+          let conversationData = res.data.data;
+          if (conversationData?.conversation_id) {
+            const existingMatch = matches.find(m => m.conversation_id === conversationData.conversation_id);
+            const existingUnverify = unverifyMatches.find(m => m.conversation_id === conversationData.conversation_id);
+
+            if (existingMatch) {
+            } else if (existingUnverify) {
+            } else {
+              setMatches(prev => [...prev, conversationData]);
+              if (!isPremium) {
+                setFreeCount(prev => prev + 1);
+                setRecentMatches(prev => [...prev, conversationData]);
+              }
+            }
+          }
           handleOpenChat(res.data.data);
         });
       })
