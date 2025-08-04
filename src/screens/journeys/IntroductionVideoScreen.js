@@ -785,7 +785,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
             style={{ fontSize: 14, lineHeight: 21, fontWeight: "500", color: "black", textAlign: 'center' }}
           >{`You have ${MAX_DURATION} seconds`}</Text>
           <View style={{ position: 'absolute', top: 0, left: 0, width: "100%", alignItems: "flex-end", paddingHorizontal: 32, paddingTop: insets.top }}>
-            {currentUser?.skip_recording_count < 5 && <Text style={{ fontSize: 13, color: '#725ED4', fontWeight: 'bold' }} onPress={onSkip}>Skip</Text>}
+            {<Text style={{ fontSize: 13, color: '#725ED4', fontWeight: 'bold' }} onPress={onSkip}>Skip</Text>}
           </View>
         </View>
         <View
@@ -1247,16 +1247,14 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                 onPress={retryPermission}
               />
               {
-                currentUser?.skip_recording_count < 5 && (
-                  <TouchableOpacity
-                    onPress={onSkip}
-                    style={{ paddingHorizontal: 15, paddingVertical: 8, marginTop: 8 }}
-                  >
-                    <Text style={{ fontSize: 14, fontWeight: "500", color: "white" }}>
-                      Skip for now
-                    </Text>
-                  </TouchableOpacity>
-                )
+                <TouchableOpacity
+                  onPress={onSkip}
+                  style={{ paddingHorizontal: 15, paddingVertical: 8, marginTop: 8 }}
+                >
+                  <Text style={{ fontSize: 14, fontWeight: "500", color: "white" }}>
+                    Skip for now
+                  </Text>
+                </TouchableOpacity>
               }
             </View>
           </View>

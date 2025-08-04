@@ -1256,7 +1256,7 @@ Response should be array of all purpose, like, dislike. For example [ 'purpose 1
                             style={{ marginTop: 40 }}
                             onPress={retryPermission}
                         />
-                        {currentUser?.skip_recording_count < 5 && <TouchableOpacity
+                        {<TouchableOpacity
                             onPress={onSkip}
                             style={{ paddingHorizontal: 15, paddingVertical: 8, marginTop: 8 }}
                         >
