@@ -36,8 +36,7 @@ const ExploreScreen = ({ navigation }) => {
   
   // Add sorting state
   const [sortBy, setSortBy] = useState({ sortBy: 'relevance', sortDirection: 'ASC' } );
-  const [hideModerators, setHideModerators] = useState(true);
-  
+  const [hideModerators, setHideModerators] = useState(currentUser?.is_moderators || false);
 
   // Performance optimization refs
   const keywordTimeout = useRef(null);
@@ -343,37 +342,39 @@ const ExploreScreen = ({ navigation }) => {
       </View>
       {/* Controls row below Explore */}
       <View style={styles.filterRow}>
-        <TouchableOpacity
-          onPress={() => openHideModPicker()}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingHorizontal: 10,
-            height: 30,
-            borderRadius: 15,
-            backgroundColor: hideModerators ? '#725ED4' : '#CDB8E2',
-            marginLeft: 0,
-          }}
-        >
-          <View
+        {currentUser?.is_moderators && (
+          <TouchableOpacity
+            onPress={() => openHideModPicker()}
             style={{
-              width: 18,
-              height: 18,
-              borderRadius: 4,
-              borderWidth: 2,
-              borderColor: hideModerators ? '#725ED4' : '#888',
-              backgroundColor: hideModerators ? '#725ED4' : '#fff',
+              flexDirection: 'row',
               alignItems: 'center',
-              justifyContent: 'center',
-              marginRight: 6,
+              paddingHorizontal: 10,
+              height: 30,
+              borderRadius: 15,
+              backgroundColor: hideModerators ? '#725ED4' : '#CDB8E2',
+              marginLeft: 0,
             }}
           >
-            {hideModerators && <FontAwesome6 name="check" size={12} color="#fff" />}
-          </View>
-          <Text style={{ fontSize: 12, fontWeight: 'bold', color: hideModerators ? 'white' : 'black' }}>
-            Hide Mod
-          </Text>
-        </TouchableOpacity>
+            <View
+              style={{
+                width: 18,
+                height: 18,
+                borderRadius: 4,
+                borderWidth: 2,
+                borderColor: hideModerators ? '#725ED4' : '#888',
+                backgroundColor: hideModerators ? '#725ED4' : '#fff',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 6,
+              }}
+            >
+              {hideModerators && <FontAwesome6 name="check" size={12} color="#fff" />}
+            </View>
+            <Text style={{ fontSize: 12, fontWeight: 'bold', color: hideModerators ? 'white' : 'black' }}>
+              Hide Mods
+            </Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity onPress={openSortPicker} style={styles.sortButton}>
           <FontAwesome6 name='sort' size={12} color='black' />
           <Text numberOfLines={1} style={styles.sortText}>{getSortDisplayText}</Text>
@@ -429,6 +430,7 @@ const ExploreScreen = ({ navigation }) => {
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
