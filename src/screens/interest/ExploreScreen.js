@@ -36,6 +36,7 @@ const ExploreScreen = ({ navigation }) => {
   
   // Add sorting state
   const [sortBy, setSortBy] = useState({ sortBy: 'relevance', sortDirection: 'ASC' } );
+  const [hideModerators, setHideModerators] = useState(true);
   
 
   // Performance optimization refs
@@ -93,7 +94,7 @@ const ExploreScreen = ({ navigation }) => {
     isInitialLoad.current = false;
     
     return () => clearTimeout(timeoutId);
-  }, [selectedJourney?.id, finalKeyword, sortBy]);
+  }, [selectedJourney?.id, finalKeyword, sortBy, hideModerators]);
 
   // Memoized journey loading
   const loadJourneys = useCallback(async () => {
@@ -112,12 +113,14 @@ const ExploreScreen = ({ navigation }) => {
     let query = '';
     if (selectedJourney?.id) query += `journey_id=${selectedJourney.id}&`;
     if (finalKeyword) query += `keyword=${encodeURIComponent(finalKeyword)}&`;
-    
-    // Add sorting parameters
     query += `sort_by=${sortBy.sortBy}&`;
     query += `sort_direction=${sortBy.sortDirection}&`;
+    if (hideModerators) {
+      query += `hide_moderators=true&`;
+    }
     return query;
-  }, [selectedJourney?.id, finalKeyword, sortBy]);
+  }, [selectedJourney?.id, finalKeyword, sortBy, hideModerators]);
+
 
   // Optimized loadMatches with better error handling and request management
   const loadMatches = useCallback(async (resetPage = 1) => {
@@ -139,6 +142,7 @@ const ExploreScreen = ({ navigation }) => {
 
       try {
         const query = buildQuery; // Use the memoized query
+        console.log('query', query);
         const response = await apiClient.get(`/matches/match-by-journey?${query}offset=${offset}&limit=${PAGE_SIZE}`)
         if (!response.data) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -228,6 +232,7 @@ const ExploreScreen = ({ navigation }) => {
     { text: 'Last Online', value: { sortBy: 'last_active_time', sortDirection: 'DESC' } },
   ], []);
 
+
   const openSortPicker = useCallback(async () => {
     await SheetManager.show('action-sheets', {
       payload: {
@@ -240,6 +245,20 @@ const ExploreScreen = ({ navigation }) => {
     });
   }, [sortOptions]);
 
+  const openHideModPicker = useCallback(async () => {
+    await SheetManager.show('action-sheets', {
+      payload: {
+        actions: [
+          { text: 'Show Moderators', value: false },
+          { text: 'Hide Moderators', value: true }
+        ],
+        onPress(index) {
+          setHideModerators(index === 1);
+        },
+      },
+    });
+  }, [hideModerators]);
+  
   // Memoized journey options
   const journeyOptions = useMemo(() => {
     const options = journeys.map((item) => ({ text: item.name, value: item }));
@@ -314,25 +333,64 @@ const ExploreScreen = ({ navigation }) => {
     </View>
   ), []);
 
+
+
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}> 
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.headerRow}>
         <Text style={styles.headerText}>Explore</Text>
-        <View style={styles.headerControls}>
-          <TouchableOpacity onPress={openSortPicker} style={styles.sortButton}>
-            <FontAwesome6 name='sort' size={12} color='black' />
-            <Text numberOfLines={1} style={styles.sortText}>{getSortDisplayText}</Text>
-            <FontAwesome6 name='chevron-down' size={12} color='black' />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={openJourneyPicker} style={styles.journeyButton}>
-            <Text numberOfLines={1} style={styles.journeyText}>
-              {selectedJourney ? selectedJourney.name : 'All Journeys'}
-            </Text>
-            <FontAwesome6 name='chevron-down' size={15} color='black' />
-          </TouchableOpacity>
-        </View>
+        
       </View>
-
+      {/* Controls row below Explore */}
+      <View style={styles.filterRow}>
+        <TouchableOpacity
+          onPress={() => openHideModPicker()}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 10,
+            height: 30,
+            borderRadius: 15,
+            backgroundColor: hideModerators ? '#725ED4' : '#CDB8E2',
+            marginLeft: 0,
+          }}
+        >
+          <View
+            style={{
+              width: 18,
+              height: 18,
+              borderRadius: 4,
+              borderWidth: 2,
+              borderColor: hideModerators ? '#725ED4' : '#888',
+              backgroundColor: hideModerators ? '#725ED4' : '#fff',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: 6,
+            }}
+          >
+            {hideModerators && <FontAwesome6 name="check" size={12} color="#fff" />}
+          </View>
+          <Text style={{ fontSize: 12, fontWeight: 'bold', color: hideModerators ? 'white' : 'black' }}>
+            Hide Mod
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={openSortPicker} style={styles.sortButton}>
+          <FontAwesome6 name='sort' size={12} color='black' />
+          <Text numberOfLines={1} style={styles.sortText}>{getSortDisplayText}</Text>
+          <FontAwesome6 name='chevron-down' size={12} color='black' />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={openJourneyPicker} style={styles.journeyButton}>
+          <Text
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            style={[styles.journeyText, { maxWidth: 95 }]} // limit width for ellipsis
+          >
+            {selectedJourney ? selectedJourney.name : 'All Journeys'}
+          </Text>
+          <FontAwesome6 name='chevron-down' size={15} color='black' />
+        </TouchableOpacity>
+      </View>
+      {/* Move Hide Mod below filter row */}
       <View style={styles.searchBoxWrapper}>
         <FontAwesome6 name='magnifying-glass' size={16} color='#8C8C8C' style={{ marginLeft: 10 }} />
         <TextInput
@@ -343,7 +401,6 @@ const ExploreScreen = ({ navigation }) => {
           style={styles.searchInput}
         />
       </View>
-
       <FlatList
         data={suggestions}
         renderItem={renderItem}
@@ -390,10 +447,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'black'
   },
-  headerControls: {
+  filterRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    paddingHorizontal: 16,
+    paddingBottom: 8,
   },
   sortButton: {
     paddingHorizontal: 8,
