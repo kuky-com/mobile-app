@@ -202,15 +202,15 @@ const ProfileScreen = ({ navigation }) => {
     }
 
     const onAddDislikes = () => {
-        // navigation.push('DislikeUpdateScreen', { dislikes: dislikes, onUpdated: (newList) => setDislikes(newList) })
+        navigation.push('DislikeUpdateScreen', { dislikes: dislikes, onUpdated: (newList) => setDislikes(newList) })
         // navigation.push('MatchingInfoUpdateScreen', { canClose: true })
-        navigation.push('InterestVideoScreen', { canClose: true })
+        // navigation.push('InterestVideoScreen', { canClose: true })
     }
 
     const onAddLikes = () => {
-        // navigation.push('InterestUpdateScreen', { likes: likes, onUpdated: (newList) => setLikes(newList) })
+        navigation.push('InterestUpdateScreen', { likes: likes, onUpdated: (newList) => setLikes(newList) })
         // navigation.push('MatchingInfoUpdateScreen', { canClose: true })
-        navigation.push('InterestVideoScreen', { canClose: true })
+        // navigation.push('InterestVideoScreen', { canClose: true })
     }
 
     const onEditPurposes = () => {
