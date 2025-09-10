@@ -1,30 +1,36 @@
-import React from 'react'
+import React, { memo, useMemo } from 'react'
 import { View } from 'react-native';
 import Text from './Text';
 
-const OnlineStatus = ({ status = 'offline', isRecentOnline, radius = 12 }) => {
-    if (status?.toLowerCase() === 'offline' || !isRecentOnline) {
-        return (
-            <View style={{ backgroundColor: '#A7A7A7', height: 14, borderRadius: 7, paddingHorizontal: 8, justifyContent: 'center' }}>
-                <Text style={{ fontSize: 10, fontWeight: '500', color: 'black' }}>Offline</Text>
-            </View>
-        )
-    }
+const OnlineStatus = memo(({ status = 'offline', isRecentOnline }) => {
+    const statusComponent = useMemo(() => {
+        if (status?.toLowerCase() === 'offline' || !isRecentOnline) {
+            return (
+                <View style={{ backgroundColor: '#A7A7A7', height: 14, borderRadius: 7, paddingHorizontal: 8, justifyContent: 'center' }}>
+                    <Text style={{ fontSize: 10, fontWeight: '500', color: 'black' }}>Offline</Text>
+                </View>
+            )
+        }
 
-    if (status?.toLowerCase() === 'away') {
-        return (
-            <View style={{ backgroundColor: '#FFD322', height: 14, borderRadius: 7, paddingHorizontal: 8, justifyContent: 'center' }}>
-                <Text style={{ fontSize: 10, fontWeight: '500', color: 'black' }}>Away</Text>
-            </View>
-        )
-    } else {
-        return (
-            <View style={{ backgroundColor: '#2EE62A', height: 14, borderRadius: 7, paddingHorizontal: 8, justifyContent: 'center' }}>
-                <Text style={{ fontSize: 10, fontWeight: '500', color: 'black' }}>Active</Text>
-            </View>
-        )
-    }
-}
+        if (status?.toLowerCase() === 'away') {
+            return (
+                <View style={{ backgroundColor: '#FFD322', height: 14, borderRadius: 7, paddingHorizontal: 8, justifyContent: 'center' }}>
+                    <Text style={{ fontSize: 10, fontWeight: '500', color: 'black' }}>Away</Text>
+                </View>
+            )
+        } else {
+            return (
+                <View style={{ backgroundColor: '#2EE62A', height: 14, borderRadius: 7, paddingHorizontal: 8, justifyContent: 'center' }}>
+                    <Text style={{ fontSize: 10, fontWeight: '500', color: 'black' }}>Active</Text>
+                </View>
+            )
+        }
+    }, [status, isRecentOnline]);
+
+    return statusComponent;
+});
+
+OnlineStatus.displayName = 'OnlineStatus';
 
 // const OnlineStatus = ({ status = 'offline', isRecentOnline, radius = 12 }) => {
 

@@ -1,19 +1,45 @@
-import { Header } from '@/components/Header';
 import Text from '@/components/Text';
-import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Dimensions, Platform } from 'react-native';
+import React, { memo, useMemo, useCallback } from 'react';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import dayjs from 'dayjs';
-import { Image } from 'expo-image';
 import AvatarImage from './AvatarImage';
 import OnlineStatus from './OnlineStatus';
 
-const DynamicLikeItem = ({ itemWidth, item, onPress }) => {
-    const [itemHeight, setItemHeight] = useState(Math.round(itemWidth * 1024 / 800));
-    const isRecentOnline = item?.last_active_time ? dayjs().diff(dayjs(item?.last_active_time), 'minute') < 60 : false
+const DynamicLikeItem = memo(({ itemWidth, item, onPress }) => {
+    // Pre-calculate item height - no need for state since it's static
+    const itemHeight = useMemo(() => Math.round(itemWidth * 1024 / 800), [itemWidth]);
+    
+    // Memoize expensive calculations
+    const isRecentOnline = useMemo(() => 
+        item?.last_active_time ? dayjs().diff(dayjs(item?.last_active_time), 'minute') < 60 : false,
+        [item?.last_active_time]
+    );
+
+    const displayAge = useMemo(() => {
+        if (!item?.birthday) return null;
+        if (item.birthday.includes('-')) {
+            return dayjs().diff(dayjs(item.birthday, 'MM-DD-YYYY'), 'year');
+        }
+        if (item.birthday.includes('/')) {
+            return dayjs().diff(dayjs(item.birthday, 'DD/MM/YYYY'), 'year');
+        }
+        return null;
+    }, [item?.birthday]);
+
+    const displayName = useMemo(() => {
+        if (displayAge !== null) {
+            return `${item.full_name}, ${displayAge} yo`;
+        }
+        return item.full_name;
+    }, [item.full_name, displayAge]);
+
+    const handlePress = useCallback(() => {
+        onPress && onPress();
+    }, [onPress]);
 
     return (
-        <TouchableOpacity onPress={() => onPress && onPress()} style={[styles.cardContainer, { width: itemWidth, height: itemHeight }]}>
+        <TouchableOpacity onPress={handlePress} style={[styles.cardContainer, { width: itemWidth, height: itemHeight }]}>
             <AvatarImage
                 avatar={item?.avatar}
                 full_name={item?.full_name}
@@ -35,20 +61,21 @@ const DynamicLikeItem = ({ itemWidth, item, onPress }) => {
                     style={styles.nameBackground}
                 />
                 {item.user_note &&
-                    <View style={{ backgroundColor: '#7B65E8dd', padding: 16, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderBottomRightRadius: 20 }}>
-                        <Text style={{ fontSize: 13, lineHeight: 20, fontWeight: '600', color: '#E8FF58' }}>{`"${item.user_note}"`}</Text>
+                    <View style={styles.userNoteContainer}>
+                        <Text style={styles.userNoteText}>{`"${item.user_note}"`}</Text>
                     </View>
                 }
                 <View style={styles.nameContainer}>
-                    {item.birthday && item.birthday.includes('-') && <Text style={[styles.name, { maxWidth: itemWidth - 30 }]}>{`${item.full_name}, ${dayjs().diff(dayjs(item.birthday, 'MM-DD-YYYY'), 'year')} yo`}</Text>}
-                    {item.birthday && item.birthday.includes('/') && <Text style={[styles.name, { maxWidth: itemWidth - 30 }]}>{`${item.full_name}, ${dayjs().diff(dayjs(item.birthday, 'DD/MM/YYYY'), 'year')} yo`}</Text>}
-                    {!item.birthday && <Text style={[styles.name, { maxWidth: itemWidth - 30 }]}>{`${item.full_name}`}</Text>}
-                    <OnlineStatus isRecentOnline={isRecentOnline} status={item?.online_status} radius={12} />
+                    <Text style={[styles.name, { maxWidth: itemWidth - 30 }]}>{displayName}</Text>
+                    <OnlineStatus isRecentOnline={isRecentOnline} status={item?.online_status} />
                 </View>
             </View>
         </TouchableOpacity>
     );
-};
+});
+
+// Add displayName for debugging
+DynamicLikeItem.displayName = 'DynamicLikeItem';
 
 const styles = StyleSheet.create({
     cardContainer: {
@@ -102,6 +129,19 @@ const styles = StyleSheet.create({
     nameBackground: {
         position: 'absolute',
         top: 0, left: 0, right: 0, bottom: 0
+    },
+    userNoteContainer: {
+        backgroundColor: '#7B65E8dd',
+        padding: 16,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        borderBottomRightRadius: 20
+    },
+    userNoteText: {
+        fontSize: 13,
+        lineHeight: 20,
+        fontWeight: '600',
+        color: '#E8FF58'
     }
 });
 
