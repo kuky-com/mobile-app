@@ -15,10 +15,10 @@ import { naturalJoin } from '../../utils/utils';
 import TextInput from '../../components/TextInput';
 import DynamicLikeItem from '@/components/DynamicLikeItem';
 
-const PAGE_SIZE = 8;
-const INITIAL_RENDER_COUNT = 4;
-const MAX_TO_RENDER_PER_BATCH = 6;
-const WINDOW_SIZE = 8;
+const PAGE_SIZE = 10;
+const INITIAL_RENDER_COUNT = 6;
+const MAX_TO_RENDER_PER_BATCH = 4;
+const WINDOW_SIZE = 10;
 
 const ExploreScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
@@ -187,10 +187,10 @@ const ExploreScreen = ({ navigation }) => {
 
   // Optimized load more with throttling
   const onLoadMore = useCallback(() => {
-    if (canLoadMore && !loadingMore && !isFetching) {
+    if (canLoadMore && !loadingMore && !isFetching && suggestions.length >= PAGE_SIZE) {
       loadMatches(page + 1);
     }
-  }, [canLoadMore, loadingMore, isFetching, page, loadMatches]);
+  }, [canLoadMore, loadingMore, isFetching, page, loadMatches, suggestions.length]);
 
   const onRefresh = useCallback(() => {
     loadMatches(1);
@@ -304,11 +304,14 @@ const ExploreScreen = ({ navigation }) => {
 
   const keyExtractor = useCallback((item, index) => `${item.id}-${index}`, []);
 
-  const getItemLayout = useCallback((data, index) => ({
-    length: itemWidth + 20, // item width + margin
-    offset: (itemWidth + 20) * index,
-    index,
-  }), [itemWidth]);
+  const getItemLayout = useCallback((data, index) => {
+    const itemHeight = Math.round(itemWidth * 1024 / 800) + 16; // item height + margin
+    return {
+      length: itemHeight,
+      offset: itemHeight * index,
+      index,
+    };
+  }, [itemWidth]);
 
   const renderFooter = useCallback(() => (
     <View style={{ marginBottom: insets.bottom + 80, padding: 16, minHeight: 60 }}>
@@ -407,7 +410,7 @@ const ExploreScreen = ({ navigation }) => {
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         onEndReached={onLoadMore}
-        onEndReachedThreshold={0.3}
+        onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={!isFetching ? renderEmptyComponent : null}
         refreshing={isFetching}
@@ -418,7 +421,7 @@ const ExploreScreen = ({ navigation }) => {
         maxToRenderPerBatch={MAX_TO_RENDER_PER_BATCH}
         windowSize={WINDOW_SIZE}
         initialNumToRender={INITIAL_RENDER_COUNT}
-        updateCellsBatchingPeriod={100}
+        updateCellsBatchingPeriod={50}
         getItemLayout={getItemLayout}
         // Memory optimizations
         disableVirtualization={false}
@@ -426,6 +429,14 @@ const ExploreScreen = ({ navigation }) => {
         // Interaction optimizations
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
+        // Additional performance optimizations
+        scrollEventThrottle={16}
+        maintainVisibleContentPosition={{
+          minIndexForVisible: 0,
+          autoscrollToTopThreshold: 10,
+        }}
+        numColumns={1}
+        showsVerticalScrollIndicator={true}
       />
     </View>
   );

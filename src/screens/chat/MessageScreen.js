@@ -421,7 +421,8 @@ const MessageScreen = ({ navigation, route }) => {
       device_id: deviceId,
       platform: Platform.OS,
       start_time: dayjs().format(),
-      screen_name: 'message'
+      screen_name: 'message',
+      receiver_id: currentConversation?.profile?.id
     })
 
     if (res && res.data) {
