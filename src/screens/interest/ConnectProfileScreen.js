@@ -585,7 +585,12 @@ const ConnectProfileScreen = ({ navigation, route }) => {
   const onChangeMuteOption = () => {
     setIsMute(!isMute)
   }
-
+  const goToMessage = async () => {
+    console.log('go to message=====================')
+    NavigationService.push("MessageScreen", {
+      conversation: matchInfo,
+    });
+  };
   const isRecentOnline = currentProfile && currentProfile?.last_active_time ? dayjs().diff(dayjs(currentProfile?.last_active_time), 'minute') < 60 : false
 
   return (
@@ -806,47 +811,60 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                       width: "100%",
                       flexDirection: "row",
                       alignItems: "flex-end",
-                      justifyContent: (showAcceptReject && !matchInfo && currentUser.id !== currentProfile?.id) ? "space-between" : "center",
                       paddingHorizontal: 9,
+                      position: "relative",
                     }}
                   >
-                    {showAcceptReject && currentUser.id !== currentProfile?.id && !matchInfo && (
-                      <View style={{ alignItems: "center", gap: 13 }}>
-                        <TouchableOpacity
-                          disabled={loading}
-                          onPress={rejectAction}
-                          style={{
-                            width: 60,
-                            height: 60,
-                            borderRadius: 30,
-                            backgroundColor: "#6C6C6C",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <Image
-                            source={images.close_icon}
+                    {/* Left side - Pass button */}
+                    <View style={{ flex: 1, alignItems: "flex-start", zIndex: 2 }}>
+                      {showAcceptReject && currentUser.id !== currentProfile?.id && !matchInfo && (
+                        <View style={{ alignItems: "center", gap: 13 }}>
+                          <TouchableOpacity
+                            disabled={loading}
+                            onPress={rejectAction}
                             style={{
-                              width: 26,
-                              height: 26,
-                              tintColor: "#E8FF58",
+                              width: 60,
+                              height: 60,
+                              borderRadius: 30,
+                              backgroundColor: "#6C6C6C",
+                              alignItems: "center",
+                              justifyContent: "center",
                             }}
-                            contentFit="contain"
-                          />
-                        </TouchableOpacity>
-                        <Text
-                          style={{
-                            color: "#949494",
-                            fontSize: 10,
-                            fontWeight: "bold",
-                          }}
-                        >
-                          Pass
-                        </Text>
-                      </View>
-                    )}
+                          >
+                            <Image
+                              source={images.close_icon}
+                              style={{
+                                width: 26,
+                                height: 26,
+                                tintColor: "#E8FF58",
+                              }}
+                              contentFit="contain"
+                            />
+                          </TouchableOpacity>
+                          <Text
+                            style={{
+                              color: "#949494",
+                              fontSize: 10,
+                              fontWeight: "bold",
+                            }}
+                          >
+                            Pass
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+
+                    {/* Center - Video button */}
                     {currentProfile?.video_intro && (
-                      <View style={{ alignItems: "center", gap: 13 }}>
+                      <View style={{ 
+                        alignItems: "center", 
+                        gap: 13, 
+                        position: "absolute", 
+                        left: "50%", 
+                        marginLeft: -40, 
+                        zIndex: 3,
+                        width: 80 
+                      }}>
                         {!playing && !pendingVideo && (
                           <TouchableOpacity
                             onPress={playVideo}
@@ -895,41 +913,80 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                         </Text>
                       </View>
                     )}
-                    {showAcceptReject && currentUser.id !== currentProfile?.id && !matchInfo && (
-                      <View style={{ alignItems: "center", gap: 13 }}>
-                        <TouchableOpacity
-                          disabled={loading}
-                          onPress={likeAction}
-                          style={{
-                            width: 60,
-                            height: 60,
-                            borderRadius: 30,
-                            backgroundColor: "#6C6C6C",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <Image
-                            source={images.like_icon}
+
+                    {/* Right side - Connect/Message button */}
+                    <View style={{ flex: 1, alignItems: "flex-end", zIndex: 2 }}>
+                      {showAcceptReject && currentUser.id !== currentProfile?.id && !matchInfo && (
+                        <View style={{ alignItems: "center", gap: 13 }}>
+                          <TouchableOpacity
+                            disabled={loading}
+                            onPress={likeAction}
                             style={{
-                              width: 26,
-                              height: 26,
-                              tintColor: "#E8FF58",
+                              width: 60,
+                              height: 60,
+                              borderRadius: 30,
+                              backgroundColor: "#6C6C6C",
+                              alignItems: "center",
+                              justifyContent: "center",
                             }}
-                            contentFit="contain"
-                          />
-                        </TouchableOpacity>
-                        <Text
-                          style={{
-                            color: "#949494",
-                            fontSize: 10,
-                            fontWeight: "bold",
-                          }}
-                        >
-                          Connect
-                        </Text>
-                      </View>
-                    )}
+                          >
+                            <Image
+                              source={images.like_icon}
+                              style={{
+                                width: 26,
+                                height: 26,
+                                tintColor: "#E8FF58",
+                              }}
+                              contentFit="contain"
+                            />
+                          </TouchableOpacity>
+                          <Text
+                            style={{
+                              color: "#949494",
+                              fontSize: 10,
+                              fontWeight: "bold",
+                            }}
+                          >
+                            Connect
+                          </Text>
+                        </View>
+                      )}
+                      {showAcceptReject && currentUser.id !== currentProfile?.id && matchInfo && (
+                        <View style={{ alignItems: "center", gap: 13 }}>
+                          <TouchableOpacity
+                            disabled={loading}
+                            onPress={goToMessage}
+                            style={{
+                              width: 60,
+                              height: 60,
+                              borderRadius: 30,
+                              backgroundColor: "#725ED4",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <Image
+                              source={images.conversation_icon}
+                              style={{
+                                width: 26,
+                                height: 26,
+                                tintColor: "#E8FF58",
+                              }}
+                              contentFit="contain"
+                            />
+                          </TouchableOpacity>
+                          <Text
+                            style={{
+                              color: "#949494",
+                              fontSize: 10,
+                              fontWeight: "bold",
+                            }}
+                          >
+                            Message
+                          </Text>
+                        </View>
+                      )}
+                    </View>
                   </View>
                 }
               </View>
