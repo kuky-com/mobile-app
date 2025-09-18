@@ -271,27 +271,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
           setLoading(false);
           DeviceEventEmitter.emit(constants.REFRESH_SUGGESTIONS);
 
-          if (
-            res &&
-            res.data &&
-            res.data.success &&
-            res.data.data &&
-            res.data.data.status === "accepted"
-          ) {
-            NavigationService.replace("GetMatchScreen", {
-              match: res.data.data,
-            });
-
-            Toast.show({
-              type: "sent",
-              position: "top",
-              text1: "Connection Sent!",
-              text2: `Your invitation to connect has been sent to ${currentProfile?.full_name}.`,
-              visibilityTime: 2000,
-              autoHide: true,
-              topOffset: 0,
-            });
-          } else if (res && res.data && !res.data.success) {
+          if (res && res.data && !res.data.success) {
             showAlert(
               "Your account is almost ready!",
               "While we complete the approval, feel free to browse and get familiar with other profiles. You'll be connecting soon!",
@@ -302,9 +282,18 @@ const ConnectProfileScreen = ({ navigation, route }) => {
                 },
               ],
             );
-          } else {
-            navigation.goBack();
-            navigation.navigate("MatchesScreen");
+          } else if (res && res.data && res.data.success && res.data.data) {
+            // Navigate straight to chat using conversation_id
+            const conversationId = res.data.data.conversation_id;
+            if (conversationId) {
+              NavigationService.replace("MessageScreen", {
+                conversation: { conversation_id: conversationId },
+              });
+            } else {
+              // Fallback if conversation id is missing
+              navigation.goBack();
+              navigation.navigate("MatchesScreen");
+            }
           }
         })
         .catch((error) => {

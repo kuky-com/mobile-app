@@ -404,6 +404,9 @@ const ExploreScreen = ({ navigation }) => {
           placeholderTextColor="#8C8C8C"
           style={styles.searchInput}
         />
+        {(((keyword && keyword !== finalKeyword) || (finalKeyword && isFetching)) && (
+          <ActivityIndicator size="small" color={colors.mainColor} style={{ marginRight: 10 }} />
+        ))}
       </View>
       <FlatList
         data={suggestions}
