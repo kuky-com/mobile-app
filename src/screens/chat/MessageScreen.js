@@ -504,8 +504,11 @@ const MessageScreen = ({ navigation, route }) => {
     {
       useNativeDriver: false,
       listener: (event) => {
-        Keyboard.dismiss()
-        // const offsetY = event.nativeEvent.contentOffset.y;
+        // Only dismiss keyboard on significant scroll to prevent glitches
+        const offsetY = event.nativeEvent.contentOffset.y;
+        if (Math.abs(offsetY - (scrollY._value || 0)) > 50) {
+          Keyboard.dismiss();
+        }
         // setIsHeaderVisible(offsetY <= -50); // Show header when at top
       }
     }
@@ -863,7 +866,7 @@ const MessageScreen = ({ navigation, route }) => {
   const renderInputToolbar = (props) => {
     return (
       <View style={{
-        paddingBottom: (keyboardHeight > 0 || Platform.OS === 'android') ? (12 + insets.bottom) : insets.bottom,
+        paddingBottom: keyboardHeight > 0 ? 12 : (insets.bottom + 12),
         paddingTop: 12,
         paddingHorizontal: 16,
         gap: 3,
@@ -1574,9 +1577,10 @@ const MessageScreen = ({ navigation, route }) => {
     return (
       <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === 'padding' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         // keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} 
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 60 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? (keyboardHeight > 0 ? insets.top + 60 : 0) : 0}
+        enabled={keyboardHeight > 0}
       >
       <View style={styles.container}>
         <StatusBar translucent style="dark" />
@@ -1636,8 +1640,14 @@ const MessageScreen = ({ navigation, route }) => {
   }
 
   return (
-    <View style={styles.container}>
-      <StatusBar translucent style="dark" />
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? (keyboardHeight > 0 ? insets.top + 60 : 0) : 0}
+      enabled={keyboardHeight > 0}
+    >
+      <View style={styles.container}>
+        <StatusBar translucent style="dark" />
       <View
         style={{
           gap: 8,
@@ -1772,13 +1782,25 @@ const MessageScreen = ({ navigation, route }) => {
         }}
         onInputTextChanged={handleTyping}
         alwaysShowSend
+        keyboardShouldPersistTaps={'handled'}
+        scrollToBottom
+        scrollToBottomComponent={() => null}
+        infiniteScroll
+        maxInputLength={1000}
         listViewProps={{
           onScroll: handleScroll,
           scrollEventThrottle: 16,
+          keyboardShouldPersistTaps: 'handled',
+          keyboardDismissMode: 'on-drag',
           contentContainerStyle: {
             flexGrow: 1,
             justifyContent: "flex-start",
-            paddingBottom: Platform.OS === 'ios',
+            paddingBottom: keyboardHeight > 0 ? 0 : (Platform.OS === 'ios' ? insets.bottom : 0),
+          },
+          removeClippedSubviews: false,
+          maintainVisibleContentPosition: {
+            minIndexForVisible: 0,
+            autoscrollToTopThreshold: 10,
           },
         }}
       />
@@ -1794,6 +1816,7 @@ const MessageScreen = ({ navigation, route }) => {
         onRequestClose={() => setImageViewList([])}
       />
       </View>
+    </KeyboardAvoidingView>
   );
 };
 export default MessageScreen;
