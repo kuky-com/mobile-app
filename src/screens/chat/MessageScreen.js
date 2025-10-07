@@ -68,6 +68,7 @@ import * as Progress from "react-native-progress";
 import MessageUrlPreview from "../../components/MessageUrlPreview";
 import DeviceInfo from 'react-native-device-info';
 import { deviceIdAtom } from "../../actions/global";
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const styles = StyleSheet.create({
   container: {
@@ -866,7 +867,7 @@ const MessageScreen = ({ navigation, route }) => {
   const renderInputToolbar = (props) => {
     return (
       <View style={{
-        paddingBottom: Platform.OS === 'ios' ? insets.bottom : 12,
+        paddingBottom: Platform.OS === 'ios' ? Math.max(insets.bottom + 12, 20) : 20,
         paddingTop: 12,
         paddingHorizontal: 16,
         gap: 3,
@@ -904,9 +905,16 @@ const MessageScreen = ({ navigation, route }) => {
             styles.inputText,
             {
               textAlignVertical: props.text && props.text.includes("\n") ? "top" : "center",
+              minHeight: 36,
             },
           ]}
           placeholder="Type here ..."
+          textInputProps={{
+            autoFocus: false,
+            blurOnSubmit: false,
+            multiline: true,
+            returnKeyType: 'default',
+          }}
         />
       );
     } else {
@@ -1575,11 +1583,7 @@ const MessageScreen = ({ navigation, route }) => {
 
   if (!isPremium && !currentConversation?.is_free) {
     return (
-      <KeyboardAvoidingView 
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 80 : 20}
-      >
+      <View style={styles.container}>
         <StatusBar translucent style="dark" />
         <View
           style={{
@@ -1630,17 +1634,14 @@ const MessageScreen = ({ navigation, route }) => {
           }}
           listViewProps={{ contentContainerStyle: { flexGrow: 1, justifyContent: "flex-end" } }}
           forceGetKeyboardDismissed={() => false}
+          keyboardShouldPersistTaps='handled'
         />
-        </KeyboardAvoidingView>
+        </View>
     )
   }
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 80 : 20}
-    >
+    <View style={styles.container}>
       <StatusBar translucent style="dark" />
       <View
         style={{
@@ -1781,22 +1782,20 @@ const MessageScreen = ({ navigation, route }) => {
         scrollToBottomComponent={() => null}
         infiniteScroll
         maxInputLength={1000}
-        isKeyboardInternallyHandled={false}
+        bottomOffset={0}
+        isKeyboardInternallyHandled={true}
+        extraData={keyboardHeight}
         listViewProps={{
           onScroll: handleScroll,
           scrollEventThrottle: 16,
           keyboardShouldPersistTaps: 'handled',
-          keyboardDismissMode: 'on-drag',
+          keyboardDismissMode: 'interactive',
           contentContainerStyle: {
             flexGrow: 1,
             justifyContent: "flex-start",
             paddingBottom: 0,
           },
           removeClippedSubviews: false,
-          maintainVisibleContentPosition: {
-            minIndexForVisible: 0,
-            autoscrollToTopThreshold: 10,
-          },
         }}
       />
       
@@ -1810,7 +1809,7 @@ const MessageScreen = ({ navigation, route }) => {
         visible={imageViewList.length > 0}
         onRequestClose={() => setImageViewList([])}
       />
-      </KeyboardAvoidingView>
+      </View>
   );
 };
 export default MessageScreen;
