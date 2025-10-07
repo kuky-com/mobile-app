@@ -10,6 +10,7 @@ import {
   DeviceEventEmitter,
   Dimensions,
   Keyboard,
+  KeyboardAvoidingView,
   Linking,
   Platform,
   Pressable,
@@ -1574,7 +1575,11 @@ const MessageScreen = ({ navigation, route }) => {
 
   if (!isPremium && !currentConversation?.is_free) {
     return (
-      <View style={styles.container}>
+      <KeyboardAvoidingView 
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 80 : 20}
+      >
         <StatusBar translucent style="dark" />
         <View
           style={{
@@ -1626,12 +1631,16 @@ const MessageScreen = ({ navigation, route }) => {
           listViewProps={{ contentContainerStyle: { flexGrow: 1, justifyContent: "flex-end" } }}
           forceGetKeyboardDismissed={() => false}
         />
-        </View>
+        </KeyboardAvoidingView>
     )
   }
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView 
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 80 : 20}
+    >
       <StatusBar translucent style="dark" />
       <View
         style={{
@@ -1772,8 +1781,7 @@ const MessageScreen = ({ navigation, route }) => {
         scrollToBottomComponent={() => null}
         infiniteScroll
         maxInputLength={1000}
-        bottomOffset={Platform.OS === 'ios' ? insets.bottom : 0}
-        isKeyboardInternallyHandled={true}
+        isKeyboardInternallyHandled={false}
         listViewProps={{
           onScroll: handleScroll,
           scrollEventThrottle: 16,
@@ -1802,7 +1810,7 @@ const MessageScreen = ({ navigation, route }) => {
         visible={imageViewList.length > 0}
         onRequestClose={() => setImageViewList([])}
       />
-      </View>
+      </KeyboardAvoidingView>
   );
 };
 export default MessageScreen;
