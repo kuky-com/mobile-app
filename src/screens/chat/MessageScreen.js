@@ -15,7 +15,6 @@ import {
   Pressable,
   StyleSheet,
   TouchableOpacity,
-  KeyboardAvoidingView,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -866,7 +865,7 @@ const MessageScreen = ({ navigation, route }) => {
   const renderInputToolbar = (props) => {
     return (
       <View style={{
-        paddingBottom: keyboardHeight > 0 ? 12 : (insets.bottom + 12),
+        paddingBottom: Platform.OS === 'ios' ? insets.bottom : 12,
         paddingTop: 12,
         paddingHorizontal: 16,
         gap: 3,
@@ -1575,13 +1574,6 @@ const MessageScreen = ({ navigation, route }) => {
 
   if (!isPremium && !currentConversation?.is_free) {
     return (
-      <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        // keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} 
-        keyboardVerticalOffset={Platform.OS === 'ios' ? (keyboardHeight > 0 ? insets.top + 60 : 0) : 0}
-        enabled={keyboardHeight > 0}
-      >
       <View style={styles.container}>
         <StatusBar translucent style="dark" />
         <View
@@ -1635,19 +1627,12 @@ const MessageScreen = ({ navigation, route }) => {
           forceGetKeyboardDismissed={() => false}
         />
         </View>
-        </KeyboardAvoidingView>
     )
   }
 
   return (
-    <KeyboardAvoidingView 
-      style={{ flex: 1 }} 
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? (keyboardHeight > 0 ? insets.top + 60 : 0) : 0}
-      enabled={keyboardHeight > 0}
-    >
-      <View style={styles.container}>
-        <StatusBar translucent style="dark" />
+    <View style={styles.container}>
+      <StatusBar translucent style="dark" />
       <View
         style={{
           gap: 8,
@@ -1787,6 +1772,8 @@ const MessageScreen = ({ navigation, route }) => {
         scrollToBottomComponent={() => null}
         infiniteScroll
         maxInputLength={1000}
+        bottomOffset={Platform.OS === 'ios' ? insets.bottom : 0}
+        isKeyboardInternallyHandled={true}
         listViewProps={{
           onScroll: handleScroll,
           scrollEventThrottle: 16,
@@ -1795,7 +1782,7 @@ const MessageScreen = ({ navigation, route }) => {
           contentContainerStyle: {
             flexGrow: 1,
             justifyContent: "flex-start",
-            paddingBottom: keyboardHeight > 0 ? 0 : (Platform.OS === 'ios' ? insets.bottom : 0),
+            paddingBottom: 0,
           },
           removeClippedSubviews: false,
           maintainVisibleContentPosition: {
@@ -1816,7 +1803,6 @@ const MessageScreen = ({ navigation, route }) => {
         onRequestClose={() => setImageViewList([])}
       />
       </View>
-    </KeyboardAvoidingView>
   );
 };
 export default MessageScreen;
