@@ -14,7 +14,7 @@ import { ResizeMode, Video } from "expo-av";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAtom, useAtomValue } from "jotai";
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { SectionCard } from "@/components/SectionCard";
 import {
   AppState,
@@ -85,7 +85,82 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     elevation: 1,
     shadowColor: '#000000',
-  }
+  },
+  scrollContent: {
+    flex: 1,
+    width: "100%",
+  },
+  mainContent: {
+    flex: 1,
+    alignSelf: "center",
+    padding: 16,
+    gap: 16,
+  },
+  profileHeader: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
+  profileNameRow: {
+    flexDirection: 'row',
+    gap: 5,
+    width: '100%',
+    flex: 1,
+    alignItems: 'center',
+  },
+  profileName: {
+    fontSize: 24,
+    color: "black",
+    fontWeight: "bold",
+  },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    paddingHorizontal: 8,
+  },
+  infoItem: {
+    flexDirection: "row",
+    gap: 5,
+    alignItems: "center",
+  },
+  iconBox: {
+    width: 30,
+    height: 30,
+    borderRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#726F70",
+    backgroundColor: "white",
+  },
+  icon: {
+    width: 18,
+    height: 18,
+  },
+  infoText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "black",
+  },
+  actionButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  actionIcon: {
+    width: 26,
+    height: 26,
+    tintColor: "#E8FF58",
+  },
+  actionLabel: {
+    color: "#949494",
+    fontSize: 10,
+    fontWeight: "bold",
+  },
 });
 
 const ConnectProfileScreen = ({ navigation, route }) => {
@@ -125,7 +200,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
     }
   }, [profile])
 
-  const onRefresh = () => {
+  const onRefresh = useCallback(() => {
     try {
       setLoading(true);
       apiClient
@@ -192,7 +267,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
     } catch (error) {
       setLoading(false);
     }
-  };
+  }, [profile.id, currentProfile?.id, currentUser.id, showAlert]);
 
   useEffect(() => {
     if (currentProfile) {
@@ -257,7 +332,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
     } catch (error) { }
   }, []);
 
-  const likeAction = () => {
+  const likeAction = useCallback(() => {
     analytics().logEvent('send_connect_request')
 
     // NavigationService.push('GetMatchScreen', { match: matchInfo })
@@ -307,9 +382,9 @@ const ConnectProfileScreen = ({ navigation, route }) => {
     } catch (error) {
       setLoading(false);
     }
-  };
+}, [profile.id, navigation, showAlert]);
 
-  const rejectAction = () => {
+  const rejectAction = useCallback(() => {
     analytics().logEvent('reject_suggestion')
 
     try {
@@ -347,9 +422,9 @@ const ConnectProfileScreen = ({ navigation, route }) => {
     } catch (error) {
       setLoading(false);
     }
-  };
+  }, [profile?.id, navigation, nextProfile]);
 
-  const onBlock = async () => {
+  const onBlock = useCallback(async () => {
     analytics().logEvent('block_button_clicked')
 
     await SheetManager.show("confirm-action-sheets", {
@@ -385,9 +460,9 @@ const ConnectProfileScreen = ({ navigation, route }) => {
         title: `Block user then both users will no longer be shown to each other.`,
       },
     });
-  };
+  }, [profile.id, navigation]);
 
-  const moreAction = async () => {
+  const moreAction = useCallback(async () => {
     try {
       const options = currentProfile?.id === currentUser.id ? [
         { text: "Share Profile", image: images.share_profile }
@@ -416,7 +491,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
     } catch (error) {
       setLoading(false);
     }
-  };
+  }, [currentProfile?.id, currentUser.id, onBlock]);
 
   const createSession = async () => {
     const res = await apiClient.post(`users/sessions`, {
@@ -472,7 +547,7 @@ const ConnectProfileScreen = ({ navigation, route }) => {
     }
   }, [currentUser])
 
-  const onReport = async () => {
+  const onReport = useCallback(async () => {
     analytics().logEvent('report_button_clicked')
 
     const options = [
@@ -519,9 +594,9 @@ const ConnectProfileScreen = ({ navigation, route }) => {
         },
       },
     });
-  };
+  }, [currentProfile?.id]);
 
-  const onGetSharedLink = async () => {
+  const onGetSharedLink = useCallback(async () => {
     analytics().logEvent('share_button_clicked')
 
     apiClient
@@ -534,21 +609,24 @@ const ConnectProfileScreen = ({ navigation, route }) => {
       .catch((error) => {
         console.log({ error });
       });
-  };
+  }, [profile.id]);
 
-  let userDislikes = [];
-  let userInterests = [];
+  const { userDislikes, userInterests } = useMemo(() => {
+    try {
+      return {
+        userInterests: (currentProfile?.interests ?? []).filter(
+          (item) => item.user_interests.interest_type === "like",
+        ),
+        userDislikes: (currentProfile?.interests ?? []).filter(
+          (item) => item.user_interests.interest_type === "dislike",
+        ),
+      };
+    } catch (error) {
+      return { userDislikes: [], userInterests: [] };
+    }
+  }, [currentProfile?.interests]);
 
-  try {
-    userInterests = (currentProfile?.interests ?? []).filter(
-      (item) => item.user_interests.interest_type === "like",
-    );
-    userDislikes = (currentProfile?.interests ?? []).filter(
-      (item) => item.user_interests.interest_type === "dislike",
-    );
-  } catch (error) { }
-
-  const playVideo = async () => {
+  const playVideo = useCallback(async () => {
     if (videoRef && videoRef.current) {
       setPendingVideo(true);
       try {
@@ -560,27 +638,30 @@ const ConnectProfileScreen = ({ navigation, route }) => {
         setPendingVideo(false);
       }
     }
-  };
+  }, []);
 
-  const pauseVideo = async () => {
+  const pauseVideo = useCallback(async () => {
     setPendingVideo(false);
     if (videoRef && videoRef.current) {
       try {
         await videoRef.current.setStatusAsync({ shouldPlay: false });
       } catch (error) { }
     }
-  };
+  }, []);
 
-  const onChangeMuteOption = () => {
+  const onChangeMuteOption = useCallback(() => {
     setIsMute(!isMute)
-  }
-  const goToMessage = async () => {
+  }, [isMute])
+  const goToMessage = useCallback(async () => {
     console.log('go to message=====================')
     NavigationService.push("MessageScreen", {
       conversation: matchInfo,
     });
-  };
-  const isRecentOnline = currentProfile && currentProfile?.last_active_time ? dayjs().diff(dayjs(currentProfile?.last_active_time), 'minute') < 60 : false
+  }, [matchInfo]);
+  const isRecentOnline = useMemo(() => 
+    currentProfile && currentProfile?.last_active_time ? dayjs().diff(dayjs(currentProfile?.last_active_time), 'minute') < 60 : false,
+    [currentProfile?.last_active_time]
+  )
 
   return (
     <View style={[styles.container]}>
