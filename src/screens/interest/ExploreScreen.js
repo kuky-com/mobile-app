@@ -1,6 +1,6 @@
 import { Header } from '@/components/Header';
 import Text from '@/components/Text';
-import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo, memo } from 'react';
 import { View, FlatList, StyleSheet, Dimensions, DeviceEventEmitter, ActivityIndicator, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import apiClient from '@/utils/apiClient';
@@ -88,7 +88,7 @@ const ExploreScreen = ({ navigation }) => {
       } catch (error) {
         console.log('Error loading matches:', error);
       }
-    }, isInitialLoad.current ? 0 : 200);
+    }, isInitialLoad.current ? 0 : 300);
 
     isInitialLoad.current = false;
     
@@ -206,7 +206,7 @@ const ExploreScreen = ({ navigation }) => {
     
     keywordTimeout.current = setTimeout(() => {
       setFinalKeyword(text);
-    }, 300); // Reduced from 500ms for better responsiveness
+    }, 400); // Optimized debounce timing
   }, []);
 
   // Cleanup timeout on unmount
@@ -313,29 +313,57 @@ const ExploreScreen = ({ navigation }) => {
     };
   }, [itemWidth]);
 
+  const footerStyle = useMemo(() => ({ marginBottom: insets.bottom + 80, padding: 16, minHeight: 60 }), [insets.bottom]);
+  
   const renderFooter = useCallback(() => (
-    <View style={{ marginBottom: insets.bottom + 80, padding: 16, minHeight: 60 }}>
+    <View style={footerStyle}>
       {loadingMore && (
-        <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 20 }}>
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size='small' color={colors.mainColor} />
-          <Text style={{ marginTop: 8, fontSize: 12, color: colors.mainColor }}>Loading more...</Text>
+          <Text style={styles.loadingText}>Loading more...</Text>
         </View>
       )}
     </View>
-  ), [loadingMore, insets.bottom]);
+  ), [loadingMore, footerStyle]);
 
   const renderEmptyComponent = useCallback(() => (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 100 }}>
-      <Text style={{ fontSize: 18, fontWeight: 'bold', color: colors.mainColor, textAlign: 'center' }}>
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyTitle}>
         No matches found
       </Text>
-      <Text style={{ fontSize: 14, color: '#666', textAlign: 'center', marginTop: 8 }}>
+      <Text style={styles.emptySubtitle}>
         Try adjusting your search or filters
       </Text>
     </View>
   ), []);
+  // Memoize moderator button styles
+  const modButtonStyle = useMemo(() => ({
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: hideModerators ? '#725ED4' : '#CDB8E2',
+    marginLeft: 0,
+  }), [hideModerators]);
 
+  const modCheckboxStyle = useMemo(() => ({
+    width: 18,
+    height: 18,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: hideModerators ? '#725ED4' : '#888',
+    backgroundColor: hideModerators ? '#725ED4' : '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 6,
+  }), [hideModerators]);
 
+  const modTextStyle = useMemo(() => ({
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: hideModerators ? 'white' : 'black'
+  }), [hideModerators]);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -347,33 +375,13 @@ const ExploreScreen = ({ navigation }) => {
       <View style={styles.filterRow}>
         {currentUser?.is_moderators && (
           <TouchableOpacity
-            onPress={() => openHideModPicker()}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingHorizontal: 10,
-              height: 30,
-              borderRadius: 15,
-              backgroundColor: hideModerators ? '#725ED4' : '#CDB8E2',
-              marginLeft: 0,
-            }}
+            onPress={openHideModPicker}
+            style={modButtonStyle}
           >
-            <View
-              style={{
-                width: 18,
-                height: 18,
-                borderRadius: 4,
-                borderWidth: 2,
-                borderColor: hideModerators ? '#725ED4' : '#888',
-                backgroundColor: hideModerators ? '#725ED4' : '#fff',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginRight: 6,
-              }}
-            >
+            <View style={modCheckboxStyle}>
               {hideModerators && <FontAwesome6 name="check" size={12} color="#fff" />}
             </View>
-            <Text style={{ fontSize: 12, fontWeight: 'bold', color: hideModerators ? 'white' : 'black' }}>
+            <Text style={modTextStyle}>
               Hide Mods
             </Text>
           </TouchableOpacity>
@@ -387,7 +395,7 @@ const ExploreScreen = ({ navigation }) => {
           <Text
             numberOfLines={1}
             ellipsizeMode="tail"
-            style={[styles.journeyText, { maxWidth: 95 }]} // limit width for ellipsis
+            style={styles.journeyTextEllipsis}
           >
             {selectedJourney ? selectedJourney.name : 'All Journeys'}
           </Text>
@@ -396,7 +404,7 @@ const ExploreScreen = ({ navigation }) => {
       </View>
       {/* Move Hide Mod below filter row */}
       <View style={styles.searchBoxWrapper}>
-        <FontAwesome6 name='magnifying-glass' size={16} color='#8C8C8C' style={{ marginLeft: 10 }} />
+        <FontAwesome6 name='magnifying-glass' size={16} color='#8C8C8C' style={styles.searchIcon} />
         <TextInput
           value={keyword}
           onChangeText={debounceKeyword}
@@ -405,7 +413,7 @@ const ExploreScreen = ({ navigation }) => {
           style={styles.searchInput}
         />
         {(((keyword && keyword !== finalKeyword) || (finalKeyword && isFetching)) && (
-          <ActivityIndicator size="small" color={colors.mainColor} style={{ marginRight: 10 }} />
+          <ActivityIndicator size="small" color={colors.mainColor} style={styles.searchLoader} />
         ))}
       </View>
       <FlatList
@@ -413,31 +421,26 @@ const ExploreScreen = ({ navigation }) => {
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         onEndReached={onLoadMore}
-        onEndReachedThreshold={0.1}
+        onEndReachedThreshold={0.3}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={!isFetching ? renderEmptyComponent : null}
         refreshing={isFetching}
         onRefresh={onRefresh}
-        contentContainerStyle={{ paddingHorizontal: 10 }}
+        contentContainerStyle={styles.flatListContent}
         // Performance optimizations
         removeClippedSubviews={true}
         maxToRenderPerBatch={MAX_TO_RENDER_PER_BATCH}
         windowSize={WINDOW_SIZE}
         initialNumToRender={INITIAL_RENDER_COUNT}
-        updateCellsBatchingPeriod={50}
+        updateCellsBatchingPeriod={100}
         getItemLayout={getItemLayout}
         // Memory optimizations
         disableVirtualization={false}
-        legacyImplementation={false}
         // Interaction optimizations
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
         // Additional performance optimizations
         scrollEventThrottle={16}
-        maintainVisibleContentPosition={{
-          minIndexForVisible: 0,
-          autoscrollToTopThreshold: 10,
-        }}
         numColumns={1}
         showsVerticalScrollIndicator={true}
       />
@@ -498,6 +501,13 @@ const styles = StyleSheet.create({
     color: 'black',
     marginRight: 6
   },
+  journeyTextEllipsis: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: 'black',
+    marginRight: 6,
+    maxWidth: 95
+  },
   searchBoxWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -512,6 +522,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#333333',
     paddingVertical: 5,
+    paddingHorizontal: 10
+  },
+  searchIcon: {
+    marginLeft: 10
+  },
+  searchLoader: {
+    marginRight: 10
+  },
+  flatListContent: {
     paddingHorizontal: 10
   }
 });
